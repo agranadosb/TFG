@@ -61,15 +61,22 @@ class VcfMutationsReader(object):
 
         return from_seq
 
-    def get_seq_by_chr_pos(self, chr_n: str, pos: int, from_nuc: int = False, to_nuc: int = False,):
-        # Get the start of the chromosme in the fasta file
-        line_start = 0
-        if self.fatsa_indexes[chr_n] > 0:
+    def get_cromosme_index(self, cromosme_number: str):
+        cromosme_index = 0
+        if self.fatsa_indexes[cromosme_number] > 0:
             chrs = list(self.fatsa_indexes.keys())
-            cyhrs_string_sum = sum([len(chrs[i]) + 2 for i in range(chrs.index(chr_n))])
-            line_start = (self.fatsa_indexes[chr_n] - 1) * (self.fasta_file_line_length + 1) + cyhrs_string_sum
+            cyhrs_string_sum = sum(
+                [len(chrs[i]) + 2 for i in range(chrs.index(cromosme_number))])
+            cromosme_index = (
+                self.fatsa_indexes[cromosme_number] - 1) * (self.fasta_file_line_length + 1) + cyhrs_string_sum
 
-        pointer_index = pos + line_start + len(f'>{chr_n}')
+        return cromosme_index
+
+    def get_seq_by_chr_pos(self, cromosme_number: str, pos: int, from_nuc: int = False, to_nuc: int = False,):
+        # Get the start of the chromosme in the fasta file
+        line_start = self.get_cromosme_index(cromosme_number)
+
+        pointer_index = pos + line_start + len(f'>{cromosme_number}')
 
         num_new_lines = int(pos / self.fasta_file_line_length)
         last_line = pos % self.fasta_file_line_length == 0
@@ -81,9 +88,26 @@ class VcfMutationsReader(object):
 
         nucleotide = self.fasta_file.readline()[0]
 
+        """ TODO:
+            Hay que tener en cuenta que si se busca un nucleotido y su contexto (n por delante y m por detras),
+            si n o m supera el final del cromosma hay que devolver sólo el principio o el final del cromosoma
+            respectivamente
+
+            >chrX
+            ACGTAAGGT*C*CAGTTGCAAAA
+            >chrY
+            ...
+
+            con n = 12 y m = 20 tiene que devolver:
+                ('ACGTAAGGT', 'C' 'CAGTTGCAAAA')
+            
+            Es decir, cogiendo el max(lo que queda por delante, n) y max(lo que queda por detrás, m)
+
+            Esto se puede hacer con el índice del cromosoma en el que se está buscando actualmente y el
+            siguiente (obteniendo los índices en el archivo del cromosoma)
+        """
         from_seq = self._get_seq_interval(
             from_nuc, pointer_index - from_nuc - 1 + last_line)
-
         to_seq = self._get_seq_interval(to_nuc, pointer_index + 1)
 
         if from_seq or to_seq:
