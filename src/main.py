@@ -23,5 +23,5 @@ def run(test = False):
         if index == 13:
             break
         print(i.REF)
-        print(reader.get_seq_by_chr_pos(i.CHROM, i.POS, 20, 20))
+        print(reader.get_sequence(i.CHROM, i.REF, i.POS, 20, 20))
         index += 1
