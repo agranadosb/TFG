@@ -12,7 +12,6 @@ class VcfMutationsReader(object):
     def __init__(self, vcf_path: str, fasta_path: str):
         self.vcf_file = VcfReader(open(vcf_path, 'r'))
         self.fasta_file = gzip.open(fasta_path, 'r')
-        self.fatsa_indexes = {}
         self.fatsa_chromosme_information = {}
         self.fasta_keys = []
         self.fasta_filename = fasta_path.replace('.gz', '')
@@ -24,37 +23,39 @@ class VcfMutationsReader(object):
 
         self.fasta_file = open(self.fasta_filename, 'r')
 
-        self.generateFastaIndex()
+        self.generate_fasta_index()
 
         for i in self.fasta_file:
             if not i.startswith('>'):
                 self.fasta_file_line_length = len(i) - 1
                 break
 
-    def getVcf(self):
+    def get_vcf(self):
         return self.vcf_file
 
-    def getFasta(self):
+    def get_fasta(self):
         return self.fasta_file
 
-    def getFastaIndexes(self):
-        return self.fatsa_indexes
+    def get_fatsa_chromosme_information(self):
+        return self.fatsa_chromosme_information
 
     def set_chromosme_information(self, chromosme):
         index_id = chromosme.split(':')
         chromosme_label = index_id[1].rstrip().replace('>', '')
 
         self.fasta_keys.append(chromosme_label)
-        self.fatsa_indexes[chromosme_label] = int(index_id[0]) - 1
 
         # Add chromosme information
         self.fatsa_chromosme_information[chromosme_label] = {
-            'line_start': self.get_chromosome_index(chromosme_label),
             'label_length': len(f'>{chromosme_label}'),
             'file_line': int(index_id[0]) - 1
         }
 
-    def set_chromosme_size(self, chromosme_index):
+        self.fatsa_chromosme_information[
+            chromosme_label
+        ]['line_start'] = self.get_chromosome_file_index(chromosme_label)
+
+    def set_chromosme_sizes(self, chromosme_index):
         chromosome_information = self.fatsa_chromosme_information[self.fasta_keys[chromosme_index]]
         line_index_ends = os.stat(self.fasta_filename).st_size
         next_cromosome_length = 0
@@ -62,7 +63,7 @@ class VcfMutationsReader(object):
 
         if chromosme_index != len(self.fasta_keys) - 1:
             next_chromosome = self.fasta_keys[chromosme_index + 1]
-            line_index_ends = self.get_chromosome_index(next_chromosome)
+            line_index_ends = self.get_chromosome_file_index(next_chromosome)
             next_cromosome_length = len(f'>{next_chromosome}')
             file_ends = False
 
@@ -71,7 +72,7 @@ class VcfMutationsReader(object):
         chromosome_information['file_ends'] = file_ends
         chromosome_information['index'] = chromosme_index
 
-    def generateFastaIndex(self):
+    def generate_fasta_index(self):
         command = f"cat {self.fasta_filename} | grep -n '>' > {self.fasta_filename_index}"
         os.system(command)
         with open(self.fasta_filename_index, 'r') as fasta_index_file:
@@ -79,9 +80,9 @@ class VcfMutationsReader(object):
                 self.set_chromosme_information(i)
 
         for i in range(len(self.fasta_keys)):
-            self.set_chromosme_size(i)
+            self.set_chromosme_sizes(i)
 
-    def _get_seq_interval(self, from_seq_nuc: int, from_index: int):
+    def get_seq_interval(self, from_seq_nuc: int, from_index: int):
         from_seq = ''
         if from_seq_nuc:
             self.fasta_file.seek(from_index, 0)
@@ -94,40 +95,42 @@ class VcfMutationsReader(object):
 
         return from_seq
 
-    def get_chromosome_index(self, chromosome_number: str):
-        chromosome_index = 0
-        if self.fatsa_indexes[chromosome_number] > 0:
-            chromosome_index = self.fasta_keys.index(chromosome_number)
-            cyhrs_string_sum = sum(
-                [len(self.fasta_keys[i]) + 2 for i in range(chromosome_index)])
+    def get_chromosome_file_index(self, chromosome_label: str):
+        file_line = self.fatsa_chromosme_information[chromosome_label]['file_line']
 
-            lines = self.fatsa_indexes[chromosome_number] - chromosome_index
-            lines_sum = lines * (self.fasta_file_line_length + 1)
+        if file_line <= 0:
+            return 0
 
-            chromosome_index = lines_sum + cyhrs_string_sum
+        chromosome_index = self.fasta_keys.index(chromosome_label)
+        cyhrs_string_sum = sum(
+            [len(self.fasta_keys[i]) + 2 for i in range(chromosome_index)])
 
-        return chromosome_index
+        lines_sum = (file_line - chromosome_index) * \
+            (self.fasta_file_line_length + 1)
 
-    def _get_seq_prefix(self, pointer_index, from_nuc, last_line_nuc, chromosome_number):
-        line_start = self.fatsa_chromosme_information[chromosome_number]['line_start']
-        chromosome_number_length = self.fatsa_chromosme_information[
-            chromosome_number]['label_length']
-        line_index_ends = self.fatsa_chromosme_information[chromosome_number]['line_index_ends']
+        chromosome_file_index = lines_sum + cyhrs_string_sum
+
+        return chromosome_file_index
+
+    def get_seq_prefix(self, pointer_index, from_nuc, last_line_nuc, chromosome_label):
+        line_start = self.fatsa_chromosme_information[chromosome_label]['line_start']
+        chromosome_label_length = self.fatsa_chromosme_information[chromosome_label]['label_length']
+        line_index_ends = self.fatsa_chromosme_information[chromosome_label]['line_index_ends']
 
         from_nuc_end = pointer_index - from_nuc - 1 + last_line_nuc
 
         if line_index_ends - pointer_index <= self.fasta_file_line_length and not last_line_nuc:
             from_nuc_end += 1
 
-        if from_nuc_end - (line_start + chromosome_number_length) <= chromosome_number_length:
-            from_nuc = from_nuc_end - (line_start + chromosome_number_length)
+        if from_nuc_end - (line_start + chromosome_label_length) <= chromosome_label_length:
+            from_nuc = from_nuc_end - (line_start + chromosome_label_length)
             if from_nuc <= 0:
-                from_nuc += chromosome_number_length
-                from_nuc_end = line_start + chromosome_number_length + 1
+                from_nuc += chromosome_label_length
+                from_nuc_end = line_start + chromosome_label_length + 1
 
-        return self._get_seq_interval(from_nuc, from_nuc_end)
+        return self.get_seq_interval(from_nuc, from_nuc_end)
 
-    def _get_seq_sufix(self, pointer_index, to_nuc, chromosome_number):
+    def get_seq_sufix(self, pointer_index, to_nuc, chromosome_number):
         file_ends = self.fatsa_chromosme_information[chromosome_number]['file_ends']
         next_cromosome_length = self.fatsa_chromosme_information[
             chromosome_number
@@ -143,7 +146,7 @@ class VcfMutationsReader(object):
             if to_nuc <= 0 and file_ends:
                 to_nuc += to_nuc_cpoy
 
-        return self._get_seq_interval(to_nuc, pointer_index + 1)
+        return self.get_seq_interval(to_nuc, pointer_index + 1)
 
     def get_nucleotid_fasta_index(self, pos, chromosome_number):
         # It's necessary to taking into account that seek method counts new lines as a character
@@ -192,14 +195,14 @@ class VcfMutationsReader(object):
         if not from_nuc and not to_nuc:
             return nucleotide
 
-        from_seq = self._get_seq_prefix(
+        from_seq = self.get_seq_prefix(
             pointer_index,
             from_nuc,
             pos % self.fasta_file_line_length == 0,
             chromosome_number
         )
 
-        to_seq = self._get_seq_sufix(
+        to_seq = self.get_seq_sufix(
             pointer_index,
             to_nuc,
             chromosome_number

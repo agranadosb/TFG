@@ -26,15 +26,11 @@ def test_get_seq_by_chr_pos():
         '/opt/UPV/TFG/src/tests/test.fa.gz'
     )
 
-    for z in zip(reader.getVcf(), results * 3):
-        i = z[0]
-        j = z[1]
-        reference = i.REF
-        reference_seq_fasta = reader.get_seq_by_chr_pos(i.CHROM, i.POS, 5, 5)
+    for test_vcf_line in zip(reader.get_vcf(), results * 3):
+        vcf_line = test_vcf_line[0]
+        result = test_vcf_line[1]
+        reference_seq_fasta = reader.get_seq_by_chr_pos(vcf_line.CHROM, vcf_line.POS, 5, 5)
 
-        print(i.CHROM)
-        print(reference)
-        print(reference_seq_fasta)
-        assert j[0] == reference_seq_fasta[0]
-        assert reference == reference_seq_fasta[1]
-        assert j[2] == reference_seq_fasta[2]
+        assert result[0] == reference_seq_fasta[0]
+        assert vcf_line.REF == reference_seq_fasta[1]
+        assert result[2] == reference_seq_fasta[2]
