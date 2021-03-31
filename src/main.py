@@ -19,7 +19,7 @@ def run(test = False):
     )
 
     index = 0
-    for i in reader.getVcf():
+    for i in reader.get_vcf():
         if index == 13:
             break
         print(i.REF)
