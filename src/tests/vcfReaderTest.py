@@ -25,6 +25,7 @@ def test_get_seq_by_chr_pos():
         '/opt/UPV/TFG/src/tests/vcfTest.vcf',
         '/opt/UPV/TFG/src/tests/test.fa.gz'
     )
+
     for z in zip(reader.getVcf(), results * 3):
         i = z[0]
         j = z[1]
