@@ -3,7 +3,9 @@
 import os
 
 from src.vcf.vcfReader import VcfMutationsReader
+from src.model.parserVcf import ParserVcf
 from src.tests.vcfReaderTest import test_get_seq_by_chr_pos
+from src.tests.parserVcfTest import test_generate_simplified_sequences
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -12,8 +14,9 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 def run(test = False):
     if test:
         test_get_seq_by_chr_pos()
+        test_generate_simplified_sequences()
         return
-    reader = VcfMutationsReader(
+    reader = ParserVcf(
         f'{dir_path}/example/datosR1.vcf',
         f'{dir_path}/example/hg19.fa.gz'
     )
@@ -23,5 +26,5 @@ def run(test = False):
         if index == 13:
             break
         print(i.REF)
-        print(reader.get_sequence(i.CHROM, i.REF, i.POS, 20, 20))
+        print(reader.get_vcf_reader().get_sequence(i.CHROM, i.REF, i.POS, 20, 20))
         index += 1

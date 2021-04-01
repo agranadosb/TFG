@@ -9,6 +9,7 @@ results = [
     ('TATC', 'A', 'ATGCC'),
     ('TATCA', 'A', 'TGCCT'),
     ('GAGGG', 'C', 'ATAAC'),
+    ('GAGGG', 'CA', 'TAACA'),
     ('AGGGC', 'A', 'TAACA'),
     ('GGGCA', 'T', 'AACAT'),
     ('GGCAT', 'A', 'ACATC'),
