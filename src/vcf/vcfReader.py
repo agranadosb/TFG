@@ -197,7 +197,7 @@ class VcfMutationsReader(object):
             length = len(searched_sequence) - 1
             sequence += ''.join(searched_sequence)
 
-        return sequence
+        return sequence.upper()
 
     def get_chromosome_file_index(self, chromosome: str):
         """Returns index of the chromosome 'chromosome_label' on the fasta file

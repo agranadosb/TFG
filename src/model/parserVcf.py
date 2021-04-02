@@ -17,6 +17,12 @@ class ParserVcf(object):
 
     def __init__(self, vcf_path: str, fasta_path: str):
         self.vcf_reader = VcfMutationsReader(vcf_path, fasta_path)
+        self.nucletodies_mutations_map = {
+            'A': 'a',
+            'C': 'c',
+            'G': 'g',
+            'T': 't',
+        }
 
     def get_vcf(self):
         """Returns vcf file
@@ -38,7 +44,26 @@ class ParserVcf(object):
         """
         return self.vcf_reader
 
-    def get_simplified_sequence(self, sequence: tuple):
+    def get_lower_sequence(self, sequence: tuple, mutation: str):
+        """Generates the same sequence but in a lower case in the mutations part:
+            sequence:               (ACGTGGT,CAA,GTCC)
+            sequence_simplified:    (ACGTGGT,caa,GTCC)
+
+        Parameters
+        ----------
+        sequence : tuple
+            Sequence to simplify
+        mutation : tuple
+            Mutation sequence
+
+        Returns
+        -------
+        tuple
+            lower sequence
+        """
+        return (sequence[0], mutation[0].sequence.lower(), sequence[2])
+
+    def get_simplified_sequence(self, sequence: tuple, mutation: str):
         """Generates the simplified sequence by a equence:
             sequence:               (ACGTGGT,CAA,GTCC)
             sequence_simplified:    (lllllll,mmm,rrrr)
@@ -47,6 +72,8 @@ class ParserVcf(object):
         ----------
         sequence : tuple
             Sequence to simplify
+        mutation : tuple
+            Mutation sequence
 
         Returns
         -------
@@ -54,13 +81,87 @@ class ParserVcf(object):
             sequence simplified
         """
 
-        left_nucleotides = 'l' * len(sequence[0])
-        mutations_nucleotides = 'm' * len(sequence[1])
-        right_nucleotides = 'r' * len(sequence[2])
+        return (
+            'l' * len(sequence[0]),
+            'm' * len(mutation),
+            'r' * len(sequence[2])
+        )
 
-        return (left_nucleotides, mutations_nucleotides, right_nucleotides)
+    def generate_sequences(self, path: str, filename: str = False, write_chromosme: bool = False, method=False, add_original: bool = True):
+        """Generates a file with the sequences mutated using 'method'
 
-    def generate_simplified_sequences(self, path: str, filename: str = False, write_chromosme: bool = False):
+        Parameters
+        ----------
+        path : str
+            Path to store the data
+        path : str, optional
+            Filename of the result file
+        write_chromosme : bool, optional
+            Indicates the chromosme where the sequences being
+        method : function, optional
+            Method to generate the mutated sequences, simplified as default
+        add_original : bool, optional
+            If true adds the original sequence into the file
+        """
+
+        if not method:
+            method = self.get_simplified_sequence
+
+        current_chromosme = ''
+        with open(f'{path}/{filename}', 'w') as parsed_data_file:
+            for i in self.get_vcf():
+                equence = self.vcf_reader.get_sequence(
+                    i.CHROM,
+                    i.REF,
+                    i.POS,
+                    5,
+                    5
+                )
+
+                sequence_label = "".join(equence)
+                parsed_sequence = "".join(method(equence, i.ALT))
+
+                prefix = ''
+                if write_chromosme:
+                    prefix = f'{i.CHROM}\t'
+                
+                original_sequence = ''
+                if add_original:
+                    original_sequence = f'{prefix}{sequence_label}\n'
+
+                mutated_sequence = f'{prefix}{parsed_sequence}\n'
+
+                parsed_data_file.write(f'{original_sequence}{mutated_sequence}')
+
+    def generate_lower_sequences(self, path: str, filename: str = False, write_chromosme: bool = False, add_original: bool = True):
+        """Generates a file with the sequences mutated like:
+            sequence:               ACGTGGTCAAGTCC
+            sequence_simplified:    ACGTGGTcaaGTCC
+
+        Parameters
+        ----------
+        path : str
+            Path to store the data
+        path : str, optional
+            Filename of the result file
+        write_chromosme : bool, optional
+            Indicates the chromosme where the sequences being
+        add_original: bool, optional
+            If true adds the original sequence into the file
+        """
+
+        if not filename:
+            filename = 'parsed_lower_data.pvcf'
+
+        self.generate_sequences(
+            path,
+            filename,
+            write_chromosme,
+            method=self.get_lower_sequence,
+            add_original=add_original
+        )
+
+    def generate_simplified_sequences(self, path: str, filename: str = False, write_chromosme: bool = False, add_original: bool = True):
         """Generates a file with the sequences mutated like:
             sequence:               ACGTGGTCAAGTCC
             sequence_simplified:    nnnnnnnmmmnnnn
@@ -73,23 +174,16 @@ class ParserVcf(object):
             Filename of the result file
         write_chromosme : bool, optional
             Indicates the chromosme where the sequences being
+        add_original: bool, optional
+            If true adds the original sequence into the file
         """
 
         if not filename:
-            filename = 'parsed_data.pvcf'
+            filename = 'parsed_simplified_data.pvcf'
 
-        current_chromosme = ''
-        with open(f'{path}/{filename}', 'w') as parsed_data_file:
-            for i in self.get_vcf():
-                seq = self.vcf_reader.get_sequence(i.CHROM, i.REF, i.POS, 5, 5)
-
-                sequence_label = "".join(seq)
-                simplifed_sequence_label = "".join(self.get_simplified_sequence(seq))
-
-                prefix = ''
-                if write_chromosme:
-                    prefix = f'{i.CHROM}\t'
-
-                parsed_data_file.write(
-                    f'{prefix}{sequence_label}\n{prefix}{simplifed_sequence_label}\n'
-                )
+        self.generate_sequences(
+            path,
+            filename,
+            write_chromosme,
+            add_original=add_original
+        )
