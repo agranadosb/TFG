@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from src.vcf.vcfReader import VcfMutationsReader
 
 results = [

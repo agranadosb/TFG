@@ -16,15 +16,20 @@ def run(test = False):
         test_get_seq_by_chr_pos()
         test_generate_simplified_sequences()
         return
-    reader = ParserVcf(
+    parser_lower = ParserVcf(
         f'{dir_path}/example/datosR1.vcf',
         f'{dir_path}/example/hg19.fa.gz'
     )
 
-    index = 0
+    parser_lower.generate_lower_sequences(
+        f'{dir_path}/example/',
+        add_original=False
+    )
+
+    """ index = 0
     for i in reader.get_vcf():
         if index == 13:
             break
         print(i.REF)
         print(reader.get_vcf_reader().get_sequence(i.CHROM, i.REF, i.POS, 20, 20))
-        index += 1
+        index += 1 """

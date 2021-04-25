@@ -31,7 +31,6 @@ class VcfMutationsReader(object):
         self.fasta_file_line_length = 50
 
         self.set_fasta_file(fasta_path)
-        self.set_fasta_line_length()
         self.generate_fasta_information()
 
     def get_vcf(self):
@@ -105,7 +104,6 @@ class VcfMutationsReader(object):
 
         self.fasta_keys.append(chromosme_label)
 
-        # Add chromosme information
         self.fatsa_chromosme_information[chromosme_label] = {
             'label_length': len(f'>{chromosme_label}'),
             'line_starts': int(index_id[0]) - 1
@@ -159,6 +157,8 @@ class VcfMutationsReader(object):
          - file_ends: shows if the chromosome is the last
          - index: chromosome index
         """
+        self.set_fasta_line_length()
+
         command = f"cat {self.fasta_filename} | grep -n '>' > {self.fasta_filename_index}"
         os.system(command)
         with open(self.fasta_filename_index, 'r') as fasta_index_file:
@@ -222,10 +222,10 @@ class VcfMutationsReader(object):
             [len(self.fasta_keys[i]) + 2 for i in range(chromosome_index)]
         )
 
-        lines_sum = (line_starts - chromosome_index) * \
+        new_lines_char = (line_starts - chromosome_index) * \
             (self.fasta_file_line_length + 1)
 
-        chromosome_file_index = lines_sum + chromosme_labels_length
+        chromosome_file_index = new_lines_char + chromosme_labels_length
 
         return chromosome_file_index
 

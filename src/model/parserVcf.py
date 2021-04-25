@@ -83,7 +83,7 @@ class ParserVcf(object):
 
         return (
             'l' * len(sequence[0]),
-            'm' * len(mutation),
+            'm' * len(mutation[0].sequence),
             'r' * len(sequence[2])
         )
 
@@ -110,7 +110,7 @@ class ParserVcf(object):
         current_chromosme = ''
         with open(f'{path}/{filename}', 'w') as parsed_data_file:
             for i in self.get_vcf():
-                equence = self.vcf_reader.get_sequence(
+                sequence = self.vcf_reader.get_sequence(
                     i.CHROM,
                     i.REF,
                     i.POS,
@@ -118,20 +118,17 @@ class ParserVcf(object):
                     5
                 )
 
-                sequence_label = "".join(equence)
-                parsed_sequence = "".join(method(equence, i.ALT))
-
                 prefix = ''
                 if write_chromosme:
                     prefix = f'{i.CHROM}\t'
                 
                 original_sequence = ''
                 if add_original:
-                    original_sequence = f'{prefix}{sequence_label}\n'
+                    original_sequence = f'{prefix}{"".join(sequence)}\n' if add_original else ''
 
-                mutated_sequence = f'{prefix}{parsed_sequence}\n'
-
-                parsed_data_file.write(f'{original_sequence}{mutated_sequence}')
+                parsed_data_file.write(
+                    f'{original_sequence}{prefix}{"".join(method(sequence, i.ALT))}\n'
+                )
 
     def generate_lower_sequences(self, path: str, filename: str = False, write_chromosme: bool = False, add_original: bool = True):
         """Generates a file with the sequences mutated like:
@@ -150,12 +147,9 @@ class ParserVcf(object):
             If true adds the original sequence into the file
         """
 
-        if not filename:
-            filename = 'parsed_lower_data.pvcf'
-
         self.generate_sequences(
             path,
-            filename,
+            filename or 'parsed_lower_data.pvcf',
             write_chromosme,
             method=self.get_lower_sequence,
             add_original=add_original
@@ -178,12 +172,14 @@ class ParserVcf(object):
             If true adds the original sequence into the file
         """
 
-        if not filename:
-            filename = 'parsed_simplified_data.pvcf'
-
         self.generate_sequences(
             path,
-            filename,
+            filename or 'parsed_simplified_data.pvcf',
             write_chromosme,
             add_original=add_original
         )
+
+    ''' TODO: Separar en clases según el tipo de parser, y heredar la clase común con los métodos
+        que deberá ser abstract
+    '''
+
