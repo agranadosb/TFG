@@ -146,6 +146,7 @@ class VcfMutationsReader(object):
         chromosome_information["file_ends"] = file_ends
         chromosome_information["index"] = chromosme_local_index
 
+    """ TODO: Añadir el fasta information a una clase a parte """
     def generate_fasta_information(self):
         """Generates fasta file information about the chromosomes
 
