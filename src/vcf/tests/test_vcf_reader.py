@@ -107,7 +107,9 @@ class TestVcfMutationsReader(TestCase):
             index_ends,
         )
         self.assertEqual(
-            self.reader.fatsa_chromosme_information[chromosme_label]["next_chromosome_length"],
+            self.reader.fatsa_chromosme_information[chromosme_label][
+                "next_chromosome_length"
+            ],
             next_chromosome_length,
         )
         self.assertEqual(
@@ -118,7 +120,7 @@ class TestVcfMutationsReader(TestCase):
             self.reader.fatsa_chromosme_information[chromosme_label]["index"],
             index,
         )
-    
+
     def test_set_chromosme_sizes_last(self):
         chromosme_label = "chr3"
         index_ends = 1548
@@ -134,7 +136,9 @@ class TestVcfMutationsReader(TestCase):
             index_ends,
         )
         self.assertEqual(
-            self.reader.fatsa_chromosme_information[chromosme_label]["next_chromosome_length"],
+            self.reader.fatsa_chromosme_information[chromosme_label][
+                "next_chromosome_length"
+            ],
             next_chromosome_length,
         )
         self.assertEqual(
@@ -145,6 +149,7 @@ class TestVcfMutationsReader(TestCase):
             self.reader.fatsa_chromosme_information[chromosme_label]["index"],
             index,
         )
+
 
 """ # -*- coding: utf-8 -*-
 
