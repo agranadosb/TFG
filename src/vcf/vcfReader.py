@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from src.lib.PyVCF.vcf import Reader as VcfReader
 import gzip
 import os
 import shutil
 import sys
+
+from vcf import Reader as VcfReader
 
 
 class VcfMutationsReader(object):
