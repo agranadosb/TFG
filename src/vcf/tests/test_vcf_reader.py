@@ -1,20 +1,52 @@
 # -*- coding: utf-8 -*-
 
+import pathlib
 from unittest import TestCase
 
 from src.vcf.vcfReader import VcfMutationsReader
 
 
 class TestVcfMutationsReader(TestCase):
-    def test_set_fasta_line_length(self):
-        reader = VcfMutationsReader(
-            '/opt/UPV/TFG/src/vcf/tests/vcfTest.vcf',
-            '/opt/UPV/TFG/src/vcf/tests/test.fa.gz'
+    def setUp(self) -> None:
+        self.reader = VcfMutationsReader(
+            "/opt/UPV/TFG/src/vcf/tests/vcfTest.vcf",
+            "/opt/UPV/TFG/src/vcf/tests/test.fa.gz",
         )
 
-        reader.set_fasta_line_length()
+        return super().setUp()
 
-        self.assertEqual(reader.fasta_file_line_length, 50)
+    def test_set_fasta_line_length(self):
+        line_length = 50
+
+        self.assertEqual(self.reader.fasta_file_line_length, line_length)
+
+    def test_set_fasta_file(self):
+        path = f"{str(pathlib.Path(__file__).parent.absolute())}/test.fa"
+
+        self.assertEqual(self.reader.fasta_file.name, path)
+
+    def test_set_chromosme_information_first(self):
+        chromosme_label = "chr1"
+        label_length = len("chr1")
+        line_starts = 0
+        index_starts = 0
+
+        self.assertTrue(
+            self.reader.fatsa_chromosme_information.get(chromosme_label, True)
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label][label_length],
+            label_length,
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label][line_starts],
+            line_starts,
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label][index_starts],
+            index_starts,
+        )
+
 
 """ # -*- coding: utf-8 -*-
 

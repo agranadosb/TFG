@@ -7,16 +7,12 @@ from src.model.parserVcf import ParserVcf
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
-def run(test = False):
+def run(test=False):
     parser_lower = ParserVcf(
-        f'{dir_path}/example/datosR1.vcf',
-        f'{dir_path}/example/hg19.fa.gz'
+        f"{dir_path}/example/datosR1.vcf", f"{dir_path}/example/hg19.fa.gz"
     )
 
-    parser_lower.generate_extended_sequences(
-        f'{dir_path}/example/',
-        add_original=False
-    )
+    parser_lower.generate_extended_sequences(f"{dir_path}/example/", add_original=False)
 
     """ index = 0
     for i in reader.get_vcf():
