@@ -92,6 +92,60 @@ class TestVcfMutationsReader(TestCase):
             index_starts,
         )
 
+    def test_set_chromosme_sizes_first(self):
+        chromosme_label = "chr1"
+        index_ends = 516
+        next_chromosome_length = len(f">chr2")
+        file_ends = False
+        index = 0
+
+        self.assertTrue(
+            self.reader.fatsa_chromosme_information.get(chromosme_label, True)
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["index_ends"],
+            index_ends,
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["next_chromosome_length"],
+            next_chromosome_length,
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["file_ends"],
+            file_ends,
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["index"],
+            index,
+        )
+    
+    def test_set_chromosme_sizes_last(self):
+        chromosme_label = "chr3"
+        index_ends = 1548
+        next_chromosome_length = 0
+        file_ends = True
+        index = 2
+
+        self.assertTrue(
+            self.reader.fatsa_chromosme_information.get(chromosme_label, True)
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["index_ends"],
+            index_ends,
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["next_chromosome_length"],
+            next_chromosome_length,
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["file_ends"],
+            file_ends,
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["index"],
+            index,
+        )
+
 """ # -*- coding: utf-8 -*-
 
 from src.vcf.vcfReader import VcfMutationsReader
