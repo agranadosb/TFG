@@ -3,7 +3,6 @@
 import gzip
 import os
 import shutil
-import sys
 
 from vcf import Reader as VcfReader
 
