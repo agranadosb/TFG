@@ -8,9 +8,10 @@ from src.vcf.vcfReader import VcfMutationsReader
 
 class TestVcfMutationsReader(TestCase):
     def setUp(self) -> None:
+        self.static_dir = f"{str(pathlib.Path(__file__).parent.absolute())}/static/"
         self.reader = VcfMutationsReader(
-            "/opt/UPV/TFG/src/vcf/tests/vcfTest.vcf",
-            "/opt/UPV/TFG/src/vcf/tests/test.fa.gz",
+            f"{self.static_dir}vcfTest.vcf",
+            f"{self.static_dir}test.fa.gz",
         )
 
         return super().setUp()
@@ -21,13 +22,13 @@ class TestVcfMutationsReader(TestCase):
         self.assertEqual(self.reader.fasta_file_line_length, line_length)
 
     def test_set_fasta_file(self):
-        path = f"{str(pathlib.Path(__file__).parent.absolute())}/test.fa"
+        path = f"{self.static_dir}test.fa"
 
         self.assertEqual(self.reader.fasta_file.name, path)
 
     def test_set_chromosme_information_first(self):
         chromosme_label = "chr1"
-        label_length = len("chr1")
+        label_length = len(f">{chromosme_label}")
         line_starts = 0
         index_starts = 0
 
@@ -35,17 +36,20 @@ class TestVcfMutationsReader(TestCase):
             self.reader.fatsa_chromosme_information.get(chromosme_label, True)
         )
         self.assertEqual(
-            self.reader.fatsa_chromosme_information[chromosme_label][label_length],
+            self.reader.fatsa_chromosme_information[chromosme_label]["label_length"],
             label_length,
         )
         self.assertEqual(
-            self.reader.fatsa_chromosme_information[chromosme_label][line_starts],
+            self.reader.fatsa_chromosme_information[chromosme_label]["line_starts"],
             line_starts,
         )
         self.assertEqual(
-            self.reader.fatsa_chromosme_information[chromosme_label][index_starts],
+            self.reader.fatsa_chromosme_information[chromosme_label]["index_starts"],
             index_starts,
         )
+
+    def test_set_chromosme_information_middle(self):
+        pass
 
 
 """ # -*- coding: utf-8 -*-
