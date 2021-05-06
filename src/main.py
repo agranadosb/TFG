@@ -2,26 +2,18 @@
 
 import os
 
-from src.vcf.vcfReader import VcfMutationsReader
 from src.model.parserVcf import ParserVcf
-from src.tests.vcfReaderTest import test_get_seq_by_chr_pos
-from src.tests.parserVcfTest import test_generate_simplified_sequences
-
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
 def run(test = False):
-    if test:
-        test_get_seq_by_chr_pos()
-        test_generate_simplified_sequences()
-        return
     parser_lower = ParserVcf(
         f'{dir_path}/example/datosR1.vcf',
         f'{dir_path}/example/hg19.fa.gz'
     )
 
-    parser_lower.generate_lower_sequences(
+    parser_lower.generate_extended_sequences(
         f'{dir_path}/example/',
         add_original=False
     )

@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-from . import parserVcf
+from . import parserVcf, abstractModel

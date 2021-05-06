@@ -1,2 +1,2 @@
 test:
-	python -m pytest --ignore=./src/lib/
+	python -m pytest
