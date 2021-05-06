@@ -49,8 +49,48 @@ class TestVcfMutationsReader(TestCase):
         )
 
     def test_set_chromosme_information_middle(self):
-        pass
+        chromosme_label = "chr2"
+        label_length = len(f">{chromosme_label}")
+        line_starts = 11
+        index_starts = 516
 
+        self.assertTrue(
+            self.reader.fatsa_chromosme_information.get(chromosme_label, True)
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["label_length"],
+            label_length,
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["line_starts"],
+            line_starts,
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["index_starts"],
+            index_starts,
+        )
+
+    def test_set_chromosme_information_last(self):
+        chromosme_label = "chr3"
+        label_length = len(f">{chromosme_label}")
+        line_starts = 22
+        index_starts = 1032
+
+        self.assertTrue(
+            self.reader.fatsa_chromosme_information.get(chromosme_label, True)
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["label_length"],
+            label_length,
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["line_starts"],
+            line_starts,
+        )
+        self.assertEqual(
+            self.reader.fatsa_chromosme_information[chromosme_label]["index_starts"],
+            index_starts,
+        )
 
 """ # -*- coding: utf-8 -*-
 
