@@ -222,6 +222,8 @@ class VcfMutationsReader(object):
 
         for i in range(len(self.fasta_keys)):
             self.set_chromosme_sizes(i)
+        
+        os.remove(self.fasta_filename_index)
 
     def get_nucleotid_fasta_index(self, pos, chromosome):
         """Gets the index of a nucleotide by its position in a chromosome
