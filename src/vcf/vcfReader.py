@@ -275,26 +275,14 @@ class VcfMutationsReader(object):
         str
             prefix
         """
-        index_starts = self.fatsa_chromosme_information[chromosome]["index_starts"]
-        chromosome_label_length = self.fatsa_chromosme_information[chromosome][
-            "label_length"
-        ]
-        index_ends = self.fatsa_chromosme_information[chromosome]["index_ends"]
+        pos_initital = pos - length
+        if pos - length <= 0:
+            pos_initital = 0
+            length += pos - length
+        
+        index = self.get_nucleotid_fasta_index(pos_initital, chromosome)
 
-        last_line = pos % self.fasta_file_line_length == 0
-        pointer_index = self.get_nucleotid_fasta_index(pos, chromosome)
-        chromosome_starts = index_starts + chromosome_label_length
-        sequence_ends = pointer_index - length - 1 + last_line
-        interval = sequence_ends - chromosome_starts
-
-        if index_ends - pointer_index <= self.fasta_file_line_length and not last_line:
-            sequence_ends += 1
-
-        if interval <= chromosome_label_length and interval <= 0:
-            length = interval + chromosome_label_length
-            sequence_ends = chromosome_starts + 1
-
-        return self.get_sequence_interval(sequence_ends, length)
+        return self.get_sequence_interval(index, length)
 
     def get_sequence_sufix(self, pos, length, chromosome):
         """Gets suffix from an index on the fasta file

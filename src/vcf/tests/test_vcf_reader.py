@@ -384,6 +384,82 @@ class TestVcfMutationsReader(TestCase):
 
         self.assertEqual(result, "CTAAT")
 
+    def test_get_sequence_prefix_first_row_first_element(self):
+        chromosme = "chr1"
+        pos = 0
+        length = 5
+
+        result = self.reader.get_sequence_prefix(pos, length, chromosme)
+
+        self.assertEqual(result, "")
+
+    def test_get_sequence_prefix_first_row_second_element(self):
+        chromosme = "chr1"
+        pos = 1
+        length = 5
+
+        result = self.reader.get_sequence_prefix(pos, length, chromosme)
+
+        self.assertEqual(result, "T")
+    
+    def test_get_sequence_prefix_first_row_fifth_element(self):
+        chromosme = "chr1"
+        pos = 4
+        length = 5
+
+        result = self.reader.get_sequence_prefix(pos, length, chromosme)
+
+        self.assertEqual(result, "TATC")
+    
+    def test_get_sequence_prefix_first_row_sixth_element(self):
+        chromosme = "chr1"
+        pos = 5
+        length = 5
+
+        result = self.reader.get_sequence_prefix(pos, length, chromosme)
+
+        self.assertEqual(result, "TATCA")
+    
+    def test_get_sequence_prefix_second_row_first_element(self):
+        chromosme = "chr1"
+        pos = 50
+        length = 5
+
+        result = self.reader.get_sequence_prefix(pos, length, chromosme)
+
+        self.assertEqual(result, "AGGGC")
+    
+    def test_get_sequence_prefix_second_row_second_element(self):
+        chromosme = "chr1"
+        pos = 51
+        length = 5
+
+        result = self.reader.get_sequence_prefix(pos, length, chromosme)
+
+        self.assertEqual(result, "GGGCA")
+    
+    def test_get_sequence_prefix_first_element_next_chromosme(self):
+        chromosme = "chr2"
+        pos = 0
+        length = 5
+
+        result = self.reader.get_sequence_prefix(pos, length, chromosme)
+
+        self.assertEqual(result, "")
+    
+    def test_get_sequence_prefix_more_that_one_line_chromosme(self):
+        chromosme = "chr2"
+        pos = 50 * 2 + 10
+        first_line_sequence = 'GTCGGAGGGC'
+        second_line_sequence = 'ATAACATCGTCGTGCTCCACGCTGTAATATCGTGCCAGGAAGTGACCGTG'
+        thirsd_line_sequence = 'AAGCAGCGTC'
+        length = 10 + 50 + 10
+        sequence = f"{first_line_sequence}{second_line_sequence}{thirsd_line_sequence}"
+
+        result = self.reader.get_sequence_prefix(pos, length, chromosme)
+
+        self.assertEqual(result, sequence)
+
 
 """ # -*- coding: utf-8 -*-
 
