@@ -150,6 +150,164 @@ class TestVcfMutationsReader(TestCase):
             index,
         )
 
+    def test_generate_fasta_information_file(self):
+        path = f"{self.static_dir}test.fa.index"
+        lines = ["1:>chr1\n", "12:>chr2\n", "23:>chr3\n"]
+
+        with open(path, "r") as index:
+            idem_lines = filter(
+                lambda line: line[0] != line[1], zip(index.readlines(), lines)
+            )
+
+        self.assertEqual(len(list(idem_lines)), 0)
+
+    def test_get_nucleotid_fasta_index_first_line_first(self):
+        chromosme = "chr1"
+        pos = 0
+        index = len(f">{chromosme}\n") + pos
+        nucleotid = 'T'
+
+        index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        self.reader.fasta_file.seek(index_result, 0)
+        nucleotid_result = self.reader.fasta_file.read(1)
+
+        self.assertEqual(index, index_result)
+        self.assertEqual(nucleotid, nucleotid_result)
+    
+    def test_get_nucleotid_fasta_index_first_line_second(self):
+        chromosme = "chr1"
+        pos = 1
+        index = len(f">{chromosme}\n") + pos
+        nucleotid = 'A'
+
+        index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        self.reader.fasta_file.seek(index_result, 0)
+        nucleotid_result = self.reader.fasta_file.read(1)
+
+        self.assertEqual(index, index_result)
+        self.assertEqual(nucleotid, nucleotid_result)
+
+    def test_get_nucleotid_fasta_index_first_line_last(self):
+        chromosme = "chr1"
+        pos = 49
+        index = len(f">{chromosme}\n") + pos
+        nucleotid = 'C'
+
+        index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        self.reader.fasta_file.seek(index_result, 0)
+        nucleotid_result = self.reader.fasta_file.read(1)
+
+        self.assertEqual(index, index_result)
+        self.assertEqual(nucleotid, nucleotid_result)
+
+    def test_get_nucleotid_fasta_index_second_line_first(self):
+        chromosme = "chr1"
+        pos = 50
+        index = len(f">{chromosme}\n") + pos + 1
+        nucleotid = 'A'
+
+        index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        self.reader.fasta_file.seek(index_result, 0)
+        nucleotid_result = self.reader.fasta_file.read(1)
+
+        self.assertEqual(index, index_result)
+        self.assertEqual(nucleotid, nucleotid_result)
+
+    def test_get_nucleotid_fasta_index_second_line_second(self):
+        chromosme = "chr1"
+        pos = 51
+        index = len(f">{chromosme}\n") + pos + 1
+        nucleotid = 'T'
+
+        index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        self.reader.fasta_file.seek(index_result, 0)
+        nucleotid_result = self.reader.fasta_file.read(1)
+
+        self.assertEqual(index, index_result)
+        self.assertEqual(nucleotid, nucleotid_result)
+
+    def test_get_nucleotid_fasta_index_last_line_prev_last(self):
+        chromosme = "chr1"
+        pos = 50 * 9 + 48
+        index = len(f">{chromosme}\n") + pos + 9
+        nucleotid = 'A'
+
+        index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        self.reader.fasta_file.seek(index_result, 0)
+        nucleotid_result = self.reader.fasta_file.read(1)
+
+        self.assertEqual(index, index_result)
+        self.assertEqual(nucleotid, nucleotid_result)
+    
+    def test_get_nucleotid_fasta_index_last_line_last(self):
+        chromosme = "chr1"
+        pos = 50 * 9 + 49
+        index = len(f">{chromosme}\n") + pos + 9
+        nucleotid = 'T'
+
+        index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        self.reader.fasta_file.seek(index_result, 0)
+        nucleotid_result = self.reader.fasta_file.read(1)
+
+        self.assertEqual(index, index_result)
+        self.assertEqual(nucleotid, nucleotid_result)
+    
+    def test_get_nucleotid_fasta_index_last_chr_first_line_first(self):
+        chromosme = "chr3"
+        pos = 0
+        prev_elements = 10 * 51 * 2 + 6 * 2
+        index = len(f">{chromosme}\n") + prev_elements + pos
+        nucleotid = 'T'
+
+        index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        self.reader.fasta_file.seek(index_result, 0)
+        nucleotid_result = self.reader.fasta_file.read(1)
+
+        self.assertEqual(index, index_result)
+        self.assertEqual(nucleotid, nucleotid_result)
+
+    def test_get_nucleotid_fasta_index_last_chr_first_line_second(self):
+        chromosme = "chr3"
+        pos = 1
+        prev_elements = 10 * 51 * 2 + 6 * 2
+        index = len(f">{chromosme}\n") + prev_elements + pos
+        nucleotid = 'A'
+
+        index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        self.reader.fasta_file.seek(index_result, 0)
+        nucleotid_result = self.reader.fasta_file.read(1)
+
+        self.assertEqual(index, index_result)
+        self.assertEqual(nucleotid, nucleotid_result)
+    
+    def test_get_nucleotid_fasta_index_last_chr_last_line_prev_last(self):
+        chromosme = "chr3"
+        pos = 50 * 9 + 48
+        prev_elements = 10 * 51 * 2 + 6 * 2 + 9
+        index = len(f">{chromosme}\n") + prev_elements + pos
+        nucleotid = 'A'
+
+        index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        self.reader.fasta_file.seek(index_result, 0)
+        nucleotid_result = self.reader.fasta_file.read(1)
+
+        self.assertEqual(index, index_result)
+        self.assertEqual(nucleotid, nucleotid_result)
+    
+    def test_get_nucleotid_fasta_index_last_chr_last_line_last(self):
+        chromosme = "chr3"
+        pos = 50 * 9 + 49
+        prev_elements = 10 * 51 * 2 + 6 * 2 + 9
+        index = len(f">{chromosme}\n") + prev_elements + pos
+        nucleotid = 'T'
+
+        index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        self.reader.fasta_file.seek(index_result, 0)
+        nucleotid_result = self.reader.fasta_file.read(1)
+
+        self.assertEqual(index, index_result)
+        self.assertEqual(nucleotid, nucleotid_result)
+
 
 """ # -*- coding: utf-8 -*-
 

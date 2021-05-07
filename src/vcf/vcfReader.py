@@ -147,6 +147,7 @@ class VcfMutationsReader(object):
         chromosome_information["index"] = chromosme_local_index
 
     """ TODO: Añadir el fasta information a una clase a parte """
+
     def generate_fasta_information(self):
         """Generates fasta file information about the chromosomes
 
@@ -171,6 +172,29 @@ class VcfMutationsReader(object):
 
         for i in range(len(self.fasta_keys)):
             self.set_chromosme_sizes(i)
+
+    def get_nucleotid_fasta_index(self, pos, chromosome):
+        """Gets the index of a nucleotide by its position in a chromosome
+
+        Parameters
+        ----------
+        pos : int
+            Index on chromosome 'chromosome'
+        chromosome : str
+            Label of the chromosome
+
+        Returns
+        -------
+        str
+            index of the nucleotid in the fasta file
+        """
+        # It's necessary to taking into account that seek method counts new lines as a character
+        num_new_lines = int(pos / self.fasta_file_line_length)
+        index_starts = self.fatsa_chromosme_information[chromosome]["index_starts"]
+        label_length = self.fatsa_chromosme_information[chromosome]["label_length"] + 1
+
+        # Get the position of the nucleotid on the file (1 char is one byte, that's why we use seek)
+        return pos + index_starts + label_length + num_new_lines
 
     def get_sequence_interval(self, from_index: int, length: int):
         """Returns the sequence that starts in 'from_index' and has 'length' length
@@ -305,30 +329,6 @@ class VcfMutationsReader(object):
                 length += length_copy
 
         return self.get_sequence_interval(pointer_index + 1, length)
-
-    def get_nucleotid_fasta_index(self, pos, chromosome):
-        """Gets the index of a nucleotide by its position in a chromosome
-
-        Parameters
-        ----------
-        pos : int
-            Index on chromosome 'chromosome'
-        chromosome : str
-            Label of the chromosome
-
-        Returns
-        -------
-        str
-            index of the nucleotid in the fasta file
-        """
-        # It's necessary to taking into account that seek method counts new lines as a character
-        num_new_lines = int(pos / self.fasta_file_line_length)
-        last_line_nuc = pos % self.fasta_file_line_length == 0
-        index_starts = self.fatsa_chromosme_information[chromosome]["index_starts"]
-        label_length = self.fatsa_chromosme_information[chromosome]["label_length"]
-
-        # Get the position of the nucleotid on the file (1 char is one byte, that's why we use seek)
-        return pos + index_starts + label_length + num_new_lines - last_line_nuc
 
     def get_nucleotide(self, chromosome: str, pos: int, length: int = 1):
         """Gets the nucleotide (or sequence) from the psoition 'pos' of a chromosme
