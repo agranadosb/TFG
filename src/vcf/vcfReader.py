@@ -85,6 +85,37 @@ class VcfMutationsReader(object):
 
         self.fasta_file = open(self.fasta_filename, "r")
 
+    def get_chromosome_file_index(self, chromosome: str):
+        """Returns index of the chromosome 'chromosome_label' on the fasta file
+
+        Parameters
+        ----------
+        chromosome : int
+            Label of the chromosome
+
+        Returns
+        -------
+        str
+            chromosome index on fasta file
+        """
+        line_starts = self.fatsa_chromosme_information[chromosome]["line_starts"]
+
+        if line_starts <= 0:
+            return 0
+
+        chromosome_index = self.fasta_keys.index(chromosome)
+        chromosme_labels_length = sum(
+            [len(self.fasta_keys[i]) + 2 for i in range(chromosome_index)]
+        )
+
+        new_lines_char = (line_starts - chromosome_index) * (
+            self.fasta_file_line_length + 1
+        )
+
+        chromosome_file_index = new_lines_char + chromosme_labels_length
+
+        return chromosome_file_index
+
     def set_chromosme_information(self, chromosme):
         """Adds chromosome information of 'chromosme'
 
@@ -226,37 +257,6 @@ class VcfMutationsReader(object):
             sequence += "".join(searched_sequence)
 
         return sequence.upper()
-
-    def get_chromosome_file_index(self, chromosome: str):
-        """Returns index of the chromosome 'chromosome_label' on the fasta file
-
-        Parameters
-        ----------
-        chromosome : int
-            Label of the chromosome
-
-        Returns
-        -------
-        str
-            chromosome index on fasta file
-        """
-        line_starts = self.fatsa_chromosme_information[chromosome]["line_starts"]
-
-        if line_starts <= 0:
-            return 0
-
-        chromosome_index = self.fasta_keys.index(chromosome)
-        chromosme_labels_length = sum(
-            [len(self.fasta_keys[i]) + 2 for i in range(chromosome_index)]
-        )
-
-        new_lines_char = (line_starts - chromosome_index) * (
-            self.fasta_file_line_length + 1
-        )
-
-        chromosome_file_index = new_lines_char + chromosme_labels_length
-
-        return chromosome_file_index
 
     def get_sequence_prefix(self, pos: int, length: int, chromosome: str):
         """Gets prefix from an index on the fasta file

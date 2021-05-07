@@ -26,6 +26,22 @@ class TestVcfMutationsReader(TestCase):
 
         self.assertEqual(self.reader.fasta_file.name, path)
 
+    def test_get_chromosome_file_index(self):
+        chromosme_1 = "chr1"
+        chromosme_2 = "chr2"
+        chromosme_3 = "chr3"
+        result_1 = 0
+        result_2 = len(f">{chromosme_1}\n") + 51 * 10
+        result_3 = len(f">{chromosme_1}\n") + len(f">{chromosme_2}\n") + 51 * 10 * 2
+
+        index_1 = self.reader.get_chromosome_file_index(chromosme_1)
+        index_2 = self.reader.get_chromosome_file_index(chromosme_2)
+        index_3 = self.reader.get_chromosome_file_index(chromosme_3)
+
+        self.assertEqual(index_1, result_1)
+        self.assertEqual(index_2, result_2)
+        self.assertEqual(index_3, result_3)
+
     def test_set_chromosme_information_first(self):
         chromosme_label = "chr1"
         label_length = len(f">{chromosme_label}")
@@ -165,7 +181,7 @@ class TestVcfMutationsReader(TestCase):
         chromosme = "chr1"
         pos = 0
         index = len(f">{chromosme}\n") + pos
-        nucleotid = 'T'
+        nucleotid = "T"
 
         index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
         self.reader.fasta_file.seek(index_result, 0)
@@ -173,12 +189,12 @@ class TestVcfMutationsReader(TestCase):
 
         self.assertEqual(index, index_result)
         self.assertEqual(nucleotid, nucleotid_result)
-    
+
     def test_get_nucleotid_fasta_index_first_line_second(self):
         chromosme = "chr1"
         pos = 1
         index = len(f">{chromosme}\n") + pos
-        nucleotid = 'A'
+        nucleotid = "A"
 
         index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
         self.reader.fasta_file.seek(index_result, 0)
@@ -191,7 +207,7 @@ class TestVcfMutationsReader(TestCase):
         chromosme = "chr1"
         pos = 49
         index = len(f">{chromosme}\n") + pos
-        nucleotid = 'C'
+        nucleotid = "C"
 
         index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
         self.reader.fasta_file.seek(index_result, 0)
@@ -204,7 +220,7 @@ class TestVcfMutationsReader(TestCase):
         chromosme = "chr1"
         pos = 50
         index = len(f">{chromosme}\n") + pos + 1
-        nucleotid = 'A'
+        nucleotid = "A"
 
         index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
         self.reader.fasta_file.seek(index_result, 0)
@@ -217,7 +233,7 @@ class TestVcfMutationsReader(TestCase):
         chromosme = "chr1"
         pos = 51
         index = len(f">{chromosme}\n") + pos + 1
-        nucleotid = 'T'
+        nucleotid = "T"
 
         index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
         self.reader.fasta_file.seek(index_result, 0)
@@ -230,7 +246,7 @@ class TestVcfMutationsReader(TestCase):
         chromosme = "chr1"
         pos = 50 * 9 + 48
         index = len(f">{chromosme}\n") + pos + 9
-        nucleotid = 'A'
+        nucleotid = "A"
 
         index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
         self.reader.fasta_file.seek(index_result, 0)
@@ -238,12 +254,12 @@ class TestVcfMutationsReader(TestCase):
 
         self.assertEqual(index, index_result)
         self.assertEqual(nucleotid, nucleotid_result)
-    
+
     def test_get_nucleotid_fasta_index_last_line_last(self):
         chromosme = "chr1"
         pos = 50 * 9 + 49
         index = len(f">{chromosme}\n") + pos + 9
-        nucleotid = 'T'
+        nucleotid = "T"
 
         index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
         self.reader.fasta_file.seek(index_result, 0)
@@ -251,13 +267,13 @@ class TestVcfMutationsReader(TestCase):
 
         self.assertEqual(index, index_result)
         self.assertEqual(nucleotid, nucleotid_result)
-    
+
     def test_get_nucleotid_fasta_index_last_chr_first_line_first(self):
         chromosme = "chr3"
         pos = 0
         prev_elements = 10 * 51 * 2 + 6 * 2
         index = len(f">{chromosme}\n") + prev_elements + pos
-        nucleotid = 'T'
+        nucleotid = "T"
 
         index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
         self.reader.fasta_file.seek(index_result, 0)
@@ -271,7 +287,7 @@ class TestVcfMutationsReader(TestCase):
         pos = 1
         prev_elements = 10 * 51 * 2 + 6 * 2
         index = len(f">{chromosme}\n") + prev_elements + pos
-        nucleotid = 'A'
+        nucleotid = "A"
 
         index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
         self.reader.fasta_file.seek(index_result, 0)
@@ -279,13 +295,13 @@ class TestVcfMutationsReader(TestCase):
 
         self.assertEqual(index, index_result)
         self.assertEqual(nucleotid, nucleotid_result)
-    
+
     def test_get_nucleotid_fasta_index_last_chr_last_line_prev_last(self):
         chromosme = "chr3"
         pos = 50 * 9 + 48
         prev_elements = 10 * 51 * 2 + 6 * 2 + 9
         index = len(f">{chromosme}\n") + prev_elements + pos
-        nucleotid = 'A'
+        nucleotid = "A"
 
         index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
         self.reader.fasta_file.seek(index_result, 0)
@@ -293,13 +309,13 @@ class TestVcfMutationsReader(TestCase):
 
         self.assertEqual(index, index_result)
         self.assertEqual(nucleotid, nucleotid_result)
-    
+
     def test_get_nucleotid_fasta_index_last_chr_last_line_last(self):
         chromosme = "chr3"
         pos = 50 * 9 + 49
         prev_elements = 10 * 51 * 2 + 6 * 2 + 9
         index = len(f">{chromosme}\n") + prev_elements + pos
-        nucleotid = 'T'
+        nucleotid = "T"
 
         index_result = self.reader.get_nucleotid_fasta_index(pos, chromosme)
         self.reader.fasta_file.seek(index_result, 0)
@@ -307,6 +323,66 @@ class TestVcfMutationsReader(TestCase):
 
         self.assertEqual(index, index_result)
         self.assertEqual(nucleotid, nucleotid_result)
+
+    def test_get_sequence_interval_first_chr_first_line_first_5_elements(self):
+        chromosme = "chr1"
+        pos = 0
+        length = 5
+        index = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+
+        result = self.reader.get_sequence_interval(index, length)
+
+        self.assertEqual(result, "TATCA")
+
+    def test_get_sequence_interval_first_chr_first_line_last_5_elements(self):
+        chromosme = "chr1"
+        pos = 49 - 5 + 1
+        length = 5
+        index = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+
+        result = self.reader.get_sequence_interval(index, length)
+
+        self.assertEqual(result, "AGGGC")
+
+    def test_get_sequence_interval_first_chr_fourth_line_20_to_25_elements(self):
+        chromosme = "chr1"
+        pos = 50 * 3 + 19
+        length = 5
+        index = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+
+        result = self.reader.get_sequence_interval(index, length)
+
+        self.assertEqual(result, "CTTCC")
+
+    def test_get_sequence_interval_first_chr_fourth_line_48_to_next_2_elements(self):
+        chromosme = "chr1"
+        pos = 50 * 3 + 47
+        length = 5
+        index = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+
+        result = self.reader.get_sequence_interval(index, length)
+
+        self.assertEqual(result, "GATGG")
+
+    def test_get_sequence_interval_first_chr_last_line_first_5_elements(self):
+        chromosme = "chr1"
+        pos = 50 * 9
+        length = 5
+        index = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+
+        result = self.reader.get_sequence_interval(index, length)
+
+        self.assertEqual(result, "CTGAT")
+
+    def test_get_sequence_interval_first_chr_last_line_last_5_elements(self):
+        chromosme = "chr1"
+        pos = 50 * 9 + 49 - 5 + 1
+        length = 5
+        index = self.reader.get_nucleotid_fasta_index(pos, chromosme)
+
+        result = self.reader.get_sequence_interval(index, length)
+
+        self.assertEqual(result, "CTAAT")
 
 
 """ # -*- coding: utf-8 -*-
