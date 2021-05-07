@@ -46,10 +46,8 @@ class ParserVcf(ABC):
     def method(self, sequence: tuple, mutation: str):
         pass
 
-    def sequenceToString(
-        self, parsed_data_file, original_sequence, prefix, sequence, mutation
-    ):
-        parsed_data_file.write(
+    def sequence_to_string(self, original_sequence, prefix, sequence, mutation):
+        return (
             f'{original_sequence}{prefix}{"".join(self.method(sequence, mutation))}\n'
         )
 
@@ -91,6 +89,6 @@ class ParserVcf(ABC):
                         f'{prefix}{"".join(sequence)}\n' if add_original else ""
                     )
 
-                self.sequenceToString(
-                    parsed_data_file, original_sequence, prefix, sequence, i.ALT
+                parsed_data_file.write(
+                    self.sequenceToString(original_sequence, prefix, sequence, i.ALT)
                 )
