@@ -249,7 +249,7 @@ class VcfMutationsReader(object):
             self.fatsa_chromosme_information[chromosome]["chromosme_length"] - 1
         )
 
-        if pos >= chromosme_length or pos < 0:
+        if pos > chromosme_length or pos < 0:
             raise IndexError(
                 f"Invalid index, must be in the interval {0}-{chromosme_length}"
             )
