@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from src.model.parserVcf import ParserVcf
+from src.parser.parserVcf import ParserVcf
 
 NUCLETODIES = ["A", "C", "G", "T"]
 

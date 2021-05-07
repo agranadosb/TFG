@@ -3,8 +3,8 @@
 import pathlib
 from unittest import TestCase
 
-from src.model.lowerParser import LowerParserVcf
-from src.model.tests.factories import SequenceFaker
+from src.parser.lowerParser import LowerParserVcf
+from src.parser.tests.factories import SequenceFaker
 
 
 class TestLowerParserVcf(TestCase):

@@ -3,14 +3,14 @@
 import pathlib
 from unittest import TestCase
 
-from src.model.extendedParser import ExtendedParserVcf
-from src.model.tests.factories import SequenceFaker
+from src.parser.simplifiedParser import SimplifiedParserVcf
+from src.parser.tests.factories import SequenceFaker
 
 
-class TestExtendedParserVcf(TestCase):
+class TestSimplifiedParserVcf(TestCase):
     def setUp(self) -> None:
         self.static_dir = f"{str(pathlib.Path(__file__).parent.absolute())}/static/"
-        self.parser = ExtendedParserVcf(
+        self.parser = SimplifiedParserVcf(
             f"{self.static_dir}vcfTest.vcf",
             f"{self.static_dir}test.fa.gz",
         )
@@ -20,9 +20,9 @@ class TestExtendedParserVcf(TestCase):
     def test_method(self):
         sequence = ("ACGTGGT", "CAA", "GTCC")
         mutation = SequenceFaker("AAA")
-        prefix = [1, 2, 3, 4, 3, 3, 4]
-        infix = [11, 11, 11]
-        suffix = [23, 24, 22, 22]
+        prefix = "lllllll"
+        infix = "mmm"
+        suffix = "rrrr"
 
         result = self.parser.method(sequence, [mutation])
 

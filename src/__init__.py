@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-from . import main, model, vcf
+from . import main, model, parser, vcf

@@ -5,13 +5,13 @@ import itertools
 import operator
 
 from src.model.abstractModel import AbstractModel
-from src.model.parserVcf import ParserVcf
+from src.parser.extendedParser import ExtendedParserVcf
 
 
 class KTSSModel(AbstractModel):
     def __init__(self):
         self.model = False
-        self.parser = ParserVcf
+        self.parser = ExtendedParserVcf
         self.trainer = "k-tt"
 
     def state_in_list(self, state, lst):
