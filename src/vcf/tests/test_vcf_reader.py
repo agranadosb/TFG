@@ -507,6 +507,23 @@ class TestVcfMutationsReader(TestCase):
 
         self.assertEqual(result, sequence)
 
+    def test_get_nucleotide_firs_line_first_element(self):
+        chromosme = "chr1"
+        pos = 0
+
+        result = self.reader.get_nucleotide(chromosme, pos)
+
+        self.assertEqual(result, 'T')
+    
+    def test_get_nucleotide_firs_line_lasts_6_elements(self):
+        chromosme = "chr1"
+        pos = 49
+        length = 6
+
+        result = self.reader.get_nucleotide(chromosme, pos, length=length)
+
+        self.assertEqual(result, 'CATAAC')
+
 
 """ # -*- coding: utf-8 -*-
 
