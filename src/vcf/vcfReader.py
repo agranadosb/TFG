@@ -151,6 +151,7 @@ class VcfMutationsReader(object):
          - next_chromosome_length: label length of the next chromosome
          - file_ends: shows if the chromosome is the last
          - index: chromosome index
+         - chromosme_length: number of nucleotides that are in the chromsome
 
         Parameters
         ----------
@@ -235,11 +236,24 @@ class VcfMutationsReader(object):
         chromosome : str
             Label of the chromosome
 
+        IndexError
+            When index is greater tha chromsome length or lower
+            than 0
+
         Returns
         -------
         str
             index of the nucleotid in the fasta file
         """
+        chromosme_length = (
+            self.fatsa_chromosme_information[chromosome]["chromosme_length"] - 1
+        )
+
+        if pos >= chromosme_length or pos < 0:
+            raise IndexError(
+                f"Invalid index, must be in the interval {0}-{chromosme_length}"
+            )
+
         # It's necessary to taking into account that seek method counts new lines as a character
         num_new_lines = int(pos / self.fasta_file_line_length)
         index_starts = self.fatsa_chromosme_information[chromosome]["index_starts"]

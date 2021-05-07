@@ -180,6 +180,30 @@ class TestVcfMutationsReader(TestCase):
             chromosme_length,
         )
 
+    def test_get_nucleotid_fasta_index_index_lower_0(self):
+        chromosme = "chr1"
+        pos = -1
+
+        invalid = False
+        try:
+            self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        except IndexError:
+            invalid = True
+
+        self.assertTrue(invalid)
+
+    def test_get_nucleotid_fasta_index_index_greater_chromosme_length(self):
+        chromosme = "chr1"
+        pos = 500
+
+        invalid = False
+        try:
+            self.reader.get_nucleotid_fasta_index(pos, chromosme)
+        except IndexError:
+            invalid = True
+
+        self.assertTrue(invalid)
+
     def test_get_nucleotid_fasta_index_first_line_first(self):
         chromosme = "chr1"
         pos = 0
