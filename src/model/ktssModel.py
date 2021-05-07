@@ -12,7 +12,7 @@ class KTSSModel(AbstractModel):
     def __init__(self):
         self.model = False
         self.parser = ParserVcf
-        self.trainer = 'k-tt'
+        self.trainer = "k-tt"
 
     def state_in_list(self, state, lst):
         for state_list in lst:
