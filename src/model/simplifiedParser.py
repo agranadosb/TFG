@@ -4,7 +4,7 @@ from src.model.parserVcf import ParserVcf
 
 
 class SimplifiedParserVcf(ParserVcf):
-    name = 'simplified'
+    name = "simplified"
 
     def method(self, sequence: tuple, mutation):
         """Generates the simplified sequence by a equence:

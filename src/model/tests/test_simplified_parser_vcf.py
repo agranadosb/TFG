@@ -18,11 +18,11 @@ class TestSimplifiedParserVcf(TestCase):
         return super().setUp()
 
     def test_method(self):
-        sequence = ('ACGTGGT','CAA','GTCC')
-        mutation = SequenceFaker('AAA')
-        prefix = 'lllllll'
-        infix = 'mmm'
-        suffix = 'rrrr'
+        sequence = ("ACGTGGT", "CAA", "GTCC")
+        mutation = SequenceFaker("AAA")
+        prefix = "lllllll"
+        infix = "mmm"
+        suffix = "rrrr"
 
         result = self.parser.method(sequence, [mutation])
 

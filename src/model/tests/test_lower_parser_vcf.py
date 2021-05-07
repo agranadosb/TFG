@@ -18,11 +18,11 @@ class TestLowerParserVcf(TestCase):
         return super().setUp()
 
     def test_method(self):
-        sequence = ('ACGTGGT','CAA','GTCC')
-        mutation = SequenceFaker('AAA')
-        prefix = 'ACGTGGT'
-        infix = 'aaa'
-        suffix = 'GTCC'
+        sequence = ("ACGTGGT", "CAA", "GTCC")
+        mutation = SequenceFaker("AAA")
+        prefix = "ACGTGGT"
+        infix = "aaa"
+        suffix = "GTCC"
 
         result = self.parser.method(sequence, [mutation])
 

@@ -533,4 +533,3 @@ class TestVcfMutationsReader(TestCase):
         self.assertEqual(result[0], prefix)
         self.assertEqual(result[1], nucleotide)
         self.assertEqual(result[2], suffix)
-

@@ -4,7 +4,7 @@ from src.model.parserVcf import ParserVcf
 
 
 class LowerParserVcf(ParserVcf):
-    name = 'lower'
+    name = "lower"
 
     def method(self, sequence: tuple, mutation: str):
         """Generates the same sequence but in a lower case in the mutations part:

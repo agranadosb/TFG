@@ -41,7 +41,7 @@ class ParserVcf(ABC):
             vcf reader
         """
         return self.vcf_reader
-    
+
     @abstractmethod
     def method(self, sequence: tuple, mutation: str):
         pass
