@@ -33,6 +33,16 @@ class AbstractModel(ABC):
     trained_model = None
 
     @abstractmethod
+    def __init__(self, save_path=False, restore_path=False):
+        if save_path and not save_path.endswith("/"):
+            save_path += "/"
+        self.save_path = save_path
+
+        if restore_path and not restore_path.endswith("/"):
+            restore_path += "/"
+        self.restore_path = restore_path
+
+    @abstractmethod
     def parser(self):
         pass
 

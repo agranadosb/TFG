@@ -42,6 +42,8 @@ class ParserVcf(ABC):
         """
         return self.vcf_reader
 
+    """ TODO: add retrive_string_sequence abstract method """
+
     @abstractmethod
     def method(self, sequence: tuple, mutation: str):
         """Generates the result sequence from the original and the mutation
@@ -76,6 +78,15 @@ class ParserVcf(ABC):
 
         """
         return f'{prefix}{"".join(sequence)}\n'
+
+    def default_filename(self):
+        """Returns a default filename with the results
+
+        Returns
+        -------
+        Filename
+        """
+        return f"parsed_{self.name}_data.pvcf"
 
     def sequence_to_string(self, original_sequence, prefix, sequence, mutation):
         """Gets a sequence and generates a string representation
@@ -122,7 +133,7 @@ class ParserVcf(ABC):
         """
 
         if not filename:
-            filename = f"parsed_{self.name}_data.pvcf"
+            filename = self.default_filename()
 
         with open(f"{path}/{filename}", "w") as parsed_data_file:
             for i in self.get_vcf():

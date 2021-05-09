@@ -4,16 +4,20 @@ from src.parser.parserVcf import ParserVcf
 
 NUCLETODIES = ["A", "C", "G", "T"]
 
+PREFIX_SYMBOLS = ["a", "s", "d", "f"]
+INFIX_SYMBOLS = ["q", "w", "e", "r"]
+SUFFIX_SYMBOLS = ["z", "x", "c", "v"]
 
-def generate_dict_values(function):
-    return {key: function(value) for (key, value) in zip(NUCLETODIES, range(4))}
+
+def generate_dict_values(lst):
+    return {key: value for (key, value) in zip(NUCLETODIES, lst)}
 
 
 class ExtendedParserVcf(ParserVcf):
 
-    left_map = generate_dict_values(lambda value: f"0{str(value + 1)}")
-    middle_map = generate_dict_values(lambda value: str(value + 11))
-    right_map = generate_dict_values(lambda value: str(value + 21))
+    left_map = generate_dict_values(PREFIX_SYMBOLS)
+    middle_map = generate_dict_values(INFIX_SYMBOLS)
+    right_map = generate_dict_values(SUFFIX_SYMBOLS)
 
     name = "extended"
 
@@ -53,7 +57,7 @@ class ExtendedParserVcf(ParserVcf):
     def method(self, sequence: tuple, mutation: str):
         """Generates the simplified sequence by a equence:
             sequence:               (ACGTGGT,CAA,GTCC)
-            sequence_simplified:    ([01,02,03,04,03,03,04],[12,11,11],[23,24,22,22])
+            sequence_simplified:    ([a,s,d,f,d,d,f],[e,q,q],[c,v,x,x])
 
         Parameters
         ----------
@@ -75,3 +79,23 @@ class ExtendedParserVcf(ParserVcf):
         right = [self.right_map[nucletid.upper()] for nucletid in sequence[2]]
 
         return (left, middle, right)
+
+    def retrive_string_sequence(self, sequence):
+        """Gets a string sequence and returns the sequence in a tuple type
+        
+        Parameters
+        ----------
+        sequence: str
+            Sequence in string format
+        
+        Returns
+        -------
+        Sequence in a list format
+        """
+        sequence_diveded = sequence.split(" ")
+
+        prefix = sequence_diveded[0].split("-")
+        infix = sequence_diveded[1].split("-")
+        suffix = sequence_diveded[2].split("-")
+
+        return ("".join(prefix), "".join(infix), "".join(suffix))

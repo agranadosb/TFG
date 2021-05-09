@@ -2,6 +2,7 @@
 
 import functools
 import itertools
+import json
 import operator
 
 from src.model.abstractModel import AbstractModel
@@ -9,9 +10,9 @@ from src.parser.extendedParser import ExtendedParserVcf
 
 
 class KTSSModel(AbstractModel):
-    def __init__(self):
+    def __init__(self, save_path=False, restore_path=False):
+        super().__init__(save_path=save_path, restore_path=restore_path)
         self.model = False
-        self.parser_class = ExtendedParserVcf
         self.trainer_name = "ktt"
 
     def state_in_list(self, state, lst):
@@ -218,7 +219,26 @@ class KTSSModel(AbstractModel):
         return self.model
 
     def saver(self):
-        pass
+        if not self.save_path:
+            raise AttributeError("Saver path is not defined")
+
+        if not self.model:
+            raise ValueError("The model is not trained")
+
+        with open(f"{self.save_path}ktss-model.json", "w") as outfile:
+            model_for_json = {
+                "states": list(self.model["states"]),
+                "alphabet": list(self.model["alphabet"]),
+                "transitions": self.model["transitions"],
+                "initial_state": self.model["initial_state"],
+                "final_states": list(self.model["final_states"]),
+                "not_allowed_segments": list(self.model["not_allowed_segments"]),
+            }
+            json.dump(model_for_json, outfile)
 
     def loader(self):
-        pass
+        if not self.restore_path:
+            raise AttributeError("Loader path is not defined")
+
+        with open(self.save_path) as json_file:
+            self.model = json.load(json_file)
