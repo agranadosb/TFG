@@ -4,14 +4,24 @@ from src.parser.parserVcf import ParserVcf
 
 NUCLETODIES = ["A", "C", "G", "T"]
 
+def generate_dict_values(function):
+    return {
+        key: function(value) for (key, value) in zip(NUCLETODIES, range(4))
+    }
 
 class ExtendedParserVcf(ParserVcf):
 
-    left_map = {key: value + 1 for (key, value) in zip(NUCLETODIES, range(4))}
-    middle_map = {key: value + 10 + 1 for (key, value) in zip(NUCLETODIES, range(4))}
-    right_map = {key: value + 20 + 1 for (key, value) in zip(NUCLETODIES, range(4))}
+    left_map = generate_dict_values(lambda value: f"0{str(value + 1)}")
+    middle_map = generate_dict_values(lambda value: str(value + 11))
+    right_map = generate_dict_values(lambda value: str(value + 21))
 
     name = "extended"
+
+    def sequence_to_string(self, original_sequence, prefix, sequence, mutation):
+
+        result_sequence = self.method(sequence, mutation)
+        result_sequence_prefix = "".join(result_sequence[0])
+        return f'{original_sequence}{prefix}{"".join()}\n'
 
     def method(self, sequence: tuple, mutation: str):
         """Generates the simplified sequence by a equence:
@@ -31,8 +41,8 @@ class ExtendedParserVcf(ParserVcf):
             sequence simplified
         """
 
-        left = [self.left_map[nucletid] for nucletid in sequence[0]]
-        middle = [self.middle_map[nucletid] for nucletid in mutation[0].sequence]
-        right = [self.right_map[nucletid] for nucletid in sequence[2]]
+        left = [self.left_map[nucletid.upper()] for nucletid in sequence[0]]
+        middle = [self.middle_map[nucletid.upper()] for nucletid in mutation[0].sequence]
+        right = [self.right_map[nucletid.upper()] for nucletid in sequence[2]]
 
         return (left, middle, right)

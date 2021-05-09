@@ -20,9 +20,9 @@ class TestExtendedParserVcf(TestCase):
     def test_method(self):
         sequence = ("ACGTGGT", "CAA", "GTCC")
         mutation = SequenceFaker("AAA")
-        prefix = [1, 2, 3, 4, 3, 3, 4]
-        infix = [11, 11, 11]
-        suffix = [23, 24, 22, 22]
+        prefix = ["01", "02", "03", "04", "03", "03", "04"]
+        infix = ["11", "11", "11"]
+        suffix = ["23", "24", "22", "22"]
 
         result = self.parser.method(sequence, [mutation])
 

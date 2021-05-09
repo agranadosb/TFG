@@ -90,5 +90,5 @@ class ParserVcf(ABC):
                     )
 
                 parsed_data_file.write(
-                    self.sequenceToString(original_sequence, prefix, sequence, i.ALT)
+                    self.sequence_to_string(original_sequence, prefix, sequence, i.ALT)
                 )
