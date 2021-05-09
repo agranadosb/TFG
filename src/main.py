@@ -2,10 +2,15 @@
 
 import os
 
-from src.constants.constants import (EXTENDED_PARSER_CODE, KTSS_MODEL,
-                                     LOWER_PARSER_CODE, MODEL_OPERATION,
-                                     PARSER_MODEL_OPERATION, PARSER_OPERATION,
-                                     SIMPLIFIED_PARSER_CODE)
+from src.constants.constants import (
+    EXTENDED_PARSER_CODE,
+    KTSS_MODEL,
+    LOWER_PARSER_CODE,
+    MODEL_OPERATION,
+    PARSER_MODEL_OPERATION,
+    PARSER_OPERATION,
+    SIMPLIFIED_PARSER_CODE,
+)
 from src.model.ktssModel import KTSSModel
 from src.parser.extendedParser import ExtendedParserVcf
 from src.parser.lowerParser import LowerParserVcf
@@ -42,7 +47,7 @@ def run(
                     samples_file,
                 )
             )
-        
+
         model = models[model](save_path=result_folder)
         model.trainer()(samples, 20)
         model.saver()

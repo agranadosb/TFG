@@ -82,12 +82,12 @@ class ExtendedParserVcf(ParserVcf):
 
     def retrive_string_sequence(self, sequence):
         """Gets a string sequence and returns the sequence in a tuple type
-        
+
         Parameters
         ----------
         sequence: str
             Sequence in string format
-        
+
         Returns
         -------
         Sequence in a list format
