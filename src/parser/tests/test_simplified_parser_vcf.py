@@ -3,8 +3,9 @@
 import pathlib
 from unittest import TestCase
 
-from src.model.simplifiedParser import SimplifiedParserVcf
-from src.model.tests.factories import SequenceFaker
+from src.parser.simplifiedParser import SimplifiedParserVcf
+from src.parser.tests.factories import SequenceFaker
+from src.parser.tests.helpers import random_string
 
 
 class TestSimplifiedParserVcf(TestCase):
@@ -16,6 +17,20 @@ class TestSimplifiedParserVcf(TestCase):
         )
 
         return super().setUp()
+
+    def test_sequence_to_string(self):
+        original_sequence = random_string()
+        prefix = random_string()
+        sequence = ("ACGTGGT", "CAA", "GTCC")
+        sequence_result = "lllllllmmmrrrr"
+        mutation = SequenceFaker("AAA")
+        sequence_string = f"{original_sequence}{prefix}{sequence_result}\n"
+
+        result = self.parser.sequence_to_string(
+            original_sequence, prefix, sequence, [mutation]
+        )
+
+        self.assertEqual(result, sequence_string)
 
     def test_method(self):
         sequence = ("ACGTGGT", "CAA", "GTCC")
