@@ -44,9 +44,58 @@ class ParserVcf(ABC):
 
     @abstractmethod
     def method(self, sequence: tuple, mutation: str):
+        """Generates the result sequence from the original and the mutation
+
+        Parameters
+        ----------
+        sequence : tuple
+            Tuple with the prefix, the nucleotide and the suffix of the sequence
+        muatation : str
+            Mutation of the nucleotide
+
+        Returns
+        -------
+        The parsed sequence
+
+        """
         pass
 
+    def original_sequence_to_string(self, prefix, sequence):
+        """Gets the original sequence and generates a string representation
+
+        Parameters
+        ----------
+        prefix : str
+            Prefix to append before the original sequence
+        sequence:
+            Sequence to be representated
+
+        Returns
+        -------
+        String representation of the original sequence
+
+        """
+        return f'{prefix}{"".join(sequence)}\n'
+
     def sequence_to_string(self, original_sequence, prefix, sequence, mutation):
+        """Gets a sequence and generates a string representation
+
+        Parameters
+        ----------
+        original_sequence : str
+            String representation of the original sequence
+        prefix : str
+            Prefix to append before the parsed sequence
+        sequence:
+            Sequence to be representated
+        mutation:
+            Mutation of the nucleotide
+
+        Returns
+        -------
+        String representation of the sequence
+
+        """
         return (
             f'{original_sequence}{prefix}{"".join(self.method(sequence, mutation))}\n'
         )
@@ -64,7 +113,7 @@ class ParserVcf(ABC):
         ----------
         path : str
             Path to store the data
-        path : str, optional
+        filename : str, optional
             Filename of the result file
         write_chromosme : bool, optional
             Indicates the chromosme where the sequences being
@@ -85,8 +134,8 @@ class ParserVcf(ABC):
 
                 original_sequence = ""
                 if add_original:
-                    original_sequence = (
-                        f'{prefix}{"".join(sequence)}\n' if add_original else ""
+                    original_sequence = self.original_sequence_to_string(
+                        prefix, sequence
                     )
 
                 parsed_data_file.write(

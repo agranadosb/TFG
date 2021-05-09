@@ -4,10 +4,15 @@ import argparse
 import pathlib
 
 import src.main as main
-from src.constants.constants import (EXTENDED_PARSER_CODE, KTSS_MODEL,
-                                     LOWER_PARSER_CODE, MODEL_OPERATION,
-                                     PARSER_MODEL_OPERATION, PARSER_OPERATION,
-                                     SIMPLIFIED_PARSER_CODE)
+from src.constants.constants import (
+    EXTENDED_PARSER_CODE,
+    KTSS_MODEL,
+    LOWER_PARSER_CODE,
+    MODEL_OPERATION,
+    PARSER_MODEL_OPERATION,
+    PARSER_OPERATION,
+    SIMPLIFIED_PARSER_CODE,
+)
 
 parser = argparse.ArgumentParser(description="Executes a parser, a model or both")
 

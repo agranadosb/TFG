@@ -18,6 +18,24 @@ class ExtendedParserVcf(ParserVcf):
     name = "extended"
 
     def sequence_to_string(self, original_sequence, prefix, sequence, mutation):
+        """Gets a sequence and generates a string representation
+
+        Parameters
+        ----------
+        original_sequence : str
+            String representation of the original sequence
+        prefix : str
+            Prefix to append before the parsed sequence
+        sequence:
+            Sequence to be representated
+        mutation:
+            Mutation of the nucleotide
+
+        Returns
+        -------
+        String representation of the sequence
+
+        """
         result_sequence = self.method(sequence, mutation)
 
         parsed_sequence_prefix = "-".join(result_sequence[0])
