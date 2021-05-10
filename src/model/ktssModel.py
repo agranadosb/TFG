@@ -147,6 +147,7 @@ class KTSSModel(AbstractModel):
         """
         logger = logging.getLogger()
         tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
+        logging.info(f"Training model")
         logging.info(f"Generating alphabet")
         alphabet = list(set(functools.reduce(operator.add, samples)))
 

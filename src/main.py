@@ -56,7 +56,7 @@ def run(
             )
 
         model = models[model](save_path=result_folder)
-        model.trainer()(samples, 10)
+        model.trainer()(samples, 20)
         model.saver()
         return
 
