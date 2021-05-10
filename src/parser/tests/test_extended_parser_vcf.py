@@ -44,7 +44,7 @@ class TestExtendedParserVcf(TestCase):
         result_prefix = "asdfddf"
         result_infix = "qqq"
         result_suffix = "cvxx"
-        result_sequence = (result_prefix, result_infix, result_suffix)
+        result_sequence = f"{result_prefix}{result_infix}{result_suffix}"
 
         result = self.parser.retrive_string_sequence(sequence)
 

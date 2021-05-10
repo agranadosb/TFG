@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import gzip
+import logging
 import os
 import shutil
 
@@ -22,14 +23,17 @@ class VcfMutationsReader(object):
     """
 
     def __init__(self, vcf_path: str, fasta_path: str):
+        logging.info("Loading vcf file")
         self.vcf_file = VcfReader(open(vcf_path, "r"))
 
         self.fatsa_chromosme_information = {}
         self.fasta_keys = []
+        logging.info("Loading fasta file")
         self.fasta_filename = fasta_path.replace(".gz", "")
         self.fasta_filename_index = fasta_path.replace(".gz", ".index")
         self.fasta_file_line_length = 50
 
+        logging.info("Loading fasta information")
         self.set_fasta_file(fasta_path)
         self.generate_fasta_information()
 

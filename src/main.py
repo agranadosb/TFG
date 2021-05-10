@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import os
 
 from src.constants.constants import (
@@ -36,6 +37,12 @@ def run(
     parser=SIMPLIFIED_PARSER_CODE,
     result_folder=f"{dir_path}/example/",
 ):
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)-8s %(message)s",
+        level=logging.INFO,
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
     if PARSER_MODEL_OPERATION == operation:
         parser_method = parsers[parser](vcf_path, fasta_path)
         parser_method.generate_sequences(result_folder, add_original=False)
@@ -49,7 +56,7 @@ def run(
             )
 
         model = models[model](save_path=result_folder)
-        model.trainer()(samples, 20)
+        model.trainer()(samples, 10)
         model.saver()
         return
 

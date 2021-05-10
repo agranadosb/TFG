@@ -98,4 +98,4 @@ class ExtendedParserVcf(ParserVcf):
         infix = sequence_diveded[1].split("-")
         suffix = sequence_diveded[2].split("-")
 
-        return ("".join(prefix), "".join(infix), "".join(suffix))
+        return f"""{"".join(prefix).rstrip()}{"".join(infix).rstrip()}{"".join(suffix).rstrip()}"""
