@@ -122,7 +122,7 @@ class KTSSModel(AbstractModel):
             fin += 1
         return result
 
-    def training(self, samples, k):
+    def training(self, samples, k, get_not_allowed_segements=False):
         """Generates a ktss model from the samples and a k given
 
         Parameters
@@ -131,6 +131,8 @@ class KTSSModel(AbstractModel):
             List of samples to training the model
         k: int
             Parameter of the ktss model
+        get_not_allowed_segements: bool
+            If true returns not allowed segements
 
         Returns
         -------
@@ -145,6 +147,7 @@ class KTSSModel(AbstractModel):
         """
         logger = logging.getLogger()
         tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
+        logging.info(f"Generating alphabet")
         alphabet = list(set(functools.reduce(operator.add, samples)))
 
         greater_or_equal_than_k = []
@@ -170,9 +173,11 @@ class KTSSModel(AbstractModel):
         suffixes = set(suffixes)
         infixes = set(infixes)
 
-        logging.info(f"Generating sigma with alphabet {alphabet}")
-        sigma_k = self.generate_sigma(alphabet, k)
-        not_allowed_segments = set(sigma_k) - set(infixes)
+        if get_not_allowed_segements:
+            logging.info(f"Generating sigma with alphabet {set(alphabet)}")
+            """ TODO: Store sigma into a file to prevent the RAM processor overflow (just an idea) """
+            sigma_k = self.generate_sigma(alphabet, k)
+            not_allowed_segments = set(sigma_k) - set(infixes)
 
         q = [""]
         s = []
@@ -216,8 +221,10 @@ class KTSSModel(AbstractModel):
             "transitions": s,
             "initial_state": q0,
             "final_states": suffixes,
-            "not_allowed_segments": not_allowed_segments,
         }
+
+        if get_not_allowed_segements:
+            self.model["not_allowed_segments"] = not_allowed_segments
 
         return self.model
 
@@ -230,7 +237,7 @@ class KTSSModel(AbstractModel):
     def model(self):
         return self.model
 
-    def saver(self):
+    def saver(self, get_not_allowed_segements=False):
         if not self.save_path:
             raise AttributeError("Saver path is not defined")
 
@@ -244,8 +251,12 @@ class KTSSModel(AbstractModel):
                 "transitions": self.model["transitions"],
                 "initial_state": self.model["initial_state"],
                 "final_states": list(self.model["final_states"]),
-                "not_allowed_segments": list(self.model["not_allowed_segments"]),
             }
+
+            if self.model.get("not_allowed_segments", False):
+                model_for_json["not_allowed_segments"] = list(
+                    self.model["not_allowed_segments"]
+                )
             json.dump(model_for_json, outfile)
 
     def loader(self):
