@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from abc import ABC, abstractmethod
 
 from src.vcf.vcfReader import VcfMutationsReader
@@ -21,6 +22,7 @@ class ParserVcf(ABC):
 
     def __init__(self, vcf_path: str, fasta_path: str):
         self.vcf_reader = VcfMutationsReader(vcf_path, fasta_path)
+        logging.info("Loading finalized\n")
 
     def get_vcf(self):
         """Returns vcf file

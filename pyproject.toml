@@ -16,6 +16,7 @@ toml = "0.10.2"
 pytest = "^6.2.3"
 PyVCF = "^0.6.8"
 argparse = "^1.4.0"
+tqdm = "^4.60.0"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^21.5b0", allow-prereleases = true}

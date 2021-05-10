@@ -3,9 +3,12 @@
 import functools
 import itertools
 import json
+import logging
 import operator
 
+from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.model.abstractModel import AbstractModel
+from tqdm import tqdm
 
 
 class KTSSModel(AbstractModel):
@@ -119,7 +122,7 @@ class KTSSModel(AbstractModel):
             fin += 1
         return result
 
-    def training(self, samples, k):
+    def training(self, samples, k, get_not_allowed_segements=False):
         """Generates a ktss model from the samples and a k given
 
         Parameters
@@ -128,6 +131,8 @@ class KTSSModel(AbstractModel):
             List of samples to training the model
         k: int
             Parameter of the ktss model
+        get_not_allowed_segements: bool
+            If true returns not allowed segements
 
         Returns
         -------
@@ -140,20 +145,27 @@ class KTSSModel(AbstractModel):
             "not_allowed_segments": not_allowed_segments,
         }
         """
+        logger = logging.getLogger()
+        tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
+        logging.info(f"Training model")
+        logging.info(f"Generating alphabet")
         alphabet = list(set(functools.reduce(operator.add, samples)))
 
         greater_or_equal_than_k = []
         lower_than_k = []
+
+        logging.info(f"Dviding strings into greater or lower than {k}")
         for sample in samples:
             if len(sample) >= k:
                 greater_or_equal_than_k.append(sample)
             else:
                 lower_than_k.append(sample)
 
+        logging.info("Generating prefixes and suffixes")
         prefixes = [] + lower_than_k
         suffixes = [] + lower_than_k
         infixes = []
-        for sample in greater_or_equal_than_k:
+        for sample in tqdm(greater_or_equal_than_k, file=tqdm_out):
             prefixes.append(self.get_prefix(sample, k))
             suffixes.append(self.get_suffix(sample, k))
             infixes += self.get_infixes(sample, k)
@@ -162,14 +174,18 @@ class KTSSModel(AbstractModel):
         suffixes = set(suffixes)
         infixes = set(infixes)
 
-        sigma_k = self.generate_sigma(alphabet, k)
-        not_allowed_segments = set(sigma_k) - set(infixes)
+        if get_not_allowed_segements:
+            logging.info(f"Generating sigma with alphabet {set(alphabet)}")
+            """ TODO: Store sigma into a file to prevent the RAM processor overflow (just an idea) """
+            sigma_k = self.generate_sigma(alphabet, k)
+            not_allowed_segments = set(sigma_k) - set(infixes)
 
         q = [""]
         s = []
         q0 = ""
 
-        for prefix in prefixes:
+        logging.info(f"Generating states from prefixes")
+        for prefix in tqdm(prefixes, file=tqdm_out):
             s.append(["", prefix[0], prefix[0]])
             for char_index in range(len(prefix)):
                 q.append([prefix[: char_index + 1]])
@@ -177,10 +193,12 @@ class KTSSModel(AbstractModel):
                     [prefix[:char_index], prefix[char_index], prefix[: char_index + 1]]
                 )
 
-        for infix in infixes:
+        logging.info(f"Generating states from infixes")
+        for infix in tqdm(infixes, file=tqdm_out):
             q.append([infix[: k - 1], infix[2:k]])
             s.append([infix[: k - 1], infix[k - 1], infix[1:k]])
 
+        logging.info(f"Remove repeated and empty states")
         q = set(
             list(
                 map(
@@ -190,8 +208,9 @@ class KTSSModel(AbstractModel):
             )
         )
 
+        logging.info(f"Generating transitions")
         s_aux = []
-        for i in s:
+        for i in tqdm(s, file=tqdm_out):
             if not self.state_in_list(i, s_aux):
                 s_aux.append(i)
 
@@ -203,8 +222,10 @@ class KTSSModel(AbstractModel):
             "transitions": s,
             "initial_state": q0,
             "final_states": suffixes,
-            "not_allowed_segments": not_allowed_segments,
         }
+
+        if get_not_allowed_segements:
+            self.model["not_allowed_segments"] = not_allowed_segments
 
         return self.model
 
@@ -217,7 +238,7 @@ class KTSSModel(AbstractModel):
     def model(self):
         return self.model
 
-    def saver(self):
+    def saver(self, get_not_allowed_segements=False):
         if not self.save_path:
             raise AttributeError("Saver path is not defined")
 
@@ -231,8 +252,12 @@ class KTSSModel(AbstractModel):
                 "transitions": self.model["transitions"],
                 "initial_state": self.model["initial_state"],
                 "final_states": list(self.model["final_states"]),
-                "not_allowed_segments": list(self.model["not_allowed_segments"]),
             }
+
+            if self.model.get("not_allowed_segments", False):
+                model_for_json["not_allowed_segments"] = list(
+                    self.model["not_allowed_segments"]
+                )
             json.dump(model_for_json, outfile)
 
     def loader(self):

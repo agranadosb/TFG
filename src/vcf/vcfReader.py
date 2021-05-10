@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import gzip
+import logging
 import os
 import shutil
+
+from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
+from tqdm import tqdm
 
 from vcf import Reader as VcfReader
 
@@ -22,14 +26,17 @@ class VcfMutationsReader(object):
     """
 
     def __init__(self, vcf_path: str, fasta_path: str):
+        logging.info("Loading vcf file")
         self.vcf_file = VcfReader(open(vcf_path, "r"))
 
         self.fatsa_chromosme_information = {}
         self.fasta_keys = []
+        logging.info("Loading fasta file")
         self.fasta_filename = fasta_path.replace(".gz", "")
         self.fasta_filename_index = fasta_path.replace(".gz", ".index")
         self.fasta_file_line_length = 50
 
+        logging.info("Loading fasta information")
         self.set_fasta_file(fasta_path)
         self.generate_fasta_information()
 
@@ -78,6 +85,7 @@ class VcfMutationsReader(object):
         fasta_path : str
             Path of the fasta file
         """
+        logging.info("Unzip fasta gz file")
         self.fasta_file = gzip.open(fasta_path, "r")
 
         with open(self.fasta_filename, "wb") as f_out:
@@ -211,17 +219,22 @@ class VcfMutationsReader(object):
          - file_ends: shows if the chromosome is the last
          - index: chromosome index
         """
+        logger = logging.getLogger()
+        tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
+
         self.set_fasta_line_length()
 
         command = (
             f"cat {self.fasta_filename} | grep -n '>' > {self.fasta_filename_index}"
         )
         os.system(command)
+        logging.info("Loading chromosomes")
         with open(self.fasta_filename_index, "r") as fasta_index_file:
-            for i in fasta_index_file:
+            for i in tqdm(fasta_index_file, file=tqdm_out):
                 self.set_chromosme_information(i)
 
-        for i in range(len(self.fasta_keys)):
+        logging.info(f"Loading chromosomes sizes")
+        for i in tqdm(range(len(self.fasta_keys)), file=tqdm_out):
             self.set_chromosme_sizes(i)
 
         os.remove(self.fasta_filename_index)

@@ -167,7 +167,7 @@ class TestKTSSModel(TestCase):
         final_states = {"a"}
         not_allowed_segments = {"a", "b"}
 
-        result = self.model.training(samples, k)
+        result = self.model.training(samples, k, get_not_allowed_segements=True)
         same_transitions = all(map(lambda x: x in transitions, result["transitions"]))
 
         self.assertEqual(result["alphabet"], alphabet)
@@ -198,7 +198,7 @@ class TestKTSSModel(TestCase):
         final_states = {"ba", "bba", "aa"}
         not_allowed_segments = {"ab", "a", "b", "aa", "bbb", "bb", "ba", "aba", "bab"}
 
-        result = self.model.training(samples, k)
+        result = self.model.training(samples, k, get_not_allowed_segements=True)
         same_transitions = all(map(lambda x: x in transitions, result["transitions"]))
 
         self.assertEqual(result["alphabet"], alphabet)
