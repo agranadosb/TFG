@@ -51,6 +51,7 @@ def run(
         model = models[model](save_path=result_folder)
         model.trainer()(samples, 20)
         model.saver()
+        return
 
     if PARSER_OPERATION in operation:
         parser_method = parsers[parser](vcf_path, fasta_path)

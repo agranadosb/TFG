@@ -6,7 +6,6 @@ import json
 import operator
 
 from src.model.abstractModel import AbstractModel
-from src.parser.extendedParser import ExtendedParserVcf
 
 
 class KTSSModel(AbstractModel):

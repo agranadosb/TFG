@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import pathlib
 
 import src.main as main
 from src.constants.constants import (
