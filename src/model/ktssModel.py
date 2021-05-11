@@ -8,13 +8,15 @@ import operator
 
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.model.abstractModel import AbstractModel
+from src.parser.extendedParser import ExtendedParserVcf
 from tqdm import tqdm
 
 
 class KTSSModel(AbstractModel):
-    def __init__(self, save_path=False, restore_path=False):
+    def __init__(self, save_path=False, restore_path=False, parser=ExtendedParserVcf):
         super().__init__(save_path=save_path, restore_path=restore_path)
         self.model = False
+        self.parser_class = parser
         self.trainer_name = "ktt"
 
     def state_in_list(self, state, lst):
@@ -229,6 +231,9 @@ class KTSSModel(AbstractModel):
 
         return self.model
 
+    def set_parser(self, parser):
+        self.parser_class = parser
+
     def parser(self):
         return self.parser_class
 
@@ -238,7 +243,7 @@ class KTSSModel(AbstractModel):
     def model(self):
         return self.model
 
-    def saver(self, get_not_allowed_segements=False):
+    def saver(self):
         if not self.save_path:
             raise AttributeError("Saver path is not defined")
 

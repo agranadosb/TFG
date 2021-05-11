@@ -44,18 +44,19 @@ def run(
     )
 
     if PARSER_MODEL_OPERATION == operation:
-        parser_method = parsers[parser](vcf_path, fasta_path)
-        parser_method.generate_sequences(result_folder, add_original=False)
+        model = models[model](save_path=result_folder)
+        parser = model.parser() or parsers[parser]
+        parser_engine = parser(vcf_path, fasta_path)
+        parser_engine.generate_sequences(result_folder, add_original=False)
 
-        with open(f"{result_folder}{parser_method.default_filename()}") as samples_file:
+        with open(f"{result_folder}{parser_engine.default_filename()}") as samples_file:
             samples = list(
                 map(
-                    lambda sample: parser_method.retrive_string_sequence(sample),
+                    lambda sample: parser_engine.retrive_string_sequence(sample),
                     samples_file,
                 )
             )
 
-        model = models[model](save_path=result_folder)
         model.trainer()(samples, 20)
         model.saver()
         return
