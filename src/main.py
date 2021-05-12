@@ -36,6 +36,8 @@ def run(
     operation=PARSER_OPERATION,
     parser=SIMPLIFIED_PARSER_CODE,
     result_folder=f"{dir_path}/example/",
+    parser_prefix=20,
+    parser_suffix=20,
 ):
     logging.basicConfig(
         format="%(asctime)s %(levelname)-8s %(message)s",
@@ -47,7 +49,12 @@ def run(
         model = models[model](save_path=result_folder)
         parser = model.parser() or parsers[parser]
         parser_engine = parser(vcf_path, fasta_path)
-        parser_engine.generate_sequences(result_folder, add_original=False)
+        parser_engine.generate_sequences(
+            result_folder,
+            add_original=False,
+            prefix_length=parser_prefix,
+            suffix_length=parser_suffix,
+        )
 
         with open(f"{result_folder}{parser_engine.default_filename()}") as samples_file:
             samples = list(
@@ -63,7 +70,12 @@ def run(
 
     if PARSER_OPERATION in operation:
         parser_method = parsers[parser](vcf_path, fasta_path)
-        parser_method.generate_sequences(result_folder, add_original=False)
+        parser_method.generate_sequences(
+            result_folder,
+            add_original=False,
+            prefix_length=20,
+            suffix_length=20,
+        )
 
     if MODEL_OPERATION in operation:
         model = models[model](save_path=result_folder)

@@ -34,6 +34,22 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "-p_p",
+    "--parser_prefix",
+    help="Length of the sequence prefix",
+    default="20",
+    type=int,
+)
+
+parser.add_argument(
+    "-p_s",
+    "--parser_suffix",
+    help="Length of the sequence suffix",
+    default="20",
+    type=int,
+)
+
+parser.add_argument(
     "-m",
     "--model",
     help=f"Model to use: ktss -> KTSS_MODEL",
@@ -72,4 +88,6 @@ if __name__ == "__main__":
         operation=args.operation,
         parser=args.parser,
         result_folder=args.save,
+        parser_prefix=args.parser_prefix,
+        parser_suffix=args.parser_suffix,
     )
