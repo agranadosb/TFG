@@ -1,8 +1,8 @@
-import io
-import logging
+from io import StringIO
+from logging import INFO
 
 
-class TqdmLoggingHandler(io.StringIO):
+class TqdmLoggingHandler(StringIO):
     """
     Output stream for TQDM which will output to logger module instead of
     the StdOut.
@@ -15,7 +15,7 @@ class TqdmLoggingHandler(io.StringIO):
     def __init__(self, logger, level=None):
         super().__init__()
         self.logger = logger
-        self.level = level or logging.INFO
+        self.level = level or INFO
 
     def write(self, buf):
         self.buf = buf.strip("\r\n\t ")
