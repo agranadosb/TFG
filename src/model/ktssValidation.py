@@ -1,0 +1,2 @@
+class KtssValidation(object):
+    pass
