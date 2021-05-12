@@ -55,3 +55,23 @@ class TestDFA(TestCase):
             invalid = True
 
         self.assertTrue(invalid)
+
+    def test_parse_string_valid(self):
+        self.dfa.append_to_transitions("", "a", "a")
+        self.dfa.append_to_transitions("a", "b", "ab")
+        string = "ab"
+
+        result = self.dfa.parse_string(string)
+
+        self.assertEqual(result, ["", "a", "ab"])
+
+    def test_parse_string_invalid(self):
+        string = "ab"
+
+        invalid = False
+        try:
+            self.dfa.parse_string(string)
+        except ValueError:
+            invalid = True
+
+        self.assertTrue(invalid)

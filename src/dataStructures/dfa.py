@@ -45,6 +45,10 @@ class DFA(object):
         state: str
             state where the transition starts
         
+        Raise
+        -----
+        ValueError: When not exists a transition for given state and symbol
+
         Returns
         -------
         The next state
@@ -53,3 +57,29 @@ class DFA(object):
         if not transition or not transition.get(symbol, False):
             raise ValueError(f"The transition for {state} - {symbol} not exists")
         return transition[symbol]
+
+    def parse_string(self, string):
+        """Parse a string and returns the sequence of states
+
+        Parameters
+        ----------
+        string: str
+            string to be parsed
+        
+        Raise
+        -----
+        ValueError: When the string connot be parsed
+
+        Returns
+        -------
+        Sequence of the followed states
+        """
+        current_state = self.initial_state
+        states = [current_state]
+
+        for i in string:
+            next_state = self.next_state(i, current_state)
+            states.append(next_state)
+            current_state = next_state
+        
+        return states
