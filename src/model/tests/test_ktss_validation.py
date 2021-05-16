@@ -1,10 +1,10 @@
 from unittest import TestCase
 
 from sortedcontainers import SortedDict, SortedSet
-from src.model.ktssValidation import KtssValidator
+from src.model.ktssValidation import KTSSValidator
 
 
-class TestKtssValidator(TestCase):
+class TestKTSSValidator(TestCase):
     def setUp(self) -> None:
         alphabet = {"a", "b"}
         states = {"", "a", "b", "aa", "bb", "ab", "ba"}
@@ -28,15 +28,15 @@ class TestKtssValidator(TestCase):
             "final_states": final_states,
         }
 
-        self.ktss_validator = KtssValidator(model)
+        self.ktss_validator = KTSSValidator(model)
 
         return super().setUp()
 
-    def test_get_next_state_from_sequence(self):
+    def test_get_next_state(self):
         prefix = "aa"
         state = "aa"
 
-        result = self.ktss_validator.get_next_state_from_sequence(prefix)
+        result = self.ktss_validator.get_next_state(prefix)
 
         self.assertEqual(result, state)
 
@@ -44,11 +44,11 @@ class TestKtssValidator(TestCase):
         prefix = ""
         state = ""
 
-        result = self.ktss_validator.get_next_state_from_sequence(prefix)
+        result = self.ktss_validator.get_next_state(prefix)
 
         self.assertEqual(result, state)
 
-    def test_generate_sequence_from_list(self):
+    def test_generate_sequence(self):
         symbol_list = ["a", "b"]
         sequences = SortedSet(
             [
@@ -69,60 +69,54 @@ class TestKtssValidator(TestCase):
             ]
         )
 
-        result = self.ktss_validator.generate_sequence_from_list(symbol_list)
+        result = self.ktss_validator.generate_sequence(symbol_list)
 
         self.assertEqual(result, sequences)
 
-    def test_generate_sequence_from_list_from_state(self):
+    def test_generate_sequence_from_state(self):
         symbol_list = ["a", "b"]
         state = "a"
         sequences = SortedSet(["a", "b", "aa", "ab", "ba", "bb"])
 
-        result = self.ktss_validator.generate_sequence_from_list(
-            symbol_list, state=state
-        )
+        result = self.ktss_validator.generate_sequence(symbol_list, state=state)
 
         self.assertEqual(result, sequences)
 
-    def test_generate_sequence_from_list_without_symbols(self):
+    def test_generate_sequence_without_symbols(self):
         symbol_list = []
         state = "a"
         sequences = SortedSet()
 
-        result = self.ktss_validator.generate_sequence_from_list(
-            symbol_list, state=state
-        )
+        result = self.ktss_validator.generate_sequence(symbol_list, state=state)
 
         self.assertEqual(result, sequences)
 
-    def test_generate_sequence_from_list_with_invalid_state(self):
+    def test_generate_sequence_with_invalid_state(self):
         symbol_list = ["a", "b"]
         state = "c"
         sequences = SortedSet()
 
-        result = self.ktss_validator.generate_sequence_from_list(
-            symbol_list, state=state
-        )
+        result = self.ktss_validator.generate_sequence(symbol_list, state=state)
 
         self.assertEqual(result, sequences)
 
-    def test_generate_sequence_from_list_with_invalid_symbols(self):
+    def test_generate_sequence_with_invalid_symbols(self):
         symbol_list = ["c"]
         sequences = SortedSet()
 
-        result = self.ktss_validator.generate_sequence_from_list(symbol_list)
+        result = self.ktss_validator.generate_sequence(symbol_list)
 
         self.assertEqual(result, sequences)
 
-    def test_generate_sequence_from_list_with_valid_symbols(self):
+    def test_generate_sequence_with_valid_symbols(self):
         symbol_list = ["a"]
         sequences = SortedSet(["a", "aa", "aaa"])
 
-        result = self.ktss_validator.generate_sequence_from_list(symbol_list)
+        result = self.ktss_validator.generate_sequence(symbol_list)
 
         self.assertEqual(result, sequences)
 
-    def test_generate_sequence_from_list_example_case(self):
+    def test_generate_sequence_example_case(self):
         self.ktss_validator.dfa.transitions = {
             "a": {"a": "aa", "b": "ab"},
             "aa": {"a": "aaa", "b": "aab"},
@@ -131,9 +125,7 @@ class TestKtssValidator(TestCase):
         state = "a"
         sequences = SortedSet(["a", "aa"])
 
-        result = self.ktss_validator.generate_sequence_from_list(
-            symbol_list, state=state
-        )
+        result = self.ktss_validator.generate_sequence(symbol_list, state=state)
 
         self.assertEqual(result, sequences)
 
@@ -143,7 +135,7 @@ class TestKtssValidator(TestCase):
         self.ktss_validator.infix_symbols = ["a"]
         sequences = SortedSet(["a-a-b"])
 
-        result = self.ktss_validator.generate_infix_sequences(prefix, suffix)
+        result = self.ktss_validator.generate_infixes(prefix, suffix)
 
         self.assertEqual(result, sequences)
 
@@ -153,7 +145,7 @@ class TestKtssValidator(TestCase):
         self.ktss_validator.infix_symbols = ["a"]
         sequences = SortedSet(["-a-b", "-aa-b"])
 
-        result = self.ktss_validator.generate_infix_sequences(prefix, suffix)
+        result = self.ktss_validator.generate_infixes(prefix, suffix)
 
         self.assertEqual(result, sequences)
 
@@ -163,7 +155,7 @@ class TestKtssValidator(TestCase):
         self.ktss_validator.infix_symbols = ["a"]
         sequences = SortedSet(["-a-bb"])
 
-        result = self.ktss_validator.generate_infix_sequences(prefix, suffix)
+        result = self.ktss_validator.generate_infixes(prefix, suffix)
 
         self.assertEqual(result, sequences)
 
@@ -173,7 +165,7 @@ class TestKtssValidator(TestCase):
         self.ktss_validator.infix_symbols = ["a"]
         sequences = SortedSet(["a-a-", "a-aa-"])
 
-        result = self.ktss_validator.generate_infix_sequences(prefix, suffix)
+        result = self.ktss_validator.generate_infixes(prefix, suffix)
 
         self.assertEqual(result, sequences)
 
@@ -218,9 +210,18 @@ class TestKtssValidator(TestCase):
             ]
         )
 
-        result = self.ktss_validator.generate_infix_sequences(prefix, suffix)
+        result = self.ktss_validator.generate_infixes(prefix, suffix)
 
         self.assertEqual(result, sequences)
+
+    def test_generate_distances_invalid(self):
+        self.ktss_validator.infix_symbols = ["a", "b"]
+        sequences = [("c", "aaa", "c"), ("c", "cac", "c")]
+        distances = SortedDict({"c-aaa-c": False, "c-cac-c": False})
+
+        result = self.ktss_validator.generate_distances(sequences)
+
+        self.assertEqual(result, distances)
 
     def test_generate_distances(self):
         self.ktss_validator.dfa.alphabet = {"a", "b", "c"}

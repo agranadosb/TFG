@@ -3,12 +3,11 @@
 import logging
 from abc import ABC, abstractmethod
 
-from src.vcf.vcfReader import VcfMutationsReader
+from src.vcf.vcfReader import FastaReader
 
 
 class ParserVcf(ABC):
-    """Parses data from vcf and fasta and prepare that data for a
-    machine learning model
+    """Parses data from vcf and fasta and prepare that data for a machine learning model
 
     Parameters
     ----------
@@ -21,7 +20,7 @@ class ParserVcf(ABC):
     name = False
 
     def __init__(self, vcf_path: str, fasta_path: str):
-        self.vcf_reader = VcfMutationsReader(vcf_path, fasta_path)
+        self.vcf_reader = FastaReader(vcf_path, fasta_path)
         logging.info("Loading finalized\n")
 
     def get_vcf(self):
@@ -39,79 +38,110 @@ class ParserVcf(ABC):
 
         Returns
         -------
-        VcfMutationsReader
+        FastaReader
             vcf reader
         """
         return self.vcf_reader
 
-    """ TODO: add retrive_string_sequence abstract method """
+    @staticmethod
+    @abstractmethod
+    def retrive_sequence(sequence):
+        """Gets a string sequence and returns the sequence in a tuple type
+
+        Parameters
+        ----------
+        sequence: str
+            Sequence in string format
+
+        Returns
+        -------
+        Sequence in a list format
+        """
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def retrive_string_sequence(sequence):
+        """Gets a string sequence and returns the sequence in a tuple type
+
+        Parameters
+        ----------
+        sequence: str
+            Sequence in string format
+
+        Returns
+        -------
+        Sequence in a string format
+        """
+        pass
 
     @abstractmethod
     def method(self, sequence: tuple, mutation: str):
-        """Generates the result sequence from the original and the mutation
+        """Parse the sequence with a given mutation to a new sequence with different
+        noation, for example:
+            from ("a", "b", "c") with mutation = "dd" to ("s", "mm", "s")
 
         Parameters
         ----------
         sequence : tuple
-            Tuple with the prefix, the nucleotide and the suffix of the sequence
+            Sequence in a tuple shape
         muatation : str
             Mutation of the nucleotide
 
         Returns
         -------
         The parsed sequence
-
         """
         pass
 
     def original_sequence_to_string(self, prefix, sequence):
-        """Gets the original sequence and generates a string representation
+        """Generates a string of a sequence by append the prefix, infix and suffix and
+        append at the starts a given prefix.
 
         Parameters
         ----------
         prefix : str
             Prefix to append before the original sequence
         sequence:
-            Sequence to be representated
+            Sequence
 
         Returns
         -------
-        String representation of the original sequence
+        Sequence in a string shape with a given prefix
 
         """
         return f'{prefix}{"".join(sequence)}\n'
 
     def default_filename(self):
-        """Returns a default filename with the results
+        """Returns a default filename for the results
 
         Returns
         -------
-        Filename
+        Results default filename
         """
         return f"parsed_{self.name}_data.pvcf"
 
+    @abstractmethod
     def sequence_to_string(self, original_sequence, prefix, sequence, mutation):
-        """Gets a sequence and generates a string representation
+        """Creates a string from a sequence and a mutation with the original sequence
+        (in a string shape) and a given prefix.
 
         Parameters
         ----------
         original_sequence : str
-            String representation of the original sequence
+            Original sequence in a string shape
         prefix : str
             Prefix to append before the parsed sequence
         sequence:
-            Sequence to be representated
+            Sequence
         mutation:
-            Mutation of the nucleotide
+            Mutation
 
         Returns
         -------
-        String representation of the sequence
-
+        Sequence and original sequence with the prefix
         """
-        return (
-            f'{original_sequence}{prefix}{"".join(self.method(sequence, mutation))}\n'
-        )
+        pass
 
     def generate_sequences(
         self,
@@ -122,20 +152,20 @@ class ParserVcf(ABC):
         prefix_length=5,
         suffix_length=5,
     ):
-        """Generates a file with the sequences mutated using 'method'
+        """Generates a file with the sequences mutated using a defined method for parse
+        the sequence and the mutation
 
         Parameters
         ----------
         path : str
             Path to store the data
-        filename : str, optional
+        [filename : str = default_filename]
             Filename of the result file
-        write_chromosme : bool, optional
-            Indicates the chromosme where the sequences being
-        add_original : bool, optional
+        [write_chromosme : bool = False]
+            If true adds the chromosme where the sequences being into the file
+        [add_original : bool = False]
             If true adds the original sequence into the file
         """
-
         if not filename:
             filename = self.default_filename()
 

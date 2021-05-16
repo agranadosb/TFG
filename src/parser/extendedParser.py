@@ -4,8 +4,8 @@ from src.parser.parserVcf import ParserVcf
 
 NUCLETODIES = ["A", "C", "G", "T"]
 
-PREFIX_SYMBOLS = ["a", "s", "d", "f"]
-MUTATIONS_SYMBOLS = ["q", "w", "e", "r"]
+PREFIX_SYMBOLS = ["q", "w", "e", "r"]
+MUTATIONS_SYMBOLS = ["a", "s", "d", "f"]
 SUFFIX_SYMBOLS = ["z", "x", "c", "v"]
 
 
@@ -14,6 +14,37 @@ def generate_dict_values(lst):
 
 
 class ExtendedParserVcf(ParserVcf):
+    """Parses data from vcf and fasta and prepare that data for a machine learning model
+
+    The extended parser gets a sequence (prefix, infix, suffix) and maps each character
+    to another depending if the character is in the prefix, infix or suffix:
+
+     - Prefix mapping:
+         - A -> q
+         - C -> w
+         - G -> e
+         - T -> r
+     - Infix mapping:
+         - A -> a
+         - C -> s
+         - G -> d
+         - T -> f
+    - Suffix mapping:
+         - A -> z
+         - C -> x
+         - G -> c
+         - T -> v
+
+    So, for a given sequence ("ACGT", "ACGT", "ACGT") the parsers changes it to:
+     - ("qwer", "asdf", "zxcv")
+
+    Parameters
+    ----------
+    vcf_path : str
+        Path of the vcf file
+    fasta_path : str
+        Path of the fasta file
+    """
 
     prefix_map = generate_dict_values(PREFIX_SYMBOLS)
     mutations_map = generate_dict_values(MUTATIONS_SYMBOLS)
@@ -24,23 +55,23 @@ class ExtendedParserVcf(ParserVcf):
     name = "extended"
 
     def sequence_to_string(self, original_sequence, prefix, sequence, mutation):
-        """Gets a sequence and generates a string representation
+        """Creates a string from a sequence and a mutation with the original sequence
+        (in a string shape) and a given prefix.
 
         Parameters
         ----------
         original_sequence : str
-            String representation of the original sequence
+            Original sequence in a string shape
         prefix : str
             Prefix to append before the parsed sequence
         sequence:
-            Sequence to be representated
+            Sequence
         mutation:
-            Mutation of the nucleotide
+            Mutation
 
         Returns
         -------
-        String representation of the sequence
-
+        Sequence and original sequence with the prefix
         """
         result_sequence = self.method(sequence, mutation)
 

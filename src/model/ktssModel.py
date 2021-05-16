@@ -14,6 +14,18 @@ from tqdm import tqdm
 
 
 class KTSSModel(AbstractModel):
+    """Model that creates a DFA from a list of sequences
+
+    Parameters
+    ----------
+    [save_path: bool = False]
+        The path where the model will be saved
+    [restore_path: bool = False]
+        The path from the model ill be loaded
+    [parser: ParserVcf = ExtendedParserVcf]
+        Parser that will generate the data
+    """
+
     def __init__(self, save_path=False, restore_path=False, parser=ExtendedParserVcf):
         super().__init__(save_path=save_path, restore_path=restore_path)
         self.model = False
@@ -199,7 +211,6 @@ class KTSSModel(AbstractModel):
 
         if get_not_allowed_segements:
             logging.info(f"Generating sigma with alphabet {alphabet}")
-            """ TODO: Store sigma into a file to prevent the RAM processor overflow (just an idea) """
             not_allowed_segments = self.generate_sigma(alphabet, k) - infixes
 
         q = [""]

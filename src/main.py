@@ -7,29 +7,21 @@ import os
 from src.constants.constants import (
     EXTENDED_PARSER_CODE,
     KTSS_MODEL,
-    LOWER_PARSER_CODE,
     PARSER_MODEL_OPERATION,
     PARSER_OPERATION,
-    SIMPLIFIED_PARSER_CODE,
 )
 from src.model.ktssModel import KTSSModel
-from src.model.ktssValidation import KtssValidator
+from src.model.ktssValidation import KTSSValidator
 from src.parser.extendedParser import ExtendedParserVcf
-from src.parser.lowerParser import LowerParserVcf
-from src.parser.simplifiedParser import SimplifiedParserVcf
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
-parsers = {
-    EXTENDED_PARSER_CODE: ExtendedParserVcf,
-    LOWER_PARSER_CODE: LowerParserVcf,
-    SIMPLIFIED_PARSER_CODE: SimplifiedParserVcf,
-}
+parsers = {EXTENDED_PARSER_CODE: ExtendedParserVcf}
 
 models = {KTSS_MODEL: KTSSModel}
 
-validators = {KTSS_MODEL: KtssValidator}
+validators = {KTSS_MODEL: KTSSValidator}
 
 
 def run(
@@ -37,7 +29,7 @@ def run(
     fasta_path,
     model_type=KTSS_MODEL,
     operation=PARSER_OPERATION,
-    parser=SIMPLIFIED_PARSER_CODE,
+    parser=EXTENDED_PARSER_CODE,
     result_folder=f"{dir_path}/example/",
     parser_prefix=20,
     parser_suffix=20,
