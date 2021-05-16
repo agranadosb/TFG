@@ -22,8 +22,8 @@ class TestExtendedParserVcf(TestCase):
         original_sequence = random_string()
         prefix = random_string()
         sequence = ("ACGTGGT", "CAA", "GTCC")
-        sequence_prefix = "a-s-d-f-d-d-f"
-        sequence_infix = "q-q-q"
+        sequence_prefix = "q-w-e-r-e-e-r"
+        sequence_infix = "a-a-a"
         sequence_suffix = "c-v-x-x"
         sequence_result = f"{sequence_prefix} {sequence_infix} {sequence_suffix}"
         mutation = SequenceFaker("AAA")
@@ -37,12 +37,12 @@ class TestExtendedParserVcf(TestCase):
 
     def test_retrive_string_sequence(self):
         sequence = ("ACGTGGT", "CAA", "GTCC")
-        sequence_prefix = "a-s-d-f-d-d-f"
-        sequence_infix = "q-q-q"
+        sequence_prefix = "q-w-e-r-e-e-r"
+        sequence_infix = "a-a-a"
         sequence_suffix = "c-v-x-x"
         sequence = f"{sequence_prefix} {sequence_infix} {sequence_suffix}"
-        result_prefix = "asdfddf"
-        result_infix = "qqq"
+        result_prefix = "qwereer"
+        result_infix = "aaa"
         result_suffix = "cvxx"
         result_sequence = f"{result_prefix}{result_infix}{result_suffix}"
 
@@ -53,8 +53,8 @@ class TestExtendedParserVcf(TestCase):
     def test_method(self):
         sequence = ("ACGTGGT", "CAA", "GTCC")
         mutation = SequenceFaker("AAA")
-        prefix = ["a", "s", "d", "f", "d", "d", "f"]
-        infix = ["q", "q", "q"]
+        prefix = ["q", "w", "e", "r", "e", "e", "r"]
+        infix = ["a", "a", "a"]
         suffix = ["c", "v", "x", "x"]
 
         result = self.parser.method(sequence, [mutation])

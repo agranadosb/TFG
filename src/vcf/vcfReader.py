@@ -26,7 +26,7 @@ class FastaReader(object):
         - is_last: shows if the chromosome is the last
         - index: chromosome index on the local list of chromosomes
         - chromosme_length: number of nucleotides that are in the chromosome
-    
+
     The class has an attribute (chromosmes) that contains the number and labels of all
     the chrosmomes that are in the fasta file
 
@@ -388,7 +388,9 @@ class FastaReader(object):
         str
             sequence of nucletoides
         """
-        return self.get_from_interval(self.get_nucleotide_index(pos, chromosome), length)
+        return self.get_from_interval(
+            self.get_nucleotide_index(pos, chromosome), length
+        )
 
     def get_sequence(
         self,

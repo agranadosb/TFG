@@ -6,10 +6,8 @@ import src.main as main
 from src.constants.constants import (
     EXTENDED_PARSER_CODE,
     KTSS_MODEL,
-    LOWER_PARSER_CODE,
     PARSER_MODEL_OPERATION,
     PARSER_OPERATION,
-    SIMPLIFIED_PARSER_CODE,
 )
 
 parser = argparse.ArgumentParser(
@@ -28,10 +26,10 @@ parser.add_argument(
 parser.add_argument(
     "-p",
     "--parser",
-    help=f"Parser to use: simplified -> {SIMPLIFIED_PARSER_CODE}, extended -> {EXTENDED_PARSER_CODE}, lower -> {LOWER_PARSER_CODE}",
-    default=SIMPLIFIED_PARSER_CODE,
+    help=f"Parser to use: extended -> {EXTENDED_PARSER_CODE}",
+    default=EXTENDED_PARSER_CODE,
     type=str,
-    choices=[SIMPLIFIED_PARSER_CODE, EXTENDED_PARSER_CODE, LOWER_PARSER_CODE],
+    choices=[EXTENDED_PARSER_CODE],
 )
 
 parser.add_argument(
