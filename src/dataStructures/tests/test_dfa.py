@@ -85,7 +85,6 @@ class TestDFA(TestCase):
 
         self.assertTrue(result)
 
-
     def test_has_transition_invalid_state(self):
         self.dfa.add_transition("", "a", "a")
         state = "b"

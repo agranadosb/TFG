@@ -91,7 +91,7 @@ class DFA(object):
             State of the transition
         symbol:
             symbol of the transition
-        
+
         Returns
         -------
         True if the transitions exists otherwise False

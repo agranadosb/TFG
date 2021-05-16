@@ -228,6 +228,28 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "textdistance"
+version = "4.2.1"
+description = "Compute distance between the two texts."
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[package.extras]
+dameraulevenshtein = ["jellyfish", "pyxdameraulevenshtein"]
+hamming = ["python-levenshtein", "jellyfish", "distance", "abydos"]
+jaro = ["python-levenshtein"]
+jarowinkler = ["jellyfish"]
+levenshtein = ["python-levenshtein"]
+all = ["abydos", "jellyfish", "numpy", "python-levenshtein", "pyxdameraulevenshtein", "distance", "pylev", "py-stringmatching", "tabulate"]
+benchmark = ["abydos", "jellyfish", "numpy", "python-levenshtein", "pyxdameraulevenshtein", "distance", "pylev", "py-stringmatching", "tabulate"]
+benchmarks = ["abydos", "jellyfish", "numpy", "python-levenshtein", "pyxdameraulevenshtein", "distance", "pylev", "py-stringmatching", "tabulate"]
+common = ["abydos", "jellyfish", "numpy", "python-levenshtein", "pyxdameraulevenshtein"]
+extra = ["abydos", "jellyfish", "numpy", "python-levenshtein", "pyxdameraulevenshtein"]
+extras = ["abydos", "jellyfish", "numpy", "python-levenshtein", "pyxdameraulevenshtein"]
+test = ["hypothesis", "isort", "numpy", "pytest"]
+
+[[package]]
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
@@ -251,7 +273,7 @@ telegram = ["requests"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "a3e60a6dbdcb2361b21e0feceb6d21d0aa920510510b2c6c9479da694adcf0f9"
+content-hash = "d3129ffece701bab1fb63c54d90db9d4b0b7a078460ab746a5d3d5e2843c0862"
 
 [metadata.files]
 appdirs = [
@@ -383,6 +405,10 @@ rstcheck = [
 sortedcontainers = [
     {file = "sortedcontainers-2.3.0-py2.py3-none-any.whl", hash = "sha256:37257a32add0a3ee490bb170b599e93095eed89a55da91fa9f48753ea12fd73f"},
     {file = "sortedcontainers-2.3.0.tar.gz", hash = "sha256:59cc937650cf60d677c16775597c89a960658a09cf7c1a668f86e1e4464b10a1"},
+]
+textdistance = [
+    {file = "textdistance-4.2.1-py3-none-any.whl", hash = "sha256:870c436b2923e0b491fa7bfe9cc45014fc328f90448a9d721baf042f9c209704"},
+    {file = "textdistance-4.2.1.tar.gz", hash = "sha256:46f8df3b26c7f319ab500b417047f61b85c2dd221781cb02f6c9136e5f1c9284"},
 ]
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},

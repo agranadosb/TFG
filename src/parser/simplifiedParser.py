@@ -4,7 +4,7 @@ from src.parser.parserVcf import ParserVcf
 
 
 class SimplifiedParserVcf(ParserVcf):
-    mutations_symbols = ['m']
+    mutations_symbols = ["m"]
 
     name = "simplified"
 
