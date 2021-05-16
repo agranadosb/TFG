@@ -46,7 +46,7 @@ class TestExtendedParserVcf(TestCase):
         result_suffix = "cvxx"
         result_sequence = f"{result_prefix}{result_infix}{result_suffix}"
 
-        result = self.parser.retrive_string_sequence(sequence)
+        result = ExtendedParserVcf.retrive_string_sequence(sequence)
 
         self.assertEqual(result, result_sequence)
 

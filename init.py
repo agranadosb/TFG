@@ -7,27 +7,28 @@ from src.constants.constants import (
     EXTENDED_PARSER_CODE,
     KTSS_MODEL,
     LOWER_PARSER_CODE,
-    MODEL_OPERATION,
     PARSER_MODEL_OPERATION,
     PARSER_OPERATION,
     SIMPLIFIED_PARSER_CODE,
 )
 
-parser = argparse.ArgumentParser(description="Executes a parser, a model or both")
+parser = argparse.ArgumentParser(
+    description="Executes a parser or executes a parser and a model"
+)
 
 parser.add_argument(
     "-o",
     "--operation",
-    help=f"Operation to make: parser -> {PARSER_OPERATION} model -> {MODEL_OPERATION} both -> {PARSER_MODEL_OPERATION}",
+    help=f"Operation to make: parser -> {PARSER_OPERATION}, both -> {PARSER_MODEL_OPERATION}",
     default=PARSER_OPERATION,
     type=str,
-    choices=[PARSER_OPERATION, PARSER_MODEL_OPERATION, MODEL_OPERATION],
+    choices=[PARSER_OPERATION, PARSER_MODEL_OPERATION],
 )
 
 parser.add_argument(
     "-p",
     "--parser",
-    help=f"Parser to use: simplified -> {SIMPLIFIED_PARSER_CODE} extended -> {EXTENDED_PARSER_CODE} lower -> {LOWER_PARSER_CODE}",
+    help=f"Parser to use: simplified -> {SIMPLIFIED_PARSER_CODE}, extended -> {EXTENDED_PARSER_CODE}, lower -> {LOWER_PARSER_CODE}",
     default=SIMPLIFIED_PARSER_CODE,
     type=str,
     choices=[SIMPLIFIED_PARSER_CODE, EXTENDED_PARSER_CODE, LOWER_PARSER_CODE],
@@ -37,7 +38,7 @@ parser.add_argument(
     "-p_p",
     "--parser_prefix",
     help="Length of the sequence prefix",
-    default="20",
+    default=20,
     type=int,
 )
 
@@ -45,7 +46,7 @@ parser.add_argument(
     "-p_s",
     "--parser_suffix",
     help="Length of the sequence suffix",
-    default="20",
+    default=20,
     type=int,
 )
 
@@ -79,15 +80,24 @@ parser.add_argument(
     type=str,
 )
 
+parser.add_argument(
+    "-r",
+    "--ratio",
+    help="Ratio of training and test samples",
+    default=0.9,
+    type=float,
+)
+
 if __name__ == "__main__":
     args = parser.parse_args()
     main.run(
         args.vcf,
         args.fasta,
-        model=args.model,
+        model_type=args.model,
         operation=args.operation,
         parser=args.parser,
         result_folder=args.save,
         parser_prefix=args.parser_prefix,
         parser_suffix=args.parser_suffix,
+        test_ratio=args.ratio,
     )

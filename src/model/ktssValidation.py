@@ -1,9 +1,12 @@
+import logging
 from queue import Queue
 
 from sortedcontainers import SortedDict, SortedSet
 from src.dataStructures.dfa import DFA
+from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.parser.extendedParser import ExtendedParserVcf
 from textdistance import levenshtein
+from tqdm import tqdm
 
 
 class KtssValidator(object):
@@ -67,6 +70,7 @@ class KtssValidator(object):
         results = []
         steps_remaining = Queue()
         steps_remaining.put({"state": state, "sequence": ""})
+        """ TODO: Ver porque se queda en un bucle infinito """
         while not steps_remaining.empty():
             current_step = steps_remaining.get()
 
@@ -103,6 +107,10 @@ class KtssValidator(object):
             Suffix of the sequence
         separator: str
             Separator between prefix, sequence generated and suffix
+
+        Raise
+        -----
+        ValueError: When the prefix connot be parsed
 
         Reutrns
         -------
@@ -152,24 +160,33 @@ class KtssValidator(object):
         ---------
         sequences: list
             List of sequences
-        separator: str
+        [separator: str]
             Separator of the sequence generator
 
         Returns
         -------
         Dictionary that contains the sequence and its distances
         """
+        logger = logging.getLogger()
+        tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
+
         result = SortedDict()
-        for sequence in sequences:
+        logger.info("Generating validation data")
+        for sequence in tqdm(sequences, file=tqdm_out):
             prefix = sequence[0]
             infix = sequence[1]
             suffix = sequence[2]
             sequence_key = f"{prefix}{separator}{infix}{separator}{suffix}"
             result[sequence_key] = SortedDict()
 
-            infix_sequences = self.generate_infix_sequences(
-                prefix, suffix, separator=separator
-            )
+            """ TODO: Añadir test de la parte del try """
+            try:
+                infix_sequences = self.generate_infix_sequences(
+                    prefix, suffix, separator=separator
+                )
+            except:
+                result[sequence_key] = False
+                continue
 
             for infix_sequence in infix_sequences:
                 infix_string = infix_sequence.split(separator)[1]

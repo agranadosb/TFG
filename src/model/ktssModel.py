@@ -174,8 +174,8 @@ class KTSSModel(AbstractModel):
         """
         logger = logging.getLogger()
         tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
-        logging.info(f"Training model")
-        logging.info(f"Generating alphabet")
+        logging.info("Training model")
+        logging.info("Generating alphabet")
         alphabet = SortedSet(functools.reduce(operator.add, samples))
 
         greater_or_equal_than_k = []
@@ -206,7 +206,7 @@ class KTSSModel(AbstractModel):
         s = SortedDict({})
         q0 = ""
 
-        logging.info(f"Generating states from prefixes")
+        logging.info("Generating states from prefixes")
         for prefix in tqdm(prefixes, file=tqdm_out):
             self.add_transition(s, "", prefix[0], prefix[0])
             for char_index in range(len(prefix)):
@@ -216,12 +216,12 @@ class KTSSModel(AbstractModel):
                     s, prefix[:char_index], prefix[char_index], prefix[: char_index + 1]
                 )
 
-        logging.info(f"Generating states from infixes")
+        logging.info("Generating states from infixes")
         for infix in tqdm(infixes, file=tqdm_out):
             q.append([infix[: k - 1], infix[2:k]])
             self.add_transition(s, infix[: k - 1], infix[k - 1], infix[1:k])
 
-        logging.info(f"Remove repeated and empty states")
+        logging.info("Remove repeated and empty states")
         q = SortedSet(
             map(
                 lambda x: x if type(x) == str else x[0],
@@ -240,6 +240,7 @@ class KTSSModel(AbstractModel):
         if get_not_allowed_segements:
             self.model["not_allowed_segments"] = not_allowed_segments
 
+        logging.info("Training finalized\n")
         return self.model
 
     def set_parser(self, parser):
@@ -292,3 +293,23 @@ class KTSSModel(AbstractModel):
             }
 
             self.model = model
+
+    def get_training_sequence_method(self):
+        return ExtendedParserVcf.retrive_string_sequence
+
+    def get_test_sequence_method(self):
+        return ExtendedParserVcf.retrive_sequence
+
+    def get_samples(self, samples, method):
+        return list(
+            map(
+                lambda sample: method(sample.rstrip()),
+                samples,
+            )
+        )
+
+    def get_training_samples(self, samples):
+        return self.get_samples(samples, self.get_training_sequence_method())
+
+    def get_test_samples(self, samples):
+        return self.get_samples(samples, self.get_test_sequence_method())

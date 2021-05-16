@@ -82,7 +82,8 @@ class ExtendedParserVcf(ParserVcf):
 
         return (left, middle, right)
 
-    def retrive_string_sequence(self, sequence):
+    @staticmethod
+    def retrive_sequence(sequence):
         """Gets a string sequence and returns the sequence in a tuple type
 
         Parameters
@@ -93,6 +94,31 @@ class ExtendedParserVcf(ParserVcf):
         Returns
         -------
         Sequence in a list format
+        """
+        sequence_diveded = sequence.split(" ")
+
+        prefix = sequence_diveded[0].split("-")
+        infix = sequence_diveded[1].split("-")
+        suffix = sequence_diveded[2].split("-")
+
+        return (
+            "".join(prefix).rstrip(),
+            "".join(infix).rstrip(),
+            "".join(suffix).rstrip(),
+        )
+
+    @staticmethod
+    def retrive_string_sequence(sequence):
+        """Gets a string sequence and returns the sequence in a tuple type
+
+        Parameters
+        ----------
+        sequence: str
+            Sequence in string format
+
+        Returns
+        -------
+        Sequence in a string format
         """
         sequence_diveded = sequence.split(" ")
 
