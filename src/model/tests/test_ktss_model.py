@@ -202,22 +202,22 @@ class TestKTSSModel(TestCase):
         self.assertEqual(result["final_states"], final_states)
         self.assertEqual(result["not_allowed_segments"], not_allowed_segments)
 
-    def test_append_to_transitions_empty_transitions(self):
+    def test_add_transition_empty_transitions(self):
         transitions = {}
         from_state = "a"
         symbol = "b"
         to_state = "c"
 
-        self.model.append_to_transitions(transitions, from_state, symbol, to_state)
+        self.model.add_transition(transitions, from_state, symbol, to_state)
 
         self.assertEqual(transitions, {"a": {"b": "c"}})
 
-    def test_append_to_transitions_not_empty_transitions(self):
+    def test_add_transition_not_empty_transitions(self):
         transitions = {"a": {"d": "e"}}
         from_state = "a"
         symbol = "b"
         to_state = "c"
 
-        self.model.append_to_transitions(transitions, from_state, symbol, to_state)
+        self.model.add_transition(transitions, from_state, symbol, to_state)
 
         self.assertEqual(transitions, {"a": {"b": "c", "d": "e"}})

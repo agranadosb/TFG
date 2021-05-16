@@ -105,19 +105,21 @@ class KtssValidator(object):
         -------
             List of possible sequences with a given prefix and suffix
         """
-        state = self.get_next_state_from_sequence(prefix)
-        sequences = self.generate_sequence_from_list(self.infix_symbols, state=state)
+        prefix_state = self.get_next_state_from_sequence(prefix)
+        sequences = self.generate_sequence_from_list(
+            self.infix_symbols, state=prefix_state
+        )
 
         results = []
         for sequence in sequences:
-            state = self.get_next_state_from_sequence(sequence)
+            state = self.get_next_state_from_sequence(sequence, state=prefix_state)
 
             if not state:
                 continue
 
             try:
                 self.get_next_state_from_sequence(suffix, state=state)
-                results.append(sequence + suffix)
+                results.append(f"{prefix}{sequence}{suffix}")
             except:
                 pass
 

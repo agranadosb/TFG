@@ -14,27 +14,27 @@ class TestDFA(TestCase):
         self.dfa = DFA(states, alphabet, transitions, initial_state, final_states)
         return super().setUp()
 
-    def test_append_to_transitions_empty_transitions(self):
+    def test_add_transition_empty_transitions(self):
         from_state = "a"
         symbol = "b"
         to_state = "ab"
 
-        self.dfa.append_to_transitions(from_state, symbol, to_state)
+        self.dfa.add_transition(from_state, symbol, to_state)
 
         self.assertEqual(self.dfa.transitions, {"a": {"b": "ab"}})
 
-    def test_append_to_transitions_not_empty_transitions(self):
-        self.dfa.append_to_transitions("a", "a", "aa")
+    def test_add_transition_not_empty_transitions(self):
+        self.dfa.add_transition("a", "a", "aa")
         from_state = "a"
         symbol = "b"
         to_state = "ab"
 
-        self.dfa.append_to_transitions(from_state, symbol, to_state)
+        self.dfa.add_transition(from_state, symbol, to_state)
 
         self.assertEqual(self.dfa.transitions, {"a": {"a": "aa", "b": "ab"}})
 
     def test_next_state_valid(self):
-        self.dfa.append_to_transitions("a", "a", "aa")
+        self.dfa.add_transition("a", "a", "aa")
         from_state = "a"
         symbol = "a"
         next_state = "aa"
@@ -44,7 +44,7 @@ class TestDFA(TestCase):
         self.assertEqual(result, next_state)
 
     def test_next_state_invalid(self):
-        self.dfa.append_to_transitions("a", "a", "aa")
+        self.dfa.add_transition("a", "a", "aa")
         from_state = "a"
         symbol = "b"
 
@@ -57,8 +57,8 @@ class TestDFA(TestCase):
         self.assertTrue(invalid)
 
     def test_parse_string_valid(self):
-        self.dfa.append_to_transitions("", "a", "a")
-        self.dfa.append_to_transitions("a", "b", "ab")
+        self.dfa.add_transition("", "a", "a")
+        self.dfa.add_transition("a", "b", "ab")
         string = "ab"
 
         result = self.dfa.parse_string(string)
@@ -77,7 +77,7 @@ class TestDFA(TestCase):
         self.assertTrue(invalid)
 
     def test_has_transition_valid(self):
-        self.dfa.append_to_transitions("", "a", "a")
+        self.dfa.add_transition("", "a", "a")
         state = ""
         symbol = "a"
 
@@ -87,7 +87,7 @@ class TestDFA(TestCase):
 
 
     def test_has_transition_invalid_state(self):
-        self.dfa.append_to_transitions("", "a", "a")
+        self.dfa.add_transition("", "a", "a")
         state = "b"
         symbol = "a"
 
@@ -96,7 +96,7 @@ class TestDFA(TestCase):
         self.assertFalse(result)
 
     def test_has_transition_invalid_symbol(self):
-        self.dfa.append_to_transitions("", "a", "a")
+        self.dfa.add_transition("", "a", "a")
         state = ""
         symbol = "b"
 

@@ -125,7 +125,7 @@ class TestKtssValidator(TestCase):
     def test_generate_sequence_from_list_example_case(self):
         self.ktss_validator.dfa.transitions = {
             "a": {"a": "aa", "b": "ab"},
-            "aa": {"a": "aaa", "b": "aab"}
+            "aa": {"a": "aaa", "b": "aab"},
         }
         symbol_list = ["a"]
         state = "a"
@@ -141,7 +141,7 @@ class TestKtssValidator(TestCase):
         prefix = "a"
         suffix = "b"
         self.ktss_validator.infix_symbols = ["a"]
-        sequences = SortedSet(["ab", "aab"])
+        sequences = SortedSet(["aab"])
 
         result = self.ktss_validator.get_model_generated_sequence(prefix, suffix)
 
@@ -157,11 +157,57 @@ class TestKtssValidator(TestCase):
 
         self.assertEqual(result, sequences)
 
+    def test_get_model_sequence_empty_prefix_bb_suffix(self):
+        prefix = ""
+        suffix = "bb"
+        self.ktss_validator.infix_symbols = ["a"]
+        sequences = SortedSet(["abb"])
+
+        result = self.ktss_validator.get_model_generated_sequence(prefix, suffix)
+
+        self.assertEqual(result, sequences)
+
     def test_get_model_sequence_empty_suffix(self):
         prefix = "a"
         suffix = ""
         self.ktss_validator.infix_symbols = ["a"]
-        sequences = SortedSet(["a", "aa"])
+        sequences = SortedSet(["aa", "aaa"])
+
+        result = self.ktss_validator.get_model_generated_sequence(prefix, suffix)
+
+        self.assertEqual(result, sequences)
+
+    def test_get_model_sequence_all_big_sequences(self):
+        self.ktss_validator.dfa.alphabet = {"a", "b", "c"}
+        self.ktss_validator.dfa.add_transition("", "c", "c")
+        self.ktss_validator.dfa.add_transition("c", "a", "ca")
+        self.ktss_validator.dfa.add_transition("c", "b", "cb")
+        self.ktss_validator.dfa.add_transition("ca", "a", "caa")
+        self.ktss_validator.dfa.add_transition("cb", "a", "cba")
+        self.ktss_validator.dfa.add_transition("ca", "b", "cab")
+        self.ktss_validator.dfa.add_transition("cb", "b", "cbb")
+        self.ktss_validator.dfa.add_transition("caa", "a", "caaa")
+        self.ktss_validator.dfa.add_transition("cba", "a", "cbaa")
+        self.ktss_validator.dfa.add_transition("cab", "a", "caba")
+        self.ktss_validator.dfa.add_transition("cbb", "a", "cbba")
+        self.ktss_validator.dfa.add_transition("caa", "b", "caab")
+        self.ktss_validator.dfa.add_transition("cba", "b", "cbab")
+        self.ktss_validator.dfa.add_transition("cab", "b", "cabb")
+        self.ktss_validator.dfa.add_transition("cbb", "b", "cbbb")
+        self.ktss_validator.dfa.add_transition("caaa", "c", "caaac")
+        self.ktss_validator.dfa.add_transition("cbaa", "c", "cbaac")
+        self.ktss_validator.dfa.add_transition("caba", "c", "cabac")
+        self.ktss_validator.dfa.add_transition("cbba", "c", "cbbac")
+        self.ktss_validator.dfa.add_transition("caab", "c", "caabc")
+        self.ktss_validator.dfa.add_transition("cbab", "c", "cbabc")
+        self.ktss_validator.dfa.add_transition("cabb", "c", "cabbc")
+        self.ktss_validator.dfa.add_transition("cbbb", "c", "cbbbc")
+        prefix = "c"
+        suffix = "c"
+        self.ktss_validator.infix_symbols = ["a", "b"]
+        sequences = SortedSet(
+            ["caaac", "cbaac", "cabac", "cbbac", "caabc", "cbabc", "cabbc", "cbbbc"]
+        )
 
         result = self.ktss_validator.get_model_generated_sequence(prefix, suffix)
 

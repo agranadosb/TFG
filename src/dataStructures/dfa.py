@@ -16,7 +16,7 @@ class DFA(object):
         self.initial_state = initial_state
         self.final_states = SortedSet(final_states)
 
-    def append_to_transitions(self, from_state, symbol, to_state):
+    def add_transition(self, from_state, symbol, to_state):
         """Append a transition into an ordered dict that represent the transitions
 
         Parameters

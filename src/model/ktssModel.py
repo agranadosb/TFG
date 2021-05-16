@@ -125,7 +125,7 @@ class KTSSModel(AbstractModel):
             fin += 1
         return result
 
-    def append_to_transitions(self, transitions, from_state, symbol, to_state):
+    def add_transition(self, transitions, from_state, symbol, to_state):
         """Append a transition into an ordered dict that represent the transitions
 
         Parameters
@@ -208,18 +208,18 @@ class KTSSModel(AbstractModel):
 
         logging.info(f"Generating states from prefixes")
         for prefix in tqdm(prefixes, file=tqdm_out):
-            self.append_to_transitions(s, "", prefix[0], prefix[0])
+            self.add_transition(s, "", prefix[0], prefix[0])
             for char_index in range(len(prefix)):
                 q.append([prefix[: char_index + 1]])
 
-                self.append_to_transitions(
+                self.add_transition(
                     s, prefix[:char_index], prefix[char_index], prefix[: char_index + 1]
                 )
 
         logging.info(f"Generating states from infixes")
         for infix in tqdm(infixes, file=tqdm_out):
             q.append([infix[: k - 1], infix[2:k]])
-            self.append_to_transitions(s, infix[: k - 1], infix[k - 1], infix[1:k])
+            self.add_transition(s, infix[: k - 1], infix[k - 1], infix[1:k])
 
         logging.info(f"Remove repeated and empty states")
         q = SortedSet(
