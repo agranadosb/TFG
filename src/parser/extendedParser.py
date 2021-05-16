@@ -5,7 +5,7 @@ from src.parser.parserVcf import ParserVcf
 NUCLETODIES = ["A", "C", "G", "T"]
 
 PREFIX_SYMBOLS = ["a", "s", "d", "f"]
-INFIX_SYMBOLS = ["q", "w", "e", "r"]
+MUTATIONS_SYMBOLS = ["q", "w", "e", "r"]
 SUFFIX_SYMBOLS = ["z", "x", "c", "v"]
 
 
@@ -15,9 +15,11 @@ def generate_dict_values(lst):
 
 class ExtendedParserVcf(ParserVcf):
 
-    left_map = generate_dict_values(PREFIX_SYMBOLS)
-    middle_map = generate_dict_values(INFIX_SYMBOLS)
-    right_map = generate_dict_values(SUFFIX_SYMBOLS)
+    prefix_map = generate_dict_values(PREFIX_SYMBOLS)
+    mutations_map = generate_dict_values(MUTATIONS_SYMBOLS)
+    suffix_map = generate_dict_values(SUFFIX_SYMBOLS)
+
+    mutations_symbols = MUTATIONS_SYMBOLS
 
     name = "extended"
 
@@ -72,11 +74,11 @@ class ExtendedParserVcf(ParserVcf):
             sequence simplified
         """
 
-        left = [self.left_map[nucletid.upper()] for nucletid in sequence[0]]
+        left = [self.prefix_map[nucletid.upper()] for nucletid in sequence[0]]
         middle = [
-            self.middle_map[nucletid.upper()] for nucletid in mutation[0].sequence
+            self.mutations_map[nucletid.upper()] for nucletid in mutation[0].sequence
         ]
-        right = [self.right_map[nucletid.upper()] for nucletid in sequence[2]]
+        right = [self.suffix_map[nucletid.upper()] for nucletid in sequence[2]]
 
         return (left, middle, right)
 

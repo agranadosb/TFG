@@ -1,4 +1,4 @@
-from unittest import TestCase, load_tests
+from unittest import TestCase
 
 from src.dataStructures.dfa import DFA
 
@@ -75,3 +75,31 @@ class TestDFA(TestCase):
             invalid = True
 
         self.assertTrue(invalid)
+
+    def test_has_transition_valid(self):
+        self.dfa.append_to_transitions("", "a", "a")
+        state = ""
+        symbol = "a"
+
+        result = self.dfa.has_transition(state, symbol)
+
+        self.assertTrue(result)
+
+
+    def test_has_transition_invalid_state(self):
+        self.dfa.append_to_transitions("", "a", "a")
+        state = "b"
+        symbol = "a"
+
+        result = self.dfa.has_transition(state, symbol)
+
+        self.assertFalse(result)
+
+    def test_has_transition_invalid_symbol(self):
+        self.dfa.append_to_transitions("", "a", "a")
+        state = ""
+        symbol = "b"
+
+        result = self.dfa.has_transition(state, symbol)
+
+        self.assertFalse(result)
