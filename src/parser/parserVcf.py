@@ -119,6 +119,8 @@ class ParserVcf(ABC):
         filename: str = False,
         write_chromosme: bool = False,
         add_original: bool = True,
+        prefix_length=5,
+        suffix_length=5,
     ):
         """Generates a file with the sequences mutated using 'method'
 
@@ -139,7 +141,9 @@ class ParserVcf(ABC):
 
         with open(f"{path}/{filename}", "w") as parsed_data_file:
             for i in self.get_vcf():
-                sequence = self.vcf_reader.get_sequence(i.CHROM, i.REF, i.POS, 5, 5)
+                sequence = self.vcf_reader.get_sequence(
+                    i.CHROM, i.REF, i.POS, prefix_length, suffix_length
+                )
 
                 prefix = ""
                 if write_chromosme:

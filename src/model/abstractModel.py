@@ -61,3 +61,11 @@ class AbstractModel(ABC):
     @abstractmethod
     def loader(self):
         pass
+
+    @abstractmethod
+    def get_training_sequence_method(self):
+        pass
+
+    @abstractmethod
+    def get_test_sequence_method(self):
+        pass

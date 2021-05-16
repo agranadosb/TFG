@@ -6,6 +6,7 @@ import json
 import logging
 import operator
 
+from sortedcontainers import SortedDict, SortedSet
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.model.abstractModel import AbstractModel
 from src.parser.extendedParser import ExtendedParserVcf
@@ -43,7 +44,7 @@ class KTSSModel(AbstractModel):
         return False
 
     def generate_sigma(self, alphabet, k):
-        """Generates sigma for a k given, for example, if k = 0 and alphabet = [A, B]
+        """Generates sigma for a k given, for example, if k = 2 and alphabet = [A, B]
         it generates [A, B, AA, AB, BA, BB]
 
         Parameters
@@ -57,11 +58,11 @@ class KTSSModel(AbstractModel):
         -------
         sigma
         """
-        aux = 1
-        words = [] + alphabet
-        while aux < k:
-            words += [pair[0] + pair[1] for pair in itertools.product(words, alphabet)]
-            aux += 1
+        words = alphabet.copy()
+        for _ in range(k - 1):
+            words.update(
+                [pair[0] + pair[1] for pair in itertools.product(words, alphabet)]
+            )
 
         return words
 
@@ -124,6 +125,30 @@ class KTSSModel(AbstractModel):
             fin += 1
         return result
 
+    def add_transition(self, transitions, from_state, symbol, to_state):
+        """Append a transition into an ordered dict that represent the transitions
+
+        Parameters
+        ----------
+        transitions: OrderedDict
+            Ordered dict that contains transitions
+        from_state: str
+            String that represent the source state
+        symbol: str
+            String that represents the transitions symbol
+        to_state
+            String tht represents the destination state
+
+        Returns
+        -------
+        The updated ordered dictionary with the new transition
+        """
+        if not transitions.get(from_state):
+            transitions[from_state] = SortedDict({})
+        transitions[from_state][symbol] = to_state
+
+        return transitions
+
     def training(self, samples, k, get_not_allowed_segements=False):
         """Generates a ktss model from the samples and a k given
 
@@ -149,78 +174,64 @@ class KTSSModel(AbstractModel):
         """
         logger = logging.getLogger()
         tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
-        logging.info(f"Training model")
-        logging.info(f"Generating alphabet")
-        alphabet = list(set(functools.reduce(operator.add, samples)))
+        logging.info("Training model")
+        logging.info("Generating alphabet")
+        alphabet = SortedSet(functools.reduce(operator.add, samples))
 
         greater_or_equal_than_k = []
-        lower_than_k = []
+        lower_than_k = SortedSet()
 
         logging.info(f"Dviding strings into greater or lower than {k}")
         for sample in samples:
             if len(sample) >= k:
                 greater_or_equal_than_k.append(sample)
             else:
-                lower_than_k.append(sample)
+                lower_than_k.add(sample)
 
         logging.info("Generating prefixes and suffixes")
-        prefixes = [] + lower_than_k
-        suffixes = [] + lower_than_k
-        infixes = []
+        prefixes = lower_than_k.copy()
+        suffixes = lower_than_k.copy()
+        infixes = SortedSet()
         for sample in tqdm(greater_or_equal_than_k, file=tqdm_out):
-            prefixes.append(self.get_prefix(sample, k))
-            suffixes.append(self.get_suffix(sample, k))
-            infixes += self.get_infixes(sample, k)
-
-        prefixes = set(prefixes)
-        suffixes = set(suffixes)
-        infixes = set(infixes)
+            prefixes.add(self.get_prefix(sample, k))
+            suffixes.add(self.get_suffix(sample, k))
+            infixes.update(self.get_infixes(sample, k))
 
         if get_not_allowed_segements:
-            logging.info(f"Generating sigma with alphabet {set(alphabet)}")
+            logging.info(f"Generating sigma with alphabet {alphabet}")
             """ TODO: Store sigma into a file to prevent the RAM processor overflow (just an idea) """
-            sigma_k = self.generate_sigma(alphabet, k)
-            not_allowed_segments = set(sigma_k) - set(infixes)
+            not_allowed_segments = self.generate_sigma(alphabet, k) - infixes
 
         q = [""]
-        s = []
+        s = SortedDict({})
         q0 = ""
 
-        logging.info(f"Generating states from prefixes")
+        logging.info("Generating states from prefixes")
         for prefix in tqdm(prefixes, file=tqdm_out):
-            s.append(["", prefix[0], prefix[0]])
+            self.add_transition(s, "", prefix[0], prefix[0])
             for char_index in range(len(prefix)):
                 q.append([prefix[: char_index + 1]])
-                s.append(
-                    [prefix[:char_index], prefix[char_index], prefix[: char_index + 1]]
+
+                self.add_transition(
+                    s, prefix[:char_index], prefix[char_index], prefix[: char_index + 1]
                 )
 
-        logging.info(f"Generating states from infixes")
+        logging.info("Generating states from infixes")
         for infix in tqdm(infixes, file=tqdm_out):
             q.append([infix[: k - 1], infix[2:k]])
-            s.append([infix[: k - 1], infix[k - 1], infix[1:k]])
+            self.add_transition(s, infix[: k - 1], infix[k - 1], infix[1:k])
 
-        logging.info(f"Remove repeated and empty states")
-        q = set(
-            list(
-                map(
-                    lambda x: x if type(x) == str else x[0],
-                    filter(lambda x: type(x) == str or all(x), q),
-                )
+        logging.info("Remove repeated and empty states")
+        q = SortedSet(
+            map(
+                lambda x: x if type(x) == str else x[0],
+                filter(lambda x: type(x) == str or all(x), q),
             )
         )
 
-        logging.info(f"Generating transitions")
-        s_aux = []
-        for i in tqdm(s, file=tqdm_out):
-            if not self.state_in_list(i, s_aux):
-                s_aux.append(i)
-
-        s = s_aux
-
         self.model = {
             "states": q,
-            "alphabet": set(alphabet),
+            "alphabet": alphabet,
             "transitions": s,
             "initial_state": q0,
             "final_states": suffixes,
@@ -229,6 +240,7 @@ class KTSSModel(AbstractModel):
         if get_not_allowed_segements:
             self.model["not_allowed_segments"] = not_allowed_segments
 
+        logging.info("Training finalized\n")
         return self.model
 
     def set_parser(self, parser):
@@ -270,4 +282,34 @@ class KTSSModel(AbstractModel):
             raise AttributeError("Loader path is not defined")
 
         with open(self.save_path) as json_file:
-            self.model = json.load(json_file)
+            model = json.load(json_file)
+
+            model = {
+                "states": SortedSet(model["states"]),
+                "alphabet": SortedSet(model["alphabet"]),
+                "transitions": SortedDict(model["transitions"]),
+                "initial_state": model["initial_state"],
+                "final_states": SortedSet(model["final_states"]),
+            }
+
+            self.model = model
+
+    def get_training_sequence_method(self):
+        return ExtendedParserVcf.retrive_string_sequence
+
+    def get_test_sequence_method(self):
+        return ExtendedParserVcf.retrive_sequence
+
+    def get_samples(self, samples, method):
+        return list(
+            map(
+                lambda sample: method(sample.rstrip()),
+                samples,
+            )
+        )
+
+    def get_training_samples(self, samples):
+        return self.get_samples(samples, self.get_training_sequence_method())
+
+    def get_test_samples(self, samples):
+        return self.get_samples(samples, self.get_test_sequence_method())

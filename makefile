@@ -1,10 +1,21 @@
+.DEFAULT_GOAL := ktss-extended
+
+INIT = python3 init.py
+
+SAVE = /opt/UPV/TFG/src/example/
+VCF = -vcf $(SAVE)datosR1.vcf
+FASTA = -fasta $(SAVE)hg19.fa.gz
+
+LENGTH_SEQUENCE = 5
+PS = -p_p $(LENGTH_SEQUENCE) -p_s $(LENGTH_SEQUENCE)
+
+KTSS_EXTENDED = -o pm -p e -m ktss
+
 test:
 	poetry run pytest
 black:
 	poetry run black .
 parser-extended:
-	python3 init.py -p e -vcf /opt/UPV/TFG/src/example/datosR1.vcf -fasta /opt/UPV/TFG/src/example/hg19.fa.gz -s /opt/UPV/TFG/src/example/
-model-ktss:
-	python3 init.py -o m -vcf /opt/UPV/TFG/src/example/datosR1.vcf -fasta /opt/UPV/TFG/src/example/hg19.fa.gz -s /opt/UPV/TFG/src/example/
-parser-extended-model-ktss:
-	python3 init.py -o pm -p e -m ktss -vcf /opt/UPV/TFG/src/example/datosR1.vcf -fasta /opt/UPV/TFG/src/example/hg19.fa.gz -s /opt/UPV/TFG/src/example/
+	$(INIT) -p e $(VCF) $(FASTA) -s $(SAVE)
+ktss-extended:
+	$(INIT) $(KTSS_EXTENDED) $(VCF) $(FASTA) -s $(SAVE) $(PS)

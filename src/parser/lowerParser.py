@@ -4,6 +4,8 @@ from src.parser.parserVcf import ParserVcf
 
 
 class LowerParserVcf(ParserVcf):
+    mutations_symbols = ["c", "g", "a", "t"]
+
     name = "lower"
 
     def method(self, sequence: tuple, mutation: str):

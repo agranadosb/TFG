@@ -25,18 +25,18 @@ class TestKTSSModel(TestCase):
         self.assertFalse(result)
 
     def test_generate_sigma_k_1(self):
-        alphabet = ["C", "G", "T", "A"]
+        alphabet = {"C", "G", "T", "A"}
         k = 1
-        sigma = ["C", "G", "T", "A"]
+        sigma = {"C", "G", "T", "A"}
 
         result = self.model.generate_sigma(alphabet, k)
 
         self.assertEqual(result, sigma)
 
     def test_generate_sigma_k_2(self):
-        alphabet = ["C", "G", "T", "A"]
+        alphabet = {"C", "G", "T", "A"}
         k = 2
-        sigma = [
+        sigma = {
             "C",
             "G",
             "T",
@@ -57,7 +57,7 @@ class TestKTSSModel(TestCase):
             "AG",
             "AT",
             "AA",
-        ]
+        }
 
         result = self.model.generate_sigma(alphabet, k)
 
@@ -155,14 +155,11 @@ class TestKTSSModel(TestCase):
         k = 2
         alphabet = {"a", "b"}
         states = {"", "b", "a"}
-        transitions = [
-            ["", "a", "a"],
-            ["", "b", "b"],
-            ["a", "a", "a"],
-            ["b", "a", "a"],
-            ["b", "b", "b"],
-            ["a", "b", "b"],
-        ]
+        transitions = {
+            "": {"a": "a", "b": "b"},
+            "a": {"a": "a", "b": "b"},
+            "b": {"a": "a", "b": "b"},
+        }
         initial_state = ""
         final_states = {"a"}
         not_allowed_segments = {"a", "b"}
@@ -182,18 +179,15 @@ class TestKTSSModel(TestCase):
         k = 3
         alphabet = {"a", "b"}
         states = {"", "ab", "a", "b", "aa", "bb", "ba"}
-        transitions = [
-            ["", "a", "a"],
-            ["a", "b", "ab"],
-            ["", "b", "b"],
-            ["b", "b", "bb"],
-            ["a", "a", "aa"],
-            ["aa", "b", "ab"],
-            ["bb", "a", "ba"],
-            ["ba", "a", "aa"],
-            ["ab", "b", "bb"],
-            ["aa", "a", "aa"],
-        ]
+        transitions = {
+            "": {"a": "a", "b": "b"},
+            "a": {"b": "ab", "a": "aa"},
+            "b": {"b": "bb"},
+            "aa": {"b": "ab", "a": "aa"},
+            "bb": {"a": "ba"},
+            "ba": {"a": "aa"},
+            "ab": {"b": "bb"},
+        }
         initial_state = ""
         final_states = {"ba", "bba", "aa"}
         not_allowed_segments = {"ab", "a", "b", "aa", "bbb", "bb", "ba", "aba", "bab"}
@@ -207,3 +201,23 @@ class TestKTSSModel(TestCase):
         self.assertEqual(result["initial_state"], initial_state)
         self.assertEqual(result["final_states"], final_states)
         self.assertEqual(result["not_allowed_segments"], not_allowed_segments)
+
+    def test_add_transition_empty_transitions(self):
+        transitions = {}
+        from_state = "a"
+        symbol = "b"
+        to_state = "c"
+
+        self.model.add_transition(transitions, from_state, symbol, to_state)
+
+        self.assertEqual(transitions, {"a": {"b": "c"}})
+
+    def test_add_transition_not_empty_transitions(self):
+        transitions = {"a": {"d": "e"}}
+        from_state = "a"
+        symbol = "b"
+        to_state = "c"
+
+        self.model.add_transition(transitions, from_state, symbol, to_state)
+
+        self.assertEqual(transitions, {"a": {"b": "c", "d": "e"}})
