@@ -3,7 +3,7 @@
 import logging
 from abc import ABC, abstractmethod
 
-from src.vcf.vcfReader import VcfMutationsReader
+from src.vcf.vcfReader import FastaReader
 
 
 class ParserVcf(ABC):
@@ -21,7 +21,7 @@ class ParserVcf(ABC):
     name = False
 
     def __init__(self, vcf_path: str, fasta_path: str):
-        self.vcf_reader = VcfMutationsReader(vcf_path, fasta_path)
+        self.vcf_reader = FastaReader(vcf_path, fasta_path)
         logging.info("Loading finalized\n")
 
     def get_vcf(self):
@@ -39,7 +39,7 @@ class ParserVcf(ABC):
 
         Returns
         -------
-        VcfMutationsReader
+        FastaReader
             vcf reader
         """
         return self.vcf_reader

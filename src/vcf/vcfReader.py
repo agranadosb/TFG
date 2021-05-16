@@ -11,11 +11,31 @@ from tqdm import tqdm
 from vcf import Reader as VcfReader
 
 
-class VcfMutationsReader(object):
-    """Gets information of mutations from vcf and fasta files.
+class FastaReader(object):
+    """Gets vcf and fasta file and generates data about the fasta file and the
+    chromosomes that are in the fasta file.
 
-    Using a fasta file and a vcf file gets information and parses data
-    from fasta file using the mutations on vcf.
+    After parse the fasta file data, the class will have an attribute (fasta_data) with
+    information per chromosome in a dictionary data structure:
+        - label_length: length of the chromosome label
+        - line_start: the line where the chromosome starts in fasta file
+        - index_start: index where the chromosome starts in fasta file
+        - index_ends: index where the chromosome ends in fasta file
+        - next_label_length: label length of the next chromosome (0 if the chromosome
+        is the last)
+        - is_last: shows if the chromosome is the last
+        - index: chromosome index on the local list of chromosomes
+        - chromosme_length: number of nucleotides that are in the chromosome
+    
+    The class has an attribute (chromosmes) that contains the number and labels of all
+    the chrosmomes that are in the fasta file
+
+    The class allow to get sequences from the fasta file and from chrosomes using the
+    methods:
+         - get_sequence
+         - get_prefix
+         - get_nucleotides
+         - get_suffix
 
     Parameters
     ----------
@@ -29,12 +49,12 @@ class VcfMutationsReader(object):
         logging.info("Loading vcf file")
         self.vcf_file = VcfReader(open(vcf_path, "r"))
 
-        self.fatsa_data = {}
+        self.fasta_data = {}
         self.chromosmes = []
         logging.info("Loading fasta file")
         self.fasta_filename = fasta_path.replace(".gz", "")
-        self.fasta_filename_index = fasta_path.replace(".gz", ".index")
-        self.fasta_file_line_length = 50
+        self.fasta_index_filename = fasta_path.replace(".gz", ".index")
+        self.line_length = 50
 
         logging.info("Loading fasta information")
         self.set_fasta_file(fasta_path)
@@ -60,25 +80,26 @@ class VcfMutationsReader(object):
         """
         return self.fasta_file
 
-    def get_fatsa_data(self):
-        """Returns information of chromosomes of fasta file
+    def get_fasta_data(self):
+        """Returns the fasta data per chrosmome
 
         Returns
         -------
         dict
             fasta information file
         """
-        return self.fatsa_data
+        return self.fasta_data
 
     def set_fasta_line_length(self):
         """Sets the line length of the fasta file"""
         for i in self.fasta_file:
             if not i.startswith(">"):
-                self.fasta_file_line_length = len(i) - 1
+                self.line_length = len(i) - 1
                 break
 
     def set_fasta_file(self, fasta_path):
-        """Sets the fsata file
+        """Gets the fasta file from gz file and unzip the file to gets the complete
+        fasta file.
 
         Parameters
         ----------
@@ -94,7 +115,7 @@ class VcfMutationsReader(object):
         self.fasta_file = open(self.fasta_filename, "r")
 
     def get_chromosome_index(self, chromosome: str):
-        """Returns index of the chromosome 'chromosome_label' on the fasta file
+        """Returns index of the chromosome on the fasta file
 
         Parameters
         ----------
@@ -106,28 +127,26 @@ class VcfMutationsReader(object):
         str
             chromosome index on fasta file
         """
-        line_start = self.fatsa_data[chromosome]["line_start"]
+        line_start = self.fasta_data[chromosome]["line_start"]
 
         if line_start <= 0:
             return 0
 
-        chromosome_index = self.chromosmes.index(chromosome)
-        chromosme_labels_length = sum(
-            [len(self.chromosmes[i]) + 2 for i in range(chromosome_index)]
+        chromosome_position = self.chromosmes.index(chromosome)
+        previous_chromosmes_labels_length = sum(
+            [len(self.chromosmes[i]) + 2 for i in range(chromosome_position)]
         )
 
-        new_lines_char = (line_start - chromosome_index) * (
-            self.fasta_file_line_length + 1
+        number_new_line_char = (line_start - chromosome_position) * (
+            self.line_length + 1
         )
 
-        chromosome_file_index = new_lines_char + chromosme_labels_length
-
-        return chromosome_file_index
+        return number_new_line_char + previous_chromosmes_labels_length
 
     def set_chromosme_start_data(self, chromosme):
-        """Adds chromosome data of 'chromosme'
+        """Set the data about the start of a chromosme in a fasta file
 
-        Adds chromosome data of 'chromosme':
+        The data of the chromosme is stored as a dictionary with the keys:
          - label_length: length of the chromosome label
          - line_start: the line where the chromosome starts in fasta file
          - index_start: index where the chromosome starts in fasta file
@@ -135,31 +154,34 @@ class VcfMutationsReader(object):
         Parameters
         ----------
         chromosme : str
-            Chromosome label as '>chromosme:line_fasta'
+            Chromosome label as '>chromosme:line_fasta', which is obtained from .index
+            generated file
         """
         chromosme_id = chromosme.split(":")
         chromosme_label = chromosme_id[1].rstrip().replace(">", "")
 
         self.chromosmes.append(chromosme_label)
 
-        self.fatsa_data[chromosme_label] = {
+        self.fasta_data[chromosme_label] = {
             "label_length": len(f">{chromosme_label}\n"),
             "line_start": int(chromosme_id[0]) - 1,
         }
 
-        self.fatsa_data[chromosme_label]["index_start"] = self.get_chromosome_index(
+        self.fasta_data[chromosme_label]["index_start"] = self.get_chromosome_index(
             chromosme_label
         )
 
     def set_chromosme_end_data(self, chromosme_local_index):
-        """Adds chromosome information about sizes in fasta file
+        """Set the data about the end of a chromosme in a fasta file. This method has to
+        be executed after set_chromosme_start_data to work
 
-        Adds chromosome information about sizes in fasta file:
+        The data of the chromosme is stored as a dictionary with the keys:
          - index_ends: index where the chromosome ends in fasta file
-         - next_label_length: label length of the next chromosome
-         - file_ends: shows if the chromosome is the last
-         - index: chromosome index
-         - chromosme_length: number of nucleotides that are in the chromsome
+         - next_label_length: label length of the next chromosome (0 if the chromosome
+           is the last)
+         - is_last: shows if the chromosome is the last
+         - index: chromosome index on the local list of chromosomes
+         - chromosme_length: number of nucleotides that are in the chromosome
 
         Parameters
         ----------
@@ -167,49 +189,50 @@ class VcfMutationsReader(object):
             Index of the chromosme in the local list
         """
         chromosome = self.chromosmes[chromosme_local_index]
-        chromosome_information = self.fatsa_data[chromosome]
+        chromosome_data = self.fasta_data[chromosome]
+        is_last_chromosme = chromosme_local_index == len(self.chromosmes) - 1
 
-        if chromosme_local_index < len(self.chromosmes) - 1:
+        if not is_last_chromosme:
             next_chromosome = self.chromosmes[chromosme_local_index + 1]
-            index_ends = self.fatsa_data[next_chromosome]["index_start"]
-            next_chromosome_starts = self.fatsa_data[next_chromosome]["line_start"]
-            current_chromosome_starts = self.fatsa_data[chromosome]["line_start"]
+            index_ends = self.fasta_data[next_chromosome]["index_start"]
+            next_chromosome_line_start = self.fasta_data[next_chromosome]["line_start"]
+            current_chromosome_line_start = self.fasta_data[chromosome]["line_start"]
 
             chromosme_length = (
-                next_chromosome_starts - current_chromosome_starts - 1
-            ) * self.fasta_file_line_length
+                next_chromosome_line_start - current_chromosome_line_start - 1
+            ) * self.line_length
 
             next_label_length = len(f">{next_chromosome}\n")
-            file_ends = False
         else:
             index_ends = os.stat(self.fasta_filename).st_size
-            index_start = self.fatsa_data[chromosome]["index_start"]
-            label_length = self.fatsa_data[chromosome]["label_length"]
+            index_start = self.fasta_data[chromosome]["index_start"]
+            label_length = self.fasta_data[chromosome]["label_length"]
             next_label_length = 0
-            file_ends = True
 
             number_of_elements = (index_ends - label_length) - index_start
             chromosme_length = number_of_elements - int(
-                number_of_elements / self.fasta_file_line_length
+                number_of_elements / self.line_length
             )
 
-        chromosome_information["index_ends"] = index_ends
-        chromosome_information["next_label_length"] = next_label_length
-        chromosome_information["file_ends"] = file_ends
-        chromosome_information["index"] = chromosme_local_index
-        chromosome_information["chromosme_length"] = chromosme_length
+        chromosome_data["index_ends"] = index_ends
+        chromosome_data["next_label_length"] = next_label_length
+        chromosome_data["is_last"] = is_last_chromosme
+        chromosome_data["index"] = chromosme_local_index
+        chromosome_data["chromosme_length"] = chromosme_length
 
     def get_fasta_data(self):
-        """Generates fasta file information about the chromosomes
+        """Generates fasta file data about the chromosomes in the fasta file.
 
-        Generates fasta file information about the chromosomes:
+        The data of the chromosme is stored as a dictionary with the keys:
          - label_length: length of the chromosome label
          - line_start: the line where the chromosome starts in fasta file
          - index_start: index where the chromosome starts in fasta file
          - index_ends: index where the chromosome ends in fasta file
-         - next_label_length: label length of the next chromosome
-         - file_ends: shows if the chromosome is the last
-         - index: chromosome index
+         - next_label_length: label length of the next chromosome (0 if the chromosome
+           is the last)
+         - is_last: shows if the chromosome is the last
+         - index: chromosome index on the local list of chromosomes
+         - chromosme_length: number of nucleotides that are in the chromosome
         """
         logger = logging.getLogger()
         tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
@@ -217,11 +240,11 @@ class VcfMutationsReader(object):
         self.set_fasta_line_length()
 
         command = (
-            f"cat {self.fasta_filename} | grep -n '>' > {self.fasta_filename_index}"
+            f"cat {self.fasta_filename} | grep -n '>' > {self.fasta_index_filename}"
         )
         os.system(command)
         logging.info("Loading chromosomes")
-        with open(self.fasta_filename_index, "r") as fasta_index_file:
+        with open(self.fasta_index_filename, "r") as fasta_index_file:
             for i in tqdm(fasta_index_file, file=tqdm_out):
                 self.set_chromosme_start_data(i)
 
@@ -229,28 +252,27 @@ class VcfMutationsReader(object):
         for i in tqdm(range(len(self.chromosmes)), file=tqdm_out):
             self.set_chromosme_end_data(i)
 
-        os.remove(self.fasta_filename_index)
+        os.remove(self.fasta_index_filename)
 
-    def get_nucleotid(self, pos, chromosome):
+    def get_nucleotide_index(self, pos, chromosome):
         """Gets the index of a nucleotide by its position in a chromosome
 
         Parameters
         ----------
         pos : int
-            Index on chromosome 'chromosome'
+            Index of the nucletoide on the chromoome
         chromosome : str
             Label of the chromosome
 
         IndexError
-            When index is greater tha chromsome length or lower
-            than 0
+            When index is greater tha chromsome length or lower than 0
 
         Returns
         -------
-        str
-            index of the nucleotid in the fasta file
+        int
+            index of the nucleotide on the fasta file
         """
-        chromosme_length = self.fatsa_data[chromosome]["chromosme_length"] - 1
+        chromosme_length = self.fasta_data[chromosome]["chromosme_length"] - 1
 
         if pos > chromosme_length or pos < 0:
             raise IndexError(
@@ -258,22 +280,23 @@ class VcfMutationsReader(object):
             )
 
         # It's necessary to taking into account that seek method counts new lines as a character
-        num_new_lines = int(pos / self.fasta_file_line_length)
-        index_start = self.fatsa_data[chromosome]["index_start"]
-        label_length = self.fatsa_data[chromosome]["label_length"]
+        num_new_lines = int(pos / self.line_length)
+        index_start = self.fasta_data[chromosome]["index_start"]
+        label_length = self.fasta_data[chromosome]["label_length"]
 
         # Get the position of the nucleotid on the file (1 char is one byte, that's why we use seek)
         return pos + index_start + label_length + num_new_lines
 
-    def get_from_interval(self, from_index: int, length: int):
-        """Returns the sequence that starts in 'from_index' and has 'length' length
+    def get_from_interval(self, starts: int, length: int):
+        """Returns a sequence that starts at given position of a chrosome and has a
+        given length
 
         Parameters
         ----------
         length : int
-            Number of elements from the sequence
-        from_index : int
-            Start of the sequence
+            Length of the sequence
+        starts : int
+            Index of the fasta file where the sequence starts
 
         Returns
         -------
@@ -283,10 +306,9 @@ class VcfMutationsReader(object):
         Raises
         ------
         IndexError
-            When the sequence from the 'from_index' is over the
-            end of the file or is before the start of the file
+            When the start position is wrong or invalid
         """
-        self.fasta_file.seek(from_index, 0)
+        self.fasta_file.seek(starts, 0)
         sequence = ""
 
         while length != 0:
@@ -297,12 +319,12 @@ class VcfMutationsReader(object):
         return sequence.upper()
 
     def get_prefix(self, pos: int, length: int, chromosome: str):
-        """Gets prefix from an index on the fasta file
+        """Gets the prefix of a given length from a given position in a chromosome
 
         Parameters
         ----------
         pos : int
-            Index on chromosome 'chromosome'
+            Position on a chromosome
         length : int
             Length of the prefix
         chromosome : str
@@ -313,22 +335,22 @@ class VcfMutationsReader(object):
         str
             prefix
         """
-        pos_initital = pos - length
+        starts = pos - length
         if pos - length <= 0:
-            pos_initital = 0
+            starts = 0
             length += pos - length
 
-        index = self.get_nucleotid(pos_initital, chromosome)
+        index = self.get_nucleotide_index(starts, chromosome)
 
         return self.get_from_interval(index, length)
 
     def get_suffix(self, pos, length, chromosome):
-        """Gets suffix from an index on the fasta file
+        """Gets the suffix of a given length from a given position in a chromosome
 
         Parameters
         ----------
         pos : int
-            Index on chromosome 'chromosome'
+            Position on a chromosome
         length : int
             Length of the suffix
         chromosome : str
@@ -340,35 +362,33 @@ class VcfMutationsReader(object):
             suffix
         """
         pos += 1
-        chromosme_length = self.fatsa_data[chromosome]["chromosme_length"]
-        index = self.get_nucleotid(pos, chromosome)
+        chromosme_length = self.fasta_data[chromosome]["chromosme_length"]
+        index = self.get_nucleotide_index(pos, chromosome)
 
         if pos + length >= chromosme_length:
             length = chromosme_length
 
         return self.get_from_interval(index, length)
 
-    def get_nucleotide_sequence(self, chromosome: str, pos: int, length: int = 1):
-        """Gets the nucleotide (or sequence) from the psoition 'pos' of a chromosme
+    def get_nucleotides(self, chromosome: str, pos: int, length: int = 1):
+        """Gets a sequence of nucletoides from a chrosome from a given position on the
+        chromosome. The default length of the sequence is 1.
 
         Parameters
         ----------
         chromosome : str
             The chromosome where the nucleotide is going to be obtained
         pos : int
-            Position of the nucleotide on the chromosome 'chromosome'
-        length : str, optional
-            If its a sequence of nucleotides what it wants to be obtained,
-            indicates the length of that sequence
+            Position of the nucleotide on the chromosome
+        [length : int = 1]
+            Length of the sequence
 
         Returns
         -------
         str
-            nucleotid in the fasta
+            sequence of nucletoides
         """
-        return self.get_from_interval(
-            self.get_nucleotid(pos, chromosome), length
-        )
+        return self.get_from_interval(self.get_nucleotide_index(pos, chromosome), length)
 
     def get_sequence(
         self,
@@ -378,20 +398,17 @@ class VcfMutationsReader(object):
         from_nuc: int,
         to_nuc: int,
     ):
-        """Gets the a fasta's sequence by a position in a chromosome.
-
-        Gets the nucleotide in position 'pos' from the chromosme 'chromosome'
-        and, if the parameters 'from_nuc' or 'to_nuc' are given, the prefix and suffix
-        with 'from_nuc' and 'to_nuc' length respectively as tuple (prefix, nucleotid, suffix)
+        """Gets a fasta's sequence by a position in a chromosome, with a prefix and a
+        suffix with a given length
 
         Parameters
         ----------
         chromosome : str
-            The chromosome where the nucleotide is going to be obtained
+            The chromosome where the sequence is going to be obtained
         nucleotide : str
             Label of the nucleotide
         pos : int
-            Position of the nucleotide on the chromosome 'chromosome'
+            Position of the nucleotide on the chromosome
         from_nuc : int
             Length of the prefix of the sequence
         to_nuc : int
@@ -399,15 +416,13 @@ class VcfMutationsReader(object):
 
         Returns
         -------
-        str
-            nucleotid in the fasta
         tuple
-            nucleotide with the prefix and the suffix
+            Sequence divided in (prefix, nucleotide, suffix)
         """
         length = len(nucleotide)
 
         pref = self.get_prefix(pos, from_nuc, chromosome)
-        nucleotide = self.get_nucleotide_sequence(chromosome, pos, length)
+        nucleotide = self.get_nucleotides(chromosome, pos, length)
         suff = self.get_suffix(pos + length - 1, to_nuc, chromosome)
 
         return (pref, nucleotide, suff)
