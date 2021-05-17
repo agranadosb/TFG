@@ -54,6 +54,11 @@ def run(
             suffix_length=parser_suffix,
         )
 
+        """ TODO: La cadena va a medir con acgt, osea, sin anotar. Hay que ver como
+        serán los inputs del validador. Se podría hacer que obtuviera una cadena sin
+        anotar y dividiera por 20 (el prefijo que toque) por delante y por detrás para
+        generar la cadena para validar"""
+        """ TODO: k TIENE QUE SER MENOR A 20, POR EJEMPLO l = 20 y k = 4 (k fijo) """
         # Generate the samples to build the model
         with open(f"{result_folder}{parser_engine.default_filename()}") as samples_file:
             lines = samples_file.readlines()
@@ -63,7 +68,7 @@ def run(
             test_samples = model.get_test_samples(lines[training_length:])
 
         # Train the model
-        model.trainer()(training_samples, min(parser_prefix, parser_suffix))
+        model.trainer()(training_samples, 3)
         model.saver()
 
         # Test the model

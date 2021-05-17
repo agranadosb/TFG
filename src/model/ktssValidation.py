@@ -82,11 +82,20 @@ class KTSSValidator(object):
         steps_remaining = Queue()
         steps_remaining.put({"state": state, "sequence": ""})
 
+        states_searched = set()
         while not steps_remaining.empty():
             current_step = steps_remaining.get()
 
             state = current_step["state"]
             sequence = current_step["sequence"]
+
+            """ TODO: Esto esta para cuando hay ciclos dentro del autómata, podría haber
+            una forma mejor, como un número máximo de repeticiones o un ratio dependiendo
+            de la longitud analizada """
+            if state in states_searched:
+                continue
+
+            states_searched.add(state)
 
             for symbol in symbol_list:
                 has_transition = self.dfa.has_transition(state, symbol)
