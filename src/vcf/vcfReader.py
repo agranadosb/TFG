@@ -29,28 +29,29 @@ class FastaReader(object):
         - chromosme_length: number of nucleotides that are in the chromosome
 
     For example, after analize a Fasta file with two chromosmes, the dictionary will be:
-    {
-        'chr1': {
-            'label_length': ...,
-            'line_start': ...,
-            'index_start': ...,
-            'index_ends': ...,
-            'next_label_length': ...,
-            'is_last': ...,
-            'index': ...,
-            'chromosme_length': ...,
-        },
-        'chr2': {
-            'label_length': ...,
-            'line_start': ...,
-            'index_start': ...,
-            'index_ends': ...,
-            'next_label_length': ...,
-            'is_last': ...,
-            'index': ...,
-            'chromosme_length': ...,
+
+        {
+            'chr1': {
+                'label_length': ...,
+                'line_start': ...,
+                'index_start': ...,
+                'index_ends': ...,
+                'next_label_length': ...,
+                'is_last': ...,
+                'index': ...,
+                'chromosme_length': ...,
+            },
+            'chr2': {
+                'label_length': ...,
+                'line_start': ...,
+                'index_start': ...,
+                'index_ends': ...,
+                'next_label_length': ...,
+                'is_last': ...,
+                'index': ...,
+                'chromosme_length': ...,
+            }
         }
-    }
 
     The class has an attribute (chromosmes) that contains the number and labels of all
     the chrosmomes that are in the fasta file. Getting the previous example, this
@@ -100,8 +101,7 @@ class FastaReader(object):
 
         Returns
         -------
-        str
-            vcf file
+        Vcf file
         """
         return self.vcf_file
 
@@ -110,20 +110,9 @@ class FastaReader(object):
 
         Returns
         -------
-        str
-            fasta file
+        Fasta file
         """
         return self.fasta_file
-
-    def get_fasta_data(self) -> dict:
-        """Returns the fasta data per chrosmome
-
-        Returns
-        -------
-        dict
-            fasta information file
-        """
-        return self.fasta_data
 
     def set_fasta_line_length(self):
         """Sets the line length of the fasta file"""
@@ -182,9 +171,10 @@ class FastaReader(object):
 
         The data of the chromosme is stored as a dictionary in the chromosmes data
         dictionary with the keys:
-         - label_length: length of the chromosome label
-         - line_start: the line where the chromosome starts in fasta file
-         - index_start: index where the chromosome starts in fasta file
+
+         - **label_length**: length of the chromosome label
+         - **line_start**: the line where the chromosome starts in fasta file
+         - **index_start**: index where the chromosome starts in fasta file
 
         Parameters
         ----------
@@ -212,12 +202,13 @@ class FastaReader(object):
 
         The data of the chromosme is stored as a dictionary in the chromosmes data
         dictionary with the keys:
-         - index_ends: index where the chromosome ends in fasta file
-         - next_label_length: label length of the next chromosome (0 if the chromosome
+
+         - **index_ends**: index where the chromosome ends in fasta file
+         - **next_label_length**: label length of the next chromosome (0 if the chromosome
            is the last)
-         - is_last: shows if the chromosome is the last
-         - index: chromosome index on the local list of chromosomes
-         - chromosme_length: number of nucleotides that are in the chromosome
+         - **is_last**: shows if the chromosome is the last
+         - **index**: chromosome index on the local list of chromosomes
+         - **chromosme_length**: number of nucleotides that are in the chromosome
 
         Parameters
         ----------
@@ -261,15 +252,16 @@ class FastaReader(object):
 
         The data of each chromosme is stored as a dictionary in the chromosmes data
         dictionary with the keys:
-         - label_length: length of the chromosome label
-         - line_start: the line where the chromosome starts in fasta file
-         - index_start: index where the chromosome starts in fasta file
-         - index_ends: index where the chromosome ends in fasta file
-         - next_label_length: label length of the next chromosome (0 if the chromosome
-           is the last)
-         - is_last: shows if the chromosome is the last
-         - index: chromosome index on the local list of chromosomes
-         - chromosme_length: number of nucleotides that are in the chromosome
+
+        - **label_length**: length of the chromosome label
+        - **line_start**: the line where the chromosome starts in fasta file
+        - **index_start**: index where the chromosome starts in fasta file
+        - **index_ends**: index where the chromosome ends in fasta file
+        - **next_label_length**: label length of the next chromosome (0 if the chromosome
+        is the last)
+        - **is_last**: shows if the chromosome is the last
+        - **index**: chromosome index on the local list of chromosomes
+        - **chromosme_length**: number of nucleotides that are in the chromosome
         """
         logger = logging.getLogger()
         tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
@@ -415,7 +407,7 @@ class FastaReader(object):
             The chromosome where the nucleotide is going to be obtained
         pos : int
             Position of the nucleotide on the chromosome
-        [length : int = 1]
+        length : int = 1
             Length of the sequence
 
         Returns

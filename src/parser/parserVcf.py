@@ -18,11 +18,12 @@ class ParserVcf(ABC):
     The parser will have static methods to send and retrieve the parsed sequence into a
     file in a specified format. To do this, the parser will need to be defined the
     metohds:
-         - sequence_to_string: Transforms a sequence in a list or tuple shape into a
-         string shape to be written into a file
-         - retrive_sequence: Get a sequence in a string shape and return as a tuple
-         - retrive_string_sequence: Get a sequencein a string shape and return as a
-         string
+
+     - **sequence_to_string**: Transforms a sequence in a list or tuple shape into a
+    string shape to be written into a file
+     - **retrive_sequence**: Get a sequence in a string shape and return as a tuple
+     - **retrive_string_sequence**: Get a sequencein a string shape and return as a
+    string
 
     Parameters
     ----------
@@ -185,11 +186,11 @@ class ParserVcf(ABC):
         ----------
         path : str
             Path to store the data
-        [filename : str = default_filename]
+        filename : str = default_filename
             Filename of the result file
-        [write_chromosme : bool = False]
+        write_chromosme : bool = False
             If true adds the chromosme where the sequences being into the file
-        [add_original : bool = False]
+        add_original : bool = False
             If true adds the original sequence into the file
         """
         if not filename:

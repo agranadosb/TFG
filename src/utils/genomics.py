@@ -6,13 +6,18 @@ def generate_dict_values(lst: Union[tuple, list]) -> dict:
     """Function that creates a dcitionary that represents a map between a list of
     symbols and the A, C, G, T nucleotides
 
-    For example, if our list is ['q', 'w', 'e', 'r'] the function will return:
-    {
-        'A': 'q'
-        'C': 'w'
-        'G': 'e'
-        'T': 'r'
-    }
+    For example, if our list is:
+        
+        ['q', 'w', 'e', 'r']
+    
+    the function will return:
+    
+        {
+            'A': 'q'
+            'C': 'w'
+            'G': 'e'
+            'T': 'r'
+        }
 
     Parameters
     ----------
