@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from src.parser.parserVcf import ParserVcf
+from typing import Union
 
-NUCLETODIES = ["A", "C", "G", "T"]
+from src.parser.parserVcf import ParserVcf
+from src.utils.genomics import generate_dict_values
 
 PREFIX_SYMBOLS = ["q", "w", "e", "r"]
 MUTATIONS_SYMBOLS = ["a", "s", "d", "f"]
 SUFFIX_SYMBOLS = ["z", "x", "c", "v"]
-
-
-def generate_dict_values(lst):
-    return {key: value for (key, value) in zip(NUCLETODIES, lst)}
 
 
 class ExtendedParserVcf(ParserVcf):
@@ -46,27 +43,33 @@ class ExtendedParserVcf(ParserVcf):
         Path of the fasta file
     """
 
-    prefix_map = generate_dict_values(PREFIX_SYMBOLS)
-    mutations_map = generate_dict_values(MUTATIONS_SYMBOLS)
-    suffix_map = generate_dict_values(SUFFIX_SYMBOLS)
+    prefix_map: dict = generate_dict_values(PREFIX_SYMBOLS)
+    mutations_map: dict = generate_dict_values(MUTATIONS_SYMBOLS)
+    suffix_map: dict = generate_dict_values(SUFFIX_SYMBOLS)
 
-    mutations_symbols = MUTATIONS_SYMBOLS
+    mutations_symbols: Union[list, tuple] = MUTATIONS_SYMBOLS
 
-    name = "extended"
+    name: str = "extended"
 
-    def sequence_to_string(self, original_sequence, prefix, sequence, mutation):
+    def sequence_to_string(
+        self,
+        original_sequence: str,
+        prefix: str,
+        sequence: Union[tuple, list],
+        mutation: str,
+    ) -> str:
         """Creates a string from a sequence and a mutation with the original sequence
         (in a string shape) and a given prefix.
 
         Parameters
         ----------
-        original_sequence : str
+        original_sequence: str
             Original sequence in a string shape
-        prefix : str
+        prefix: str
             Prefix to append before the parsed sequence
-        sequence:
+        sequence: list, tuple
             Sequence
-        mutation:
+        mutation: str
             Mutation
 
         Returns
@@ -87,16 +90,16 @@ class ExtendedParserVcf(ParserVcf):
 
         return f'{original_sequence}{prefix}{" ".join(parsed_sequence)}\n'
 
-    def method(self, sequence: tuple, mutation: str):
-        """Generates the simplified sequence by a equence:
+    def method(self, sequence: Union[tuple, list], mutation: str) -> tuple:
+        """Generates the extended sequence from a equence:
             sequence:               (ACGTGGT,CAA,GTCC)
-            sequence_simplified:    ([a,s,d,f,d,d,f],[e,q,q],[c,v,x,x])
+            sequence extended:      ([a,s,d,f,d,d,f],[e,q,q],[c,v,x,x])
 
         Parameters
         ----------
         sequence : tuple
             Sequence to simplify
-        mutation : tuple
+        mutation : str
             Mutation sequence
 
         Returns
@@ -114,7 +117,7 @@ class ExtendedParserVcf(ParserVcf):
         return (left, middle, right)
 
     @staticmethod
-    def retrive_sequence(sequence):
+    def retrive_sequence(sequence: str) -> tuple:
         """Gets a string sequence and returns the sequence in a tuple type
 
         Parameters
@@ -139,7 +142,7 @@ class ExtendedParserVcf(ParserVcf):
         )
 
     @staticmethod
-    def retrive_string_sequence(sequence):
+    def retrive_string_sequence(sequence: str) -> str:
         """Gets a string sequence and returns the sequence in a tuple type
 
         Parameters

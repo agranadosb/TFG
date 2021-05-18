@@ -49,6 +49,21 @@ class TestExtendedParserVcf(TestCase):
         result = ExtendedParserVcf.retrive_string_sequence(sequence)
 
         self.assertEqual(result, result_sequence)
+    
+    def test_retrive_sequence(self):
+        sequence = ("ACGTGGT", "CAA", "GTCC")
+        sequence_prefix = "q-w-e-r-e-e-r"
+        sequence_infix = "a-a-a"
+        sequence_suffix = "c-v-x-x"
+        sequence = f"{sequence_prefix} {sequence_infix} {sequence_suffix}"
+        result_prefix = "qwereer"
+        result_infix = "aaa"
+        result_suffix = "cvxx"
+        result_sequence = (result_prefix, result_infix, result_suffix)
+
+        result = ExtendedParserVcf.retrive_sequence(sequence)
+
+        self.assertEqual(result, result_sequence)
 
     def test_method(self):
         sequence = ("ACGTGGT", "CAA", "GTCC")
