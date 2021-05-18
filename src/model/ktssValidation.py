@@ -54,7 +54,7 @@ class KTSSValidator(object):
             return states[len(states) - 1]
         return self.dfa.initial_state
 
-    def generate_sequence(self, symbol_list, state=False):
+    def generate_sequence(self, symbol_list, state=False, loop_tolerance=0):
         """Returns all the possible sequences generated from a given state (or the
         initial if any state is given) and a symbols list.
 
@@ -80,7 +80,9 @@ class KTSSValidator(object):
 
         results = []
         steps_remaining = Queue()
-        steps_remaining.put({"state": state, "sequence": ""})
+        steps_remaining.put(
+            {"state": state, "sequence": "", "loop_tolerance": loop_tolerance}
+        )
 
         states_searched = set()
         while not steps_remaining.empty():
@@ -88,12 +90,13 @@ class KTSSValidator(object):
 
             state = current_step["state"]
             sequence = current_step["sequence"]
+            tolerance = current_step["loop_tolerance"]
 
-            """ TODO: Esto esta para cuando hay ciclos dentro del autómata, podría haber
-            una forma mejor, como un número máximo de repeticiones o un ratio dependiendo
-            de la longitud analizada """
             if state in states_searched:
-                continue
+                if tolerance < 1:
+                    continue
+                else:
+                    tolerance -= 1
 
             states_searched.add(state)
 
@@ -104,7 +107,11 @@ class KTSSValidator(object):
                 if has_transition:
                     next_state = self.dfa.next_state(symbol, state)
                     steps_remaining.put(
-                        {"state": next_state, "sequence": sequence + symbol}
+                        {
+                            "state": next_state,
+                            "sequence": sequence + symbol,
+                            "loop_tolerance": tolerance,
+                        }
                     )
 
                     transitions = self.dfa.transitions[state].keys()

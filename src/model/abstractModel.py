@@ -42,10 +42,12 @@ class AbstractModel(ABC):
             restore_path += "/"
         self.restore_path = restore_path
 
+    @property
     @abstractmethod
     def parser(self):
         pass
 
+    @property
     @abstractmethod
     def trainer(self):
         pass
@@ -62,10 +64,12 @@ class AbstractModel(ABC):
     def loader(self):
         pass
 
+    @property
     @abstractmethod
-    def get_training_sequence_method(self):
+    def retrive_string_sequence(self):
         pass
 
+    @property
     @abstractmethod
-    def get_test_sequence_method(self):
+    def retrive_sequence(self):
         pass

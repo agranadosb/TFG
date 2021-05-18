@@ -7,13 +7,14 @@ import logging
 import operator
 
 from sortedcontainers import SortedDict, SortedSet
+from src.argumentParser.abstractArguments import AbstractModelArguments
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.model.abstractModel import AbstractModel
 from src.parser.extendedParser import ExtendedParserVcf
 from tqdm import tqdm
 
 
-class KTSSModel(AbstractModel):
+class KTSSModel(AbstractModel, AbstractModelArguments):
     """Model that creates a DFA from a list of sequences
 
     Parameters
@@ -25,6 +26,30 @@ class KTSSModel(AbstractModel):
     [parser: ParserVcf = ExtendedParserVcf]
         Parser that will generate the data
     """
+
+    arguments = [
+        {
+            "key": "k",
+            "name": "k",
+            "help": f"k value for ktss model",
+            "default": 3,
+            "type": int,
+            "function_argumemnt": {"k_value": "k"},
+        },
+        {
+            "key": "ktss_nas",
+            "name": "ktss-not-allowed-segments",
+            "help": f"Create not allowed segments",
+            "default": False,
+            "type": bool,
+            "function_argumemnt": {"not_allowed_segements": "ktss_nas"},
+        },
+    ]
+
+    trainer_arguments = {
+        "k_value": "k",
+        "not_allowed_segements": "get_not_allowed_segements",
+    }
 
     def __init__(self, save_path=False, restore_path=False, parser=ExtendedParserVcf):
         super().__init__(save_path=save_path, restore_path=restore_path)
@@ -257,9 +282,11 @@ class KTSSModel(AbstractModel):
     def set_parser(self, parser):
         self.parser_class = parser
 
+    @property
     def parser(self):
         return self.parser_class
 
+    @property
     def trainer(self):
         return self.training
 
@@ -305,11 +332,13 @@ class KTSSModel(AbstractModel):
 
             self.model = model
 
-    def get_training_sequence_method(self):
-        return ExtendedParserVcf.retrive_string_sequence
+    @property
+    def retrive_string_sequence(self):
+        return self.parser.retrive_string_sequence
 
-    def get_test_sequence_method(self):
-        return ExtendedParserVcf.retrive_sequence
+    @property
+    def retrive_sequence(self):
+        return self.parser.retrive_sequence
 
     def get_samples(self, samples, method):
         return list(
@@ -320,7 +349,7 @@ class KTSSModel(AbstractModel):
         )
 
     def get_training_samples(self, samples):
-        return self.get_samples(samples, self.get_training_sequence_method())
+        return self.get_samples(samples, self.retrive_string_sequence)
 
     def get_test_samples(self, samples):
-        return self.get_samples(samples, self.get_test_sequence_method())
+        return self.get_samples(samples, self.retrive_sequence)

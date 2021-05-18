@@ -6,12 +6,14 @@ SAVE = /opt/UPV/TFG/src/example/
 VCF = -vcf $(SAVE)datosR1.vcf
 FASTA = -fasta $(SAVE)hg19.fa.gz
 
-LENGTH_SEQUENCE = 20
-PS = -p_p $(LENGTH_SEQUENCE) -p_s $(LENGTH_SEQUENCE)
+LENGTH = 20
+LENGTH_SEQUENCE = -p_p $(LENGTH) -p_s $(LENGTH)
 
 KTSS_EXTENDED = -o pm -p e -m ktss
+K = 4
+KTSS_PARAMETERS = -k $(K) -ktss_nas False
 
-RATIO = -r 0.90
+RATIO = 0.90
 
 test:
 	poetry run pytest
@@ -20,4 +22,4 @@ black:
 parser-extended:
 	$(INIT) -p e $(VCF) $(FASTA) -s $(SAVE)
 ktss-extended:
-	$(INIT) $(KTSS_EXTENDED) $(VCF) $(FASTA) -s $(SAVE) $(PS) $(RATIO)
+	$(INIT) $(KTSS_EXTENDED) $(VCF) $(FASTA) -s $(SAVE) $(LENGTH_SEQUENCE) -r $(RATIO) $(KTSS_PARAMETERS)
