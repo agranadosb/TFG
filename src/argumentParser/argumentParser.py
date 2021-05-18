@@ -1,11 +1,7 @@
-import argparse
 
-from src.constants.constants import (
-    EXTENDED_PARSER_CODE,
-    KTSS_MODEL,
-    PARSER_MODEL_OPERATION,
-    PARSER_OPERATION,
-)
+
+from src.constants.constants import (EXTENDED_PARSER_CODE, KTSS_MODEL,
+                                     PARSER_MODEL_OPERATION, PARSER_OPERATION)
 
 
 class ArgumentParser(object):
@@ -13,18 +9,17 @@ class ArgumentParser(object):
 
     An argument can be added using the method add_argument, which gets a dict with
     requierd keys:
-        - name: name of the argument
-        - key: key of the argument
-        - function_argument: mapping that maps the name argument with the function
-        argument which it will be called
+
+    - name: name of the argument
+    - key: key of the argument
+    - function_argument: mapping that maps the name argument with the function
+    argument which it will be called
 
     The other dict keys will be the arguments of argparse add_arguments function.
     """
 
-    def __init__(self, description):
-        self.parser = argparse.ArgumentParser(description=description)
-        self.args_map = {}
-
+    def __init__(self, description: str):
+        super().__init__(description)
         self.add_argument(
             {
                 "key": "m",
@@ -117,28 +112,3 @@ class ArgumentParser(object):
                 "function_argumemnt": {"fasta_path": "fasta"},
             }
         )
-
-    def add_argument(self, options: dict):
-        function_argument = list(options.pop("function_argumemnt").items())[0]
-        name = options.pop("name")
-        key = options.pop("key")
-
-        self.args_map[function_argument[0]] = function_argument[1]
-        self.parser.add_argument(
-            f"-{key}",
-            f"--{name}",
-            **options,
-        )
-
-    def get_argument(self, key):
-        args = self.parse_args()
-
-        value = self.args_map[key]
-
-        return getattr(args, value, False)
-
-    def get_function_arguments(self):
-        return {key: self.get_argument(key) for key in self.args_map}
-
-    def parse_args(self):
-        return self.parser.parse_args()
