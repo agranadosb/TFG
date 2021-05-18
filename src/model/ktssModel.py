@@ -5,35 +5,61 @@ import itertools
 import json
 import logging
 import operator
+from typing import OrderedDict, Union
 
 from sortedcontainers import SortedDict, SortedSet
+from src.argumentParser.abstractArguments import AbstractModelArguments
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.model.abstractModel import AbstractModel
 from src.parser.extendedParser import ExtendedParserVcf
 from tqdm import tqdm
 
 
-class KTSSModel(AbstractModel):
-    """Model that creates a DFA from a list of sequences
+class KTSSModel(AbstractModel, AbstractModelArguments):
+    """Model that creates a DFA from a list of sequences using the ktss method
 
     Parameters
     ----------
-    [save_path: bool = False]
+    save_path: bool = False
         The path where the model will be saved
-    [restore_path: bool = False]
+    restore_path: bool = False
         The path from the model ill be loaded
-    [parser: ParserVcf = ExtendedParserVcf]
+    parser: ParserVcf = ExtendedParserVcf
         Parser that will generate the data
     """
 
+    arguments: list = [
+        {
+            "key": "k",
+            "name": "k",
+            "help": f"k value for ktss model",
+            "default": 3,
+            "type": int,
+            "function_argumemnt": {"k_value": "k"},
+        },
+        {
+            "key": "ktss_nas",
+            "name": "ktss-not-allowed-segments",
+            "help": f"Create not allowed segments",
+            "default": False,
+            "type": bool,
+            "function_argumemnt": {"not_allowed_segements": "ktss_nas"},
+        },
+    ]
+
+    trainer_arguments: dict = {
+        "k_value": "k",
+        "not_allowed_segements": "get_not_allowed_segements",
+    }
+
     def __init__(self, save_path=False, restore_path=False, parser=ExtendedParserVcf):
         super().__init__(save_path=save_path, restore_path=restore_path)
-        self.model = False
+        self._model = False
         self.parser_class = parser
         self.trainer_name = "ktt"
 
-    def state_in_list(self, state, lst):
-        """Checks if a state is in a list
+    def state_in_list(self, state: tuple, lst: list) -> bool:
+        """Checks if a state is in a list of states
 
         Parameters
         ----------
@@ -44,7 +70,7 @@ class KTSSModel(AbstractModel):
 
         Returns
         -------
-        True if the state is in the list, false either
+        True if the state is in the list, if not false
         """
         for state_list in lst:
             if (
@@ -55,13 +81,13 @@ class KTSSModel(AbstractModel):
                 return True
         return False
 
-    def generate_sigma(self, alphabet, k):
+    def generate_sigma(self, alphabet: Union[list, set], k: int) -> Union[list, set]:
         """Generates sigma for a k given, for example, if k = 2 and alphabet = [A, B]
         it generates [A, B, AA, AB, BA, BB]
 
         Parameters
         ----------
-        alphabet: list
+        alphabet: list, set
             alphabet to generate sigma
         k: int
             length of the maximum strings of sigma
@@ -78,7 +104,7 @@ class KTSSModel(AbstractModel):
 
         return words
 
-    def get_prefix(self, string, k):
+    def get_prefix(self, string: str, k: int) -> str:
         """Returns the prefix of a string
 
         Parameters
@@ -94,7 +120,7 @@ class KTSSModel(AbstractModel):
         """
         return string[: k - 1]
 
-    def get_suffix(self, string, k):
+    def get_suffix(self, string: str, k: int) -> str:
         """Returns the suffix of a string
 
         Parameters
@@ -112,7 +138,7 @@ class KTSSModel(AbstractModel):
             return string
         return string[len(string) - k + 1 :]
 
-    def get_infixes(self, string, k):
+    def get_infixes(self, string: str, k: int) -> list:
         """Generates all the possible infixes of a string for a lengt k given
 
         Parameters
@@ -137,18 +163,24 @@ class KTSSModel(AbstractModel):
             fin += 1
         return result
 
-    def add_transition(self, transitions, from_state, symbol, to_state):
+    def add_transition(
+        self,
+        transitions: Union[OrderedDict, dict],
+        from_state: str,
+        symbol: str,
+        to_state: str,
+    ) -> Union[OrderedDict, dict]:
         """Append a transition into an ordered dict that represent the transitions
 
         Parameters
         ----------
-        transitions: OrderedDict
+        transitions: OrderedDict, dict
             Ordered dict that contains transitions
         from_state: str
             String that represent the source state
         symbol: str
             String that represents the transitions symbol
-        to_state
+        to_state: str
             String tht represents the destination state
 
         Returns
@@ -161,7 +193,12 @@ class KTSSModel(AbstractModel):
 
         return transitions
 
-    def training(self, samples, k, get_not_allowed_segements=False):
+    def training(
+        self,
+        samples: Union[list, tuple],
+        k: int,
+        get_not_allowed_segements: bool = False,
+    ) -> Union[OrderedDict, dict]:
         """Generates a ktss model from the samples and a k given
 
         Parameters
@@ -175,14 +212,14 @@ class KTSSModel(AbstractModel):
 
         Returns
         -------
-        {
-            "states": states,
-            "alphabet": alphabet,
-            "transitions": transitions,
-            "initial_state": initial_state,
-            "final_states": final_states,
-            "not_allowed_segments": not_allowed_segments,
-        }
+            {
+                "states": states,
+                "alphabet": alphabet,
+                "transitions": transitions,
+                "initial_state": initial_state,
+                "final_states": final_states,
+                "not_allowed_segments": not_allowed_segments,
+            }
         """
         logger = logging.getLogger()
         tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
@@ -240,7 +277,7 @@ class KTSSModel(AbstractModel):
             )
         )
 
-        self.model = {
+        self._model = {
             "states": q,
             "alphabet": alphabet,
             "transitions": s,
@@ -249,29 +286,25 @@ class KTSSModel(AbstractModel):
         }
 
         if get_not_allowed_segements:
-            self.model["not_allowed_segments"] = not_allowed_segments
+            self._model["not_allowed_segments"] = not_allowed_segments
 
         logging.info("Training finalized\n")
-        return self.model
+        return self._model
 
-    def set_parser(self, parser):
-        self.parser_class = parser
-
+    @property
     def parser(self):
         return self.parser_class
 
+    @property
     def trainer(self):
         return self.training
 
+    @property
     def model(self):
-        return self.model
+        return self._model
 
     def saver(self):
-        if not self.save_path:
-            raise AttributeError("Saver path is not defined")
-
-        if not self.model:
-            raise ValueError("The model is not trained")
+        super().saver()
 
         with open(f"{self.save_path}ktss-model.json", "w") as outfile:
             model_for_json = {
@@ -289,8 +322,7 @@ class KTSSModel(AbstractModel):
             json.dump(model_for_json, outfile)
 
     def loader(self):
-        if not self.restore_path:
-            raise AttributeError("Loader path is not defined")
+        super().loader()
 
         with open(self.save_path) as json_file:
             model = json.load(json_file)
@@ -303,24 +335,32 @@ class KTSSModel(AbstractModel):
                 "final_states": SortedSet(model["final_states"]),
             }
 
-            self.model = model
+            self._model = model
 
-    def get_training_sequence_method(self):
-        return ExtendedParserVcf.retrive_string_sequence
+    def get_training_samples(self, samples: Union[list, tuple]) -> list:
+        """Generates the samples training data from the total of samples
 
-    def get_test_sequence_method(self):
-        return ExtendedParserVcf.retrive_sequence
+        Parameters
+        ----------
+        samples: list, tuple
+            Samples
 
-    def get_samples(self, samples, method):
-        return list(
-            map(
-                lambda sample: method(sample.rstrip()),
-                samples,
-            )
-        )
+        Returns
+        -------
+        List of samples for training
+        """
+        return self.get_samples(samples, self.retrive_string_sequence)
 
-    def get_training_samples(self, samples):
-        return self.get_samples(samples, self.get_training_sequence_method())
+    def get_test_samples(self, samples: Union[list, tuple]) -> list:
+        """Generates the samples test data from the total of samples
 
-    def get_test_samples(self, samples):
-        return self.get_samples(samples, self.get_test_sequence_method())
+        Parameters
+        ----------
+        samples: list, tuple
+            Samples
+
+        Returns
+        -------
+        List of samples for test
+        """
+        return self.get_samples(samples, self.retrive_sequence)

@@ -2,12 +2,28 @@
 
 import logging
 from abc import ABC, abstractmethod
+from typing import Union
 
 from src.vcf.vcfReader import FastaReader
+from vcf import Reader as VcfReader
 
 
 class ParserVcf(ABC):
-    """Parses data from vcf and fasta and prepare that data for a machine learning model
+    """Parses data from vcf and fasta files and prepare that data for a machine learning
+    model.
+
+    The parser needs to define a method named 'method', which generates a new sequence
+    from the original one.
+
+    The parser will have static methods to send and retrieve the parsed sequence into a
+    file in a specified format. To do this, the parser will need to be defined the
+    metohds:
+
+     - **sequence_to_string**: Transforms a sequence in a list or tuple shape into a
+    string shape to be written into a file
+     - **retrive_sequence**: Get a sequence in a string shape and return as a tuple
+     - **retrive_string_sequence**: Get a sequencein a string shape and return as a
+    string
 
     Parameters
     ----------
@@ -17,13 +33,18 @@ class ParserVcf(ABC):
         Path of the fasta file
     """
 
-    name = False
+    vcf_reader: FastaReader = None
 
     def __init__(self, vcf_path: str, fasta_path: str):
         self.vcf_reader = FastaReader(vcf_path, fasta_path)
         logging.info("Loading finalized\n")
 
-    def get_vcf(self):
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        pass
+
+    def get_vcf(self) -> VcfReader:
         """Returns vcf file
 
         Returns
@@ -33,7 +54,7 @@ class ParserVcf(ABC):
         """
         return self.vcf_reader.get_vcf()
 
-    def get_vcf_reader(self):
+    def get_vcf_reader(self) -> FastaReader:
         """Returns vcf reader
 
         Returns
@@ -45,7 +66,7 @@ class ParserVcf(ABC):
 
     @staticmethod
     @abstractmethod
-    def retrive_sequence(sequence):
+    def retrive_sequence(sequence: str) -> Union[tuple, list]:
         """Gets a string sequence and returns the sequence in a tuple type
 
         Parameters
@@ -61,8 +82,8 @@ class ParserVcf(ABC):
 
     @staticmethod
     @abstractmethod
-    def retrive_string_sequence(sequence):
-        """Gets a string sequence and returns the sequence in a tuple type
+    def retrive_string_sequence(sequence: str) -> str:
+        """Gets a string sequence and returns the sequence in a string type
 
         Parameters
         ----------
@@ -71,21 +92,21 @@ class ParserVcf(ABC):
 
         Returns
         -------
-        Sequence in a string format
+        The sequence in a string format
         """
         pass
 
     @abstractmethod
-    def method(self, sequence: tuple, mutation: str):
+    def method(self, sequence: Union[tuple, list], mutation: str) -> Union[tuple, list]:
         """Parse the sequence with a given mutation to a new sequence with different
         noation, for example:
             from ("a", "b", "c") with mutation = "dd" to ("s", "mm", "s")
 
         Parameters
         ----------
-        sequence : tuple
+        sequence: tuple, list
             Sequence in a tuple shape
-        muatation : str
+        muatation: str
             Mutation of the nucleotide
 
         Returns
@@ -94,7 +115,9 @@ class ParserVcf(ABC):
         """
         pass
 
-    def original_sequence_to_string(self, prefix, sequence):
+    def original_sequence_to_string(
+        self, prefix: str, sequence: Union[tuple, list]
+    ) -> str:
         """Generates a string of a sequence by append the prefix, infix and suffix and
         append at the starts a given prefix.
 
@@ -102,28 +125,33 @@ class ParserVcf(ABC):
         ----------
         prefix : str
             Prefix to append before the original sequence
-        sequence:
+        sequence: tuple, list
             Sequence
 
         Returns
         -------
-        Sequence in a string shape with a given prefix
-
+        The sequence in a string shape with a given prefix
         """
         return f'{prefix}{"".join(sequence)}\n'
 
-    def default_filename(self):
+    def default_filename(self) -> str:
         """Returns a default filename for the results
 
         Returns
         -------
-        Results default filename
+        The results default filename
         """
         return f"parsed_{self.name}_data.pvcf"
 
     @abstractmethod
-    def sequence_to_string(self, original_sequence, prefix, sequence, mutation):
-        """Creates a string from a sequence and a mutation with the original sequence
+    def sequence_to_string(
+        self,
+        original_sequence: str,
+        prefix: str,
+        sequence: Union[tuple, list],
+        mutation: str,
+    ) -> str:
+        """Creates a string from a sequence and a mutation from the original sequence
         (in a string shape) and a given prefix.
 
         Parameters
@@ -132,14 +160,14 @@ class ParserVcf(ABC):
             Original sequence in a string shape
         prefix : str
             Prefix to append before the parsed sequence
-        sequence:
+        sequence: list, tuple
             Sequence
-        mutation:
+        mutation: str
             Mutation
 
         Returns
         -------
-        Sequence and original sequence with the prefix
+        The sequence and original sequence with the prefix
         """
         pass
 
@@ -149,21 +177,21 @@ class ParserVcf(ABC):
         filename: str = False,
         write_chromosme: bool = False,
         add_original: bool = True,
-        prefix_length=5,
-        suffix_length=5,
+        prefix_length: int = 5,
+        suffix_length: int = 5,
     ):
         """Generates a file with the sequences mutated using a defined method for parse
-        the sequence and the mutation
+        the sequence and the mutation.
 
         Parameters
         ----------
         path : str
             Path to store the data
-        [filename : str = default_filename]
+        filename : str = default_filename
             Filename of the result file
-        [write_chromosme : bool = False]
+        write_chromosme : bool = False
             If true adds the chromosme where the sequences being into the file
-        [add_original : bool = False]
+        add_original : bool = False
             If true adds the original sequence into the file
         """
         if not filename:
