@@ -51,6 +51,12 @@ Ensure that before the usage you run the command:
 source .venv/bin/activate
 ```
 
+## Docs
+```sh
+# To generate the docs
+make build-docs
+```
+
 ## Testing
 
 ```sh

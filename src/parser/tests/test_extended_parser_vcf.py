@@ -49,7 +49,7 @@ class TestExtendedParserVcf(TestCase):
         result = ExtendedParserVcf.retrive_string_sequence(sequence)
 
         self.assertEqual(result, result_sequence)
-    
+
     def test_retrive_sequence(self):
         sequence = ("ACGTGGT", "CAA", "GTCC")
         sequence_prefix = "q-w-e-r-e-e-r"

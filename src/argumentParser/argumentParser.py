@@ -1,7 +1,12 @@
+from argparse import ArgumentParser as DefaultParser
+from typing import Any
 
-
-from src.constants.constants import (EXTENDED_PARSER_CODE, KTSS_MODEL,
-                                     PARSER_MODEL_OPERATION, PARSER_OPERATION)
+from src.constants.constants import (
+    EXTENDED_PARSER_CODE,
+    KTSS_MODEL,
+    PARSER_MODEL_OPERATION,
+    PARSER_OPERATION,
+)
 
 
 class ArgumentParser(object):
@@ -19,7 +24,9 @@ class ArgumentParser(object):
     """
 
     def __init__(self, description: str):
-        super().__init__(description)
+        self.parser: DefaultParser = DefaultParser(description=description)
+        self.args_map: dict = {}
+
         self.add_argument(
             {
                 "key": "m",
@@ -112,3 +119,59 @@ class ArgumentParser(object):
                 "function_argumemnt": {"fasta_path": "fasta"},
             }
         )
+
+    def add_argument(self, options: dict):
+        """Adds an argument to the argument parser
+
+        Parameters
+        ----------
+        options: dict
+            Dictionary that contains the options for the argument
+        """
+        function_argument = list(options.pop("function_argumemnt").items())[0]
+        name = options.pop("name")
+        key = options.pop("key")
+
+        self.args_map[function_argument[0]] = function_argument[1]
+        self.parser.add_argument(
+            f"-{key}",
+            f"--{name}",
+            **options,
+        )
+
+    def get_argument(self, key: str) -> Any:
+        """Gets an argument from argument parser
+
+        Parameters
+        ----------
+        key: str
+            Key of the argument
+
+        Returns
+        -------
+        The value of the argument
+        """
+        args = self.parse_args()
+
+        value = self.args_map[key]
+
+        return getattr(args, value, False)
+
+    def get_function_arguments(self) -> dict:
+        """Creates a dictionary mapping to the function arguments with all the arguments
+        of the argument parser
+
+        Returns
+        -------
+        Mapping of the arguments and the function arguments
+        """
+        return {key: self.get_argument(key) for key in self.args_map}
+
+    def parse_args(self) -> dict:
+        """Parse the command line args
+
+        Returns
+        -------
+        Dictionary with the arguments
+        """
+        return self.parser.parse_args()

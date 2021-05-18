@@ -4,8 +4,12 @@ import json
 import logging
 import os
 
-from src.constants.constants import (EXTENDED_PARSER_CODE, KTSS_MODEL,
-                                     PARSER_MODEL_OPERATION, PARSER_OPERATION)
+from src.constants.constants import (
+    EXTENDED_PARSER_CODE,
+    KTSS_MODEL,
+    PARSER_MODEL_OPERATION,
+    PARSER_OPERATION,
+)
 from src.model.ktssModel import KTSSModel
 from src.model.ktssValidation import KTSSValidator
 from src.parser.extendedParser import ExtendedParserVcf

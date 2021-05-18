@@ -32,6 +32,7 @@ class ParserVcf(ABC):
     fasta_path : str
         Path of the fasta file
     """
+
     vcf_reader: FastaReader = None
 
     def __init__(self, vcf_path: str, fasta_path: str):
