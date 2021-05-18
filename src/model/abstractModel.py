@@ -3,6 +3,8 @@
 
 from abc import ABC, abstractmethod
 
+from src.utils.folders import parse_route
+
 
 class AbstractModel(ABC):
     """
@@ -34,13 +36,8 @@ class AbstractModel(ABC):
 
     @abstractmethod
     def __init__(self, save_path=False, restore_path=False):
-        if save_path and not save_path.endswith("/"):
-            save_path += "/"
-        self.save_path = save_path
-
-        if restore_path and not restore_path.endswith("/"):
-            restore_path += "/"
-        self.restore_path = restore_path
+        self.save_path = parse_route(save_path)
+        self.restore_path = parse_route(restore_path)
 
     @property
     @abstractmethod

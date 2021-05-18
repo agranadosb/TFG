@@ -13,6 +13,7 @@ from src.constants.constants import (
 from src.model.ktssModel import KTSSModel
 from src.model.ktssValidation import KTSSValidator
 from src.parser.extendedParser import ExtendedParserVcf
+from src.utils.folders import parse_route
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -42,11 +43,13 @@ def run(
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
+    result_folder = parse_route(result_folder)
+
     if PARSER_MODEL_OPERATION == operation:
         model = models[model_type](save_path=result_folder)
 
         # Get and parse the data from a file
-        parser = model.parser() or parsers[parser]
+        parser = model.parser or parsers[parser]
         parser_engine = parser(vcf_path, fasta_path)
         parser_engine.generate_sequences(
             result_folder,
@@ -72,7 +75,7 @@ def run(
         model.saver()
 
         # Test the model
-        validator = validators[model_type](model.model, parser=model.parser())
+        validator = validators[model_type](model.model, parser=model.parser)
         distances = validator.generate_distances(test_samples)
 
         with open(

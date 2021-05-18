@@ -2,17 +2,25 @@
 
 INIT = python3 init.py
 
+# FASTA and VCF options
+# --------------------------------------------------------------------------------------
 SAVE = /opt/UPV/TFG/src/example/
 VCF = -vcf $(SAVE)datosR1.vcf
 FASTA = -fasta $(SAVE)hg19.fa.gz
 
+# Sequences options
+# --------------------------------------------------------------------------------------
 LENGTH = 20
 LENGTH_SEQUENCE = -p_p $(LENGTH) -p_s $(LENGTH)
 
+# KTSS Model options
+# --------------------------------------------------------------------------------------
 KTSS_EXTENDED = -o pm -p e -m ktss
 K = 4
 KTSS_PARAMETERS = -k $(K) -ktss_nas False
 
+# General model options
+# --------------------------------------------------------------------------------------
 RATIO = 0.90
 
 test:

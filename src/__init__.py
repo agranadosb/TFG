@@ -8,5 +8,6 @@ from . import (
     main,
     model,
     parser,
+    utils,
     vcf,
 )
