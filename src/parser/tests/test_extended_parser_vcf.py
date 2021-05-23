@@ -4,7 +4,6 @@ import pathlib
 from unittest import TestCase
 
 from src.parser.extendedParser import ExtendedParserVcf
-from src.parser.tests.factories import SequenceFaker
 from src.parser.tests.helpers import random_string
 
 
@@ -26,11 +25,11 @@ class TestExtendedParserVcf(TestCase):
         sequence_infix = "a-a-a"
         sequence_suffix = "c-v-x-x"
         sequence_result = f"{sequence_prefix} {sequence_infix} {sequence_suffix}"
-        mutation = SequenceFaker("AAA")
+        mutation = "AAA"
         sequence_string = f"{original_sequence}{prefix}{sequence_result}\n"
 
         result = self.parser.sequence_to_string(
-            original_sequence, prefix, sequence, [mutation]
+            original_sequence, prefix, sequence, mutation
         )
 
         self.assertEqual(result, sequence_string)
@@ -67,12 +66,12 @@ class TestExtendedParserVcf(TestCase):
 
     def test_method(self):
         sequence = ("ACGTGGT", "CAA", "GTCC")
-        mutation = SequenceFaker("AAA")
+        mutation = "AAA"
         prefix = ["q", "w", "e", "r", "e", "e", "r"]
         infix = ["a", "a", "a"]
         suffix = ["c", "v", "x", "x"]
 
-        result = self.parser.method(sequence, [mutation])
+        result = self.parser.method(sequence, mutation)
 
         self.assertEqual(result[0], prefix)
         self.assertEqual(result[1], infix)

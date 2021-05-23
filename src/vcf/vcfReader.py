@@ -18,15 +18,16 @@ class FastaReader(object):
 
     After parse the fasta file data, the class will have an attribute (fasta_data) with
     information per chromosome in a dictionary data structure:
-        - label_length: length of the chromosome label
-        - line_start: the line where the chromosome starts in fasta file
-        - index_start: index where the chromosome starts in fasta file
-        - index_ends: index where the chromosome ends in fasta file
-        - next_label_length: label length of the next chromosome (0 if the chromosome
-        is the last)
-        - is_last: shows if the chromosome is the last
-        - index: chromosome index on the local list of chromosomes
-        - chromosme_length: number of nucleotides that are in the chromosome
+
+    - **label_length**: length of the chromosome label
+    - **line_start**: the line where the chromosome starts in fasta file
+    - **index_start**: index where the chromosome starts in fasta file
+    - **index_ends**: index where the chromosome ends in fasta file
+    - **next_label_length**: label length of the next chromosome (0 if the chromosome
+    is the last)
+    - **is_last**: shows if the chromosome is the last
+    - **index**: chromosome index on the local list of chromosomes
+    - **chromosme_length**: number of nucleotides that are in the chromosome
 
     For example, after analize a Fasta file with two chromosmes, the dictionary will be:
 
@@ -425,7 +426,7 @@ class FastaReader(object):
         pos: int,
         from_nuc: int,
         to_nuc: int,
-    ) -> tuple:
+    ) -> list:
         """Gets a fasta's sequence by the position on a chromosome, with a given prefix
         and a suffix length.
 
@@ -452,4 +453,4 @@ class FastaReader(object):
         nucleotide = self.get_nucleotides(chromosome, pos, length)
         suff = self.get_suffix(pos + length - 1, to_nuc, chromosome)
 
-        return (pref, nucleotide, suff)
+        return [pref, nucleotide, suff]

@@ -28,6 +28,9 @@ class KTSSValidator(object):
     ):
         self.model = model
         self.infix_symbols = parser.mutations_symbols
+
+        self.set_mappings(parser)
+
         self.dfa = DFA(
             model["states"],
             model["alphabet"],
@@ -35,6 +38,33 @@ class KTSSValidator(object):
             model["initial_state"],
             model["final_states"],
         )
+
+    def set_mappings(self, parser: ParserVcf):
+        """Set the mappings for the prefix, infix, and suffix between an original symbol
+        and parsed symbol
+
+        Parameters
+        ----------
+        parser: ParserVcf
+            Parser where the mappings will be obtained
+
+        Raise
+        -----
+        NotImplementedError: When a mapping attribute (prefix_map, mutations_map,
+        suffix_map) is not defined on the parser class
+        """
+        try:
+            self.prefix_map = parser.prefix_map
+            self.mutations_map = parser.mutations_map
+            self.suffix_map = parser.suffix_map
+        except AttributeError:
+            raise NotImplementedError(
+                "For this metohd is necessary to define prefix_map, mutations_map, suffix_map attributes into the parser class"
+            )
+
+        self.inverse_mutations_map = {
+            value: key for key, value in self.mutations_map.items()
+        }
 
     def get_next_state(self, sequence: str, state: bool = False) -> str:
         """Parse a sequence and gets the next state after parsing the sequence
@@ -195,8 +225,61 @@ class KTSSValidator(object):
         """
         return method(string1, string2)
 
+    @staticmethod
+    def transform_sequence(
+        sequence: str, mapping: dict, add_original: bool = True
+    ) -> str:
+        """Transforms a sequence using a dict that repsents a mapping
+
+        Parameters
+        ----------
+        sequence: str
+            Sequence to be mapped
+        mapping: dict
+            Dictionary that repsents the mapping
+        add_original: bool
+            If false the sequence will not be changed
+
+        Returns
+        -------
+        Sequence mapped
+        """
+        if add_original:
+            return "".join(map(lambda char: mapping[char], sequence))
+        return sequence
+
+    @staticmethod
+    def get_minimum_distances(distances: dict) -> dict:
+        """Gets the minum distance of a sequence for a dictionary of distances
+
+        Parameters
+        ----------
+        distances: dict
+            Dictionary with distances per sequence
+
+        Returns
+        -------
+        Dictionary with the minimum value per sequence
+        """
+        distances_copy = distances.copy()
+        for sequence in distances_copy:
+            sequence_distances = distances_copy[sequence]
+            if not sequence_distances or len(sequence_distances.keys()) == 0:
+                distances_copy[sequence] = -1
+                continue
+            min_key = min(sequence_distances, key=sequence_distances.get)
+            distances_copy[sequence] = {min_key: sequence_distances[min_key]}
+
+        return distances_copy
+
     def generate_distances(
-        self, sequences: Union[list, tuple], separator: str = "-"
+        self,
+        sequences: Union[list, tuple],
+        separator: str = "-",
+        prefix_length: int = 5,
+        suffix_length: int = 5,
+        minimum: bool = False,
+        add_original: bool = True,
     ) -> SortedDict:
         """Generates all the distances of an infix of a given list of sequences of all
         the possible infixes
@@ -207,6 +290,14 @@ class KTSSValidator(object):
             List of sequences
         separator: str
             Separator of the sequence generator
+        prefix_length: int
+            Length of the prefix
+        suffix_length: int
+            Length of the suffix
+        minimum: bool
+            If true only returns the minimum value and infix of the all the distances
+        add_original:
+            If true returns the original sequence, if not returns the anotated sequence
 
         Returns
         -------
@@ -218,18 +309,28 @@ class KTSSValidator(object):
         result = SortedDict()
         logger.info("Generating validation data")
         for sequence in tqdm(sequences, file=tqdm_out):
-            prefix = sequence[0]
-            infix = sequence[1]
-            suffix = sequence[2]
-            sequence_key = f"{prefix}{separator}{infix}{separator}{suffix}"
-            result[sequence_key] = SortedDict()
+            prefix = KTSSValidator.transform_sequence(
+                sequence[:prefix_length], self.prefix_map, add_original=add_original
+            )
+            suffix = KTSSValidator.transform_sequence(
+                sequence[len(sequence) - suffix_length :],
+                self.suffix_map,
+                add_original=add_original,
+            )
+            infix = KTSSValidator.transform_sequence(
+                sequence[prefix_length : len(sequence) - suffix_length],
+                self.mutations_map,
+                add_original=add_original,
+            )
+
+            result[sequence] = SortedDict()
 
             try:
                 infix_sequences = self.generate_infixes(
                     prefix, suffix, separator=separator
                 )
             except:
-                result[sequence_key] = False
+                result[sequence] = False
                 continue
 
             for infix_sequence in infix_sequences:
@@ -237,6 +338,15 @@ class KTSSValidator(object):
 
                 distance = self.string_distances(infix, infix_string)
 
-                result[sequence_key][infix_string] = distance
+                infix_key = infix_string
+                if add_original:
+                    infix_key = "".join(
+                        [self.inverse_mutations_map[char] for char in infix_string]
+                    )
+                result[sequence][infix_key] = distance
+        logger.info("Generation finished\n")
+
+        if minimum:
+            return KTSSValidator.get_minimum_distances(result)
 
         return result

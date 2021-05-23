@@ -116,24 +116,30 @@ class ParserVcf(ABC):
         pass
 
     def original_sequence_to_string(
-        self, prefix: str, sequence: Union[tuple, list]
+        self, prefix: str, sequence: list, mutation: str = None
     ) -> str:
         """Generates a string of a sequence by append the prefix, infix and suffix and
-        append at the starts a given prefix.
+        append at the starts a given prefix. If is needed to as the mutation, it can be
+        given using the parameter mutation.
 
         Parameters
         ----------
         prefix : str
             Prefix to append before the original sequence
-        sequence: tuple, list
+        sequence: list
             Sequence
+        mutation: str
+            Mutation of the sequence
 
         Returns
         -------
         The sequence in a string shape with a given prefix
         """
+        if mutation:
+            sequence[1] = mutation
         return f'{prefix}{"".join(sequence)}\n'
 
+    @property
     def default_filename(self) -> str:
         """Returns a default filename for the results
 
@@ -179,6 +185,7 @@ class ParserVcf(ABC):
         add_original: bool = True,
         prefix_length: int = 5,
         suffix_length: int = 5,
+        add_mutation_to_original: bool = True,
     ):
         """Generates a file with the sequences mutated using a defined method for parse
         the sequence and the mutation.
@@ -195,7 +202,7 @@ class ParserVcf(ABC):
             If true adds the original sequence into the file
         """
         if not filename:
-            filename = self.default_filename()
+            filename = self.default_filename
 
         with open(f"{path}/{filename}", "w") as parsed_data_file:
             for i in self.get_vcf():
@@ -209,10 +216,15 @@ class ParserVcf(ABC):
 
                 original_sequence = ""
                 if add_original:
+                    mutation = None
+                    if add_mutation_to_original:
+                        mutation = i.ALT[0].sequence
                     original_sequence = self.original_sequence_to_string(
-                        prefix, sequence
+                        prefix, sequence, mutation=mutation
                     )
 
                 parsed_data_file.write(
-                    self.sequence_to_string(original_sequence, prefix, sequence, i.ALT)
+                    self.sequence_to_string(
+                        original_sequence, prefix, sequence, i.ALT[0].sequence
+                    )
                 )

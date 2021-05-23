@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+from random import shuffle
 
 from src.constants.constants import (
     EXTENDED_PARSER_CODE,
@@ -35,6 +36,7 @@ def run(
     parser_prefix=20,
     parser_suffix=20,
     test_ratio=0.95,
+    steps=10,
     **kwargs,
 ):
     """Function that runs a model with a parser"""
@@ -54,42 +56,67 @@ def run(
         parser_engine = parser(vcf_path, fasta_path)
         parser_engine.generate_sequences(
             result_folder,
-            add_original=False,
+            add_original=True,
             prefix_length=parser_prefix,
             suffix_length=parser_suffix,
         )
 
-        """ TODO: La cadena va a medir con acgt, osea, sin anotar. Hay que ver como
-        serán los inputs del validador. Se podría hacer que obtuviera una cadena sin
-        anotar y dividiera por 20 (el prefijo que toque) por delante y por detrás para
-        generar la cadena para validar"""
         # Generate the samples to build the model
-        with open(f"{result_folder}{parser_engine.default_filename()}") as samples_file:
+        with open(f"{result_folder}{parser_engine.default_filename}") as samples_file:
             lines = samples_file.readlines()
-            training_length = int(len(lines) * test_ratio)
+            original_lines = [
+                lines[line] for line in range(len(lines)) if line % 2 == 0
+            ]
+            parsed_lines = [lines[line] for line in range(len(lines)) if line % 2 == 1]
 
-            training_samples = model.get_training_samples(lines[:training_length])
-            test_samples = model.get_test_samples(lines[training_length:])
+            zipped_lines = list(zip(original_lines, parsed_lines))
 
-        # Train the model
-        model.trainer(training_samples, **model.get_trainer_arguments(**kwargs))
-        model.saver()
+        for step in range(steps):
+            logging.info("###########################################")
+            logging.info(f"Validating step {step}")
+            logging.info("###########################################")
 
-        # Test the model
-        validator = validators[model_type](model.model, parser=model.parser)
-        distances = validator.generate_distances(test_samples)
+            shuffle(zipped_lines)
+            lines = []
+            for line in zipped_lines:
+                lines += [line[0], line[1]]
 
-        with open(
-            f"{result_folder}{model.trainer_name}-distances.json", "w"
-        ) as outfile:
-            json.dump(distances, outfile)
+            training_length = int(len(lines) / 2 * test_ratio) * 2
+
+            training_samples = model.get_training_samples(
+                lines[:training_length], has_original=True, get_original=False
+            )
+            test_samples = model.get_test_samples(
+                lines[training_length:], has_original=True, get_original=True
+            )
+
+            # Train the model
+            model.trainer(training_samples, **model.get_trainer_arguments(**kwargs))
+            model.saver()
+
+            # Test the model
+            validator = validators[model_type](model.model, parser=model.parser)
+            """ TODO: Hacer que el atributo add_original se pueda pasar desde consola
+            usando el argument parser en los validadores """
+            distances = validator.generate_distances(
+                test_samples,
+                prefix_length=parser_prefix,
+                suffix_length=parser_suffix,
+                minimum=True,
+                add_original=False,
+            )
+
+            with open(
+                f"{result_folder}{model.trainer_name}-distances-{step}.json", "w"
+            ) as outfile:
+                json.dump(distances, outfile)
         return
 
     if PARSER_OPERATION in operation:
         parser_method = parsers[parser](vcf_path, fasta_path)
         parser_method.generate_sequences(
             result_folder,
-            add_original=False,
+            add_original=True,
             prefix_length=parser_prefix,
             suffix_length=parser_suffix,
         )
