@@ -237,6 +237,8 @@ class KTSSValidator(object):
             Sequence to be mapped
         mapping: dict
             Dictionary that repsents the mapping
+        add_original: bool
+            If false the sequence will not be changed
 
         Returns
         -------
