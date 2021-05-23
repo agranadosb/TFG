@@ -224,42 +224,42 @@ class TestKTSSModel(TestCase):
 
     def test_filter_samples_has_original_False(self):
         sequences = ["a", "b", "a", "b", "a", "b"]
-        sequences_getted = ["a", "b", "a", "b", "a", "b"]
+        sequences_obtained = ["a", "b", "a", "b", "a", "b"]
 
         result = KTSSModel.filter_samples(sequences)
 
-        self.assertEqual(result, sequences_getted)
+        self.assertEqual(result, sequences_obtained)
 
     def test_filter_samples_has_original_get_original_False(self):
         sequences = ["a", "b", "a", "b", "a", "b"]
-        sequences_getted = ["a", "b", "a", "b", "a", "b"]
+        sequences_obtained = ["a", "b", "a", "b", "a", "b"]
 
         result = KTSSModel.filter_samples(sequences)
 
-        self.assertEqual(result, sequences_getted)
+        self.assertEqual(result, sequences_obtained)
 
     def test_filter_samples_has_original_True_get_original_False(self):
         sequences = ["a", "b", "a", "b", "a", "b"]
-        sequences_getted = ["b", "b", "b"]
+        sequences_obtained = ["b", "b", "b"]
 
         result = KTSSModel.filter_samples(sequences, has_original=True)
 
-        self.assertEqual(result, sequences_getted)
+        self.assertEqual(result, sequences_obtained)
 
     def test_filter_samples_has_original_False_get_original_True(self):
         sequences = ["a", "b", "a", "b", "a", "b"]
-        sequences_getted = ["a", "b", "a", "b", "a", "b"]
+        sequences_obtained = ["a", "b", "a", "b", "a", "b"]
 
         result = KTSSModel.filter_samples(sequences)
 
-        self.assertEqual(result, sequences_getted)
+        self.assertEqual(result, sequences_obtained)
 
     def test_filter_samples_has_original_True_get_original_True(self):
         sequences = ["a", "b", "a", "b", "a", "b"]
-        sequences_getted = ["a", "a", "a"]
+        sequences_obtained = ["a", "a", "a"]
 
         result = KTSSModel.filter_samples(
             sequences, has_original=True, get_original=True
         )
 
-        self.assertEqual(result, sequences_getted)
+        self.assertEqual(result, sequences_obtained)

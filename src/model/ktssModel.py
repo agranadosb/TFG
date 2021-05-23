@@ -110,7 +110,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         Parameters
         ----------
         string: str
-            Strong where the prefix will be getted
+            Strong where the prefix will be obtained
         k: int
             Length of the prefix - 1
 
@@ -126,7 +126,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         Parameters
         ----------
         string: str
-            String where the suffix will be getted
+            String where the suffix will be obtained
         k: int
             Length of the suffix - 1
 
@@ -144,7 +144,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         Parameters
         ----------
         string: str
-            String where the infixes will be getted
+            String where the infixes will be obtained
         k: int
             Length of the infixes
 

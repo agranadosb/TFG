@@ -29,9 +29,7 @@ class KTSSValidator(object):
         self.model = model
         self.infix_symbols = parser.mutations_symbols
 
-        self.prefix_map = parser.prefix_map
-        self.mutations_map = parser.mutations_map
-        self.suffix_map = parser.suffix_map
+        self.set_mappings(parser)
 
         self.dfa = DFA(
             model["states"],
@@ -40,6 +38,24 @@ class KTSSValidator(object):
             model["initial_state"],
             model["final_states"],
         )
+
+    def set_mappings(self, parser: ParserVcf):
+        """Set the mappings for the prefix, infix, and suffix between an original symbol
+        and parsed symbol
+
+        Parameters
+        ----------
+        parser: ParserVcf
+            Parser where the mappings will be obtained
+        """
+        try:
+            self.prefix_map = parser.prefix_map
+            self.mutations_map = parser.mutations_map
+            self.suffix_map = parser.suffix_map
+        except AttributeError:
+            raise NotImplementedError(
+                "For this metohd is necessary to define prefix_map, mutations_map, suffix_map attributes into the parser class"
+            )
 
     def get_next_state(self, sequence: str, state: bool = False) -> str:
         """Parse a sequence and gets the next state after parsing the sequence

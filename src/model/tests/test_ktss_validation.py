@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from sortedcontainers import SortedDict, SortedSet
 from src.model.ktssValidation import KTSSValidator
+from src.model.tests.factories import ParserFactory
 
 
 class TestKTSSValidator(TestCase):
@@ -370,3 +371,28 @@ class TestKTSSValidator(TestCase):
         result = KTSSValidator.transform_sequence(sequence, mapping)
 
         self.assertEqual(result, sequence_mapped)
+
+    def test_set_mappings_valid(self):
+        parser = ParserFactory()
+
+        is_valid = False
+        try:
+            self.ktss_validator.set_mappings(parser)
+            is_valid = True
+        except NotImplementedError:
+            pass
+
+        self.assertTrue(is_valid)
+
+    def test_set_mappings_invalid(self):
+        parser = ParserFactory()
+        delattr(ParserFactory, 'prefix_map')
+
+        is_invalid = False
+        try:
+            self.ktss_validator.set_mappings(parser)
+        except NotImplementedError:
+            is_invalid = True
+            setattr(ParserFactory, 'prefix_map', {})
+
+        self.assertTrue(is_invalid)
