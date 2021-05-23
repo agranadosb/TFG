@@ -16,7 +16,7 @@ LENGTH_SEQUENCE = -p_p $(LENGTH) -p_s $(LENGTH)
 # KTSS Model options
 # --------------------------------------------------------------------------------------
 KTSS_EXTENDED = -o pm -p e -m ktss
-K = 4
+K = 3
 KTSS_PARAMETERS = -k $(K) -ktss_nas False
 
 # General model options

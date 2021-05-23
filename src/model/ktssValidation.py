@@ -310,27 +310,28 @@ class KTSSValidator(object):
         logger.info("Generating validation data")
         for sequence in tqdm(sequences, file=tqdm_out):
             prefix = KTSSValidator.transform_sequence(
-                sequence[:prefix_length], self.prefix_map, add_original=add_original
+                sequence[:prefix_length], self.prefix_map
             )
             suffix = KTSSValidator.transform_sequence(
-                sequence[len(sequence) - suffix_length :],
-                self.suffix_map,
-                add_original=add_original,
+                sequence[len(sequence) - suffix_length :], self.suffix_map
             )
             infix = KTSSValidator.transform_sequence(
                 sequence[prefix_length : len(sequence) - suffix_length],
                 self.mutations_map,
-                add_original=add_original,
             )
 
-            result[sequence] = SortedDict()
+            sequence_key = f"{prefix}{separator}{infix}{separator}{suffix}"
+            if add_original:
+                sequence_key = sequence
+
+            result[sequence_key] = SortedDict()
 
             try:
                 infix_sequences = self.generate_infixes(
                     prefix, suffix, separator=separator
                 )
             except:
-                result[sequence] = False
+                result[sequence_key] = False
                 continue
 
             for infix_sequence in infix_sequences:
@@ -343,7 +344,7 @@ class KTSSValidator(object):
                     infix_key = "".join(
                         [self.inverse_mutations_map[char] for char in infix_string]
                     )
-                result[sequence][infix_key] = distance
+                result[sequence_key][infix_key] = distance
         logger.info("Generation finished\n")
 
         if minimum:
