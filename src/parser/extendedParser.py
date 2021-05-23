@@ -110,7 +110,7 @@ class ExtendedParserVcf(ParserVcf):
 
         left = [self.prefix_map[nucletid.upper()] for nucletid in sequence[0]]
         middle = [
-            self.mutations_map[nucletid.upper()] for nucletid in mutation[0].sequence
+            self.mutations_map[nucletid.upper()] for nucletid in mutation
         ]
         right = [self.suffix_map[nucletid.upper()] for nucletid in sequence[2]]
 

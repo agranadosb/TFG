@@ -426,7 +426,7 @@ class FastaReader(object):
         pos: int,
         from_nuc: int,
         to_nuc: int,
-    ) -> tuple:
+    ) -> list:
         """Gets a fasta's sequence by the position on a chromosome, with a given prefix
         and a suffix length.
 
@@ -453,4 +453,4 @@ class FastaReader(object):
         nucleotide = self.get_nucleotides(chromosome, pos, length)
         suff = self.get_suffix(pos + length - 1, to_nuc, chromosome)
 
-        return (pref, nucleotide, suff)
+        return [pref, nucleotide, suff]

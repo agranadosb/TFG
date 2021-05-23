@@ -77,7 +77,11 @@ def run(
 
         # Test the model
         validator = validators[model_type](model.model, parser=model.parser)
-        distances = validator.generate_distances(test_samples)
+        distances = validator.generate_distances(
+            test_samples,
+            prefix_length=parser_prefix,
+            suffix_length=parser_suffix,
+        )
 
         with open(
             f"{result_folder}{model.trainer_name}-distances.json", "w"

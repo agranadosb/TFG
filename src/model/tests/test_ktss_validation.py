@@ -216,10 +216,17 @@ class TestKTSSValidator(TestCase):
 
     def test_generate_distances_invalid(self):
         self.ktss_validator.infix_symbols = ["a", "b"]
-        sequences = [("c", "aaa", "c"), ("c", "cac", "c")]
+        self.ktss_validator.prefix_map = {"c": "c"}
+        self.ktss_validator.mutations_map = {"a": "a", "c": "c"}
+        self.ktss_validator.suffix_map = {"c": "c"}
+        sequences = [("caaac"), ("ccacc")]
         distances = SortedDict({"c-aaa-c": False, "c-cac-c": False})
+        prefix_length = 1
+        suffix_length = 1
 
-        result = self.ktss_validator.generate_distances(sequences)
+        result = self.ktss_validator.generate_distances(
+            sequences, prefix_length=prefix_length, suffix_length=suffix_length
+        )
 
         self.assertEqual(result, distances)
 
@@ -249,16 +256,21 @@ class TestKTSSValidator(TestCase):
         self.ktss_validator.dfa.add_transition("cabb", "c", "cabbc")
         self.ktss_validator.dfa.add_transition("cbbb", "c", "cbbbc")
         self.ktss_validator.infix_symbols = ["a", "b"]
+        self.ktss_validator.prefix_map = {"a": "a", "c": "c", "b": "b"}
+        self.ktss_validator.mutations_map = {"a": "a", "c": "c", "b": "b"}
+        self.ktss_validator.suffix_map = {"a": "a", "c": "c", "b": "b"}
         sequences = [
-            ("c", "aaa", "c"),
-            ("c", "cac", "c"),
-            ("c", "aba", "c"),
-            ("c", "bba", "c"),
-            ("c", "caa", "c"),
-            ("c", "bab", "c"),
-            ("c", "ccc", "c"),
-            ("c", "acc", "c"),
+            "caaac",
+            "ccacc",
+            "cabac",
+            "cbbac",
+            "ccaac",
+            "cbabc",
+            "ccccc",
+            "caccc",
         ]
+        prefix_length = 1
+        suffix_length = 1
         distances = SortedDict(
             {
                 "c-aaa-c": {
@@ -344,6 +356,17 @@ class TestKTSSValidator(TestCase):
             }
         )
 
-        result = self.ktss_validator.generate_distances(sequences)
+        result = self.ktss_validator.generate_distances(
+            sequences, prefix_length=prefix_length, suffix_length=suffix_length
+        )
 
         self.assertEqual(result, distances)
+
+    def test_transform_sequence(self):
+        sequence = "ababababab"
+        mapping = {"a": "b", "b": "a"}
+        sequence_mapped = "bababababa"
+
+        result = KTSSValidator.transform_sequence(sequence, mapping)
+
+        self.assertEqual(result, sequence_mapped)

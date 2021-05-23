@@ -28,6 +28,11 @@ class KTSSValidator(object):
     ):
         self.model = model
         self.infix_symbols = parser.mutations_symbols
+
+        self.prefix_map = parser.prefix_map
+        self.mutations_map = parser.mutations_map
+        self.suffix_map = parser.suffix_map
+
         self.dfa = DFA(
             model["states"],
             model["alphabet"],
@@ -195,8 +200,29 @@ class KTSSValidator(object):
         """
         return method(string1, string2)
 
+    @staticmethod
+    def transform_sequence(sequence: str, mapping: dict) -> str:
+        """Transforms a sequence using a dict that repsents a mapping
+
+        Parameters
+        ----------
+        sequence: str
+            Sequence to be mapped
+        mapping: dict
+            Dictionary that repsents the mapping
+
+        Returns
+        -------
+        Sequence mapped
+        """
+        return "".join(map(lambda char: mapping[char], sequence))
+
     def generate_distances(
-        self, sequences: Union[list, tuple], separator: str = "-"
+        self,
+        sequences: Union[list, tuple],
+        separator: str = "-",
+        prefix_length: int = 5,
+        suffix_length: int = 5,
     ) -> SortedDict:
         """Generates all the distances of an infix of a given list of sequences of all
         the possible infixes
@@ -218,9 +244,17 @@ class KTSSValidator(object):
         result = SortedDict()
         logger.info("Generating validation data")
         for sequence in tqdm(sequences, file=tqdm_out):
-            prefix = sequence[0]
-            infix = sequence[1]
-            suffix = sequence[2]
+            prefix = KTSSValidator.transform_sequence(
+                sequence[:prefix_length], self.prefix_map
+            )
+            suffix = KTSSValidator.transform_sequence(
+                sequence[len(sequence) - suffix_length :], self.suffix_map
+            )
+            infix = KTSSValidator.transform_sequence(
+                sequence[prefix_length : len(sequence) - suffix_length],
+                self.mutations_map,
+            )
+
             sequence_key = f"{prefix}{separator}{infix}{separator}{suffix}"
             result[sequence_key] = SortedDict()
 
