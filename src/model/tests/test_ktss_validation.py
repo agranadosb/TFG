@@ -373,6 +373,15 @@ class TestKTSSValidator(TestCase):
 
         self.assertEqual(result, sequence_mapped)
 
+    def test_transform_sequence_without_original(self):
+        sequence = "ababababab"
+        mapping = {"a": "b", "b": "a"}
+        sequence_mapped = "ababababab"
+
+        result = KTSSValidator.transform_sequence(sequence, mapping, add_original=False)
+
+        self.assertEqual(result, sequence_mapped)
+
     def test_set_mappings_valid(self):
         parser = ParserFactory()
 

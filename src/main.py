@@ -96,11 +96,14 @@ def run(
 
             # Test the model
             validator = validators[model_type](model.model, parser=model.parser)
+            """ TODO: Hacer que el atributo add_original se pueda pasar desde consola
+            usando el argument parser en los validadores """
             distances = validator.generate_distances(
                 test_samples,
                 prefix_length=parser_prefix,
                 suffix_length=parser_suffix,
                 minimum=True,
+                add_original=False,
             )
 
             with open(

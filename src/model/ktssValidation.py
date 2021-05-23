@@ -226,7 +226,9 @@ class KTSSValidator(object):
         return method(string1, string2)
 
     @staticmethod
-    def transform_sequence(sequence: str, mapping: dict) -> str:
+    def transform_sequence(
+        sequence: str, mapping: dict, add_original: bool = True
+    ) -> str:
         """Transforms a sequence using a dict that repsents a mapping
 
         Parameters
@@ -240,7 +242,9 @@ class KTSSValidator(object):
         -------
         Sequence mapped
         """
-        return "".join(map(lambda char: mapping[char], sequence))
+        if add_original:
+            return "".join(map(lambda char: mapping[char], sequence))
+        return sequence
 
     @staticmethod
     def get_minimum_distances(distances: dict) -> dict:
@@ -273,6 +277,7 @@ class KTSSValidator(object):
         prefix_length: int = 5,
         suffix_length: int = 5,
         minimum: bool = False,
+        add_original: bool = True,
     ) -> SortedDict:
         """Generates all the distances of an infix of a given list of sequences of all
         the possible infixes
@@ -289,6 +294,8 @@ class KTSSValidator(object):
             Length of the suffix
         minimum: bool
             If true only returns the minimum value and infix of the all the distances
+        add_original:
+            If true returns the original sequence, if not returns the anotated sequence
 
         Returns
         -------
@@ -301,14 +308,17 @@ class KTSSValidator(object):
         logger.info("Generating validation data")
         for sequence in tqdm(sequences, file=tqdm_out):
             prefix = KTSSValidator.transform_sequence(
-                sequence[:prefix_length], self.prefix_map
+                sequence[:prefix_length], self.prefix_map, add_original=add_original
             )
             suffix = KTSSValidator.transform_sequence(
-                sequence[len(sequence) - suffix_length :], self.suffix_map
+                sequence[len(sequence) - suffix_length :],
+                self.suffix_map,
+                add_original=add_original,
             )
             infix = KTSSValidator.transform_sequence(
                 sequence[prefix_length : len(sequence) - suffix_length],
                 self.mutations_map,
+                add_original=add_original,
             )
 
             result[sequence] = SortedDict()
@@ -326,9 +336,11 @@ class KTSSValidator(object):
 
                 distance = self.string_distances(infix, infix_string)
 
-                infix_key = "".join(
-                    [self.inverse_mutations_map[char] for char in infix_string]
-                )
+                infix_key = infix_string
+                if add_original:
+                    infix_key = "".join(
+                        [self.inverse_mutations_map[char] for char in infix_string]
+                    )
                 result[sequence][infix_key] = distance
         logger.info("Generation finished\n")
 
