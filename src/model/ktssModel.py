@@ -337,7 +337,12 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
 
             self._model = model
 
-    def get_training_samples(self, samples: Union[list, tuple]) -> list:
+    def get_training_samples(
+        self,
+        samples: Union[list, tuple],
+        has_original: bool = False,
+        get_original: bool = False,
+    ) -> list:
         """Generates the samples training data from the total of samples
 
         Parameters
@@ -349,9 +354,16 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         -------
         List of samples for training
         """
-        return self.get_samples(samples, self.retrive_string_sequence)
+        return AbstractModel.get_samples(
+            samples, self.retrive_string_sequence, has_original, get_original
+        )
 
-    def get_test_samples(self, samples: Union[list, tuple]) -> list:
+    def get_test_samples(
+        self,
+        samples: Union[list, tuple],
+        has_original: bool = False,
+        get_original: bool = True,
+    ) -> list:
         """Generates the samples test data from the total of samples
 
         Parameters
@@ -363,4 +375,6 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         -------
         List of samples for test
         """
-        return self.get_samples(samples, self.retrive_sequence)
+        return AbstractModel.get_samples(
+            samples, self.retrive_sequence, has_original, get_original
+        )

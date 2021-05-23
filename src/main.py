@@ -4,12 +4,8 @@ import json
 import logging
 import os
 
-from src.constants.constants import (
-    EXTENDED_PARSER_CODE,
-    KTSS_MODEL,
-    PARSER_MODEL_OPERATION,
-    PARSER_OPERATION,
-)
+from src.constants.constants import (EXTENDED_PARSER_CODE, KTSS_MODEL,
+                                     PARSER_MODEL_OPERATION, PARSER_OPERATION)
 from src.model.ktssModel import KTSSModel
 from src.model.ktssValidation import KTSSValidator
 from src.parser.extendedParser import ExtendedParserVcf
@@ -54,7 +50,7 @@ def run(
         parser_engine = parser(vcf_path, fasta_path)
         parser_engine.generate_sequences(
             result_folder,
-            add_original=False,
+            add_original=True,
             prefix_length=parser_prefix,
             suffix_length=parser_suffix,
         )
@@ -66,10 +62,14 @@ def run(
         # Generate the samples to build the model
         with open(f"{result_folder}{parser_engine.default_filename()}") as samples_file:
             lines = samples_file.readlines()
-            training_length = int(len(lines) * test_ratio)
+            training_length = int(len(lines) / 2 * test_ratio) * 2
 
-            training_samples = model.get_training_samples(lines[:training_length])
-            test_samples = model.get_test_samples(lines[training_length:])
+            training_samples = model.get_training_samples(
+                lines[:training_length], has_original=True, get_original=False
+            )
+            test_samples = model.get_test_samples(
+                lines[training_length:], has_original=True, get_original=True
+            )
 
         # Train the model
         model.trainer(training_samples, **model.get_trainer_arguments(**kwargs))
@@ -89,7 +89,7 @@ def run(
         parser_method = parsers[parser](vcf_path, fasta_path)
         parser_method.generate_sequences(
             result_folder,
-            add_original=False,
+            add_original=True,
             prefix_length=parser_prefix,
             suffix_length=parser_suffix,
         )

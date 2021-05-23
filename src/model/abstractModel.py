@@ -104,7 +104,68 @@ class AbstractModel(ABC):
         """
         return self.parser.retrive_sequence
 
-    def get_samples(self, samples: Union[list, tuple], method: Callable) -> list:
+    @staticmethod
+    def filter_samples(
+        samples: Union[list, tuple],
+        has_original: bool = False,
+        get_original: bool = False,
+    ) -> Union[list, tuple]:
+        """If the samples have been parsed with the flag write_original to True, this
+        method only takes the lines that are in position odd or even, depends if
+        get_orignal is set True or False.
+
+
+        This is because the parser creates a file (with the flag write_original to True)
+        which is an original  sequence and parsed sequence per each pair of lines.
+
+        The file with the sequences will look like:
+
+            Original_1
+            Parsed_1
+            Original_2
+            Parsed_2
+            ...
+            Original_N
+            Parsed_N
+
+        So the list will be:
+
+            [Original_1,Parsed_1,Original_2,Parsed_2,...,Original_N,Parsed_N]
+
+        That's the reason for filter depending on the parity of the index of the sample
+
+        Parameters
+        ----------
+        samples: list, tuple
+            Samples to be filtered
+        has_original: bool
+            Specifies if the file has the original sequence
+        get_original: bool
+            Specifies if the seqeunce that is wanted to be filtered is the original or
+            not
+
+        Returns
+        -------
+        List of the filtered samples
+        """
+        if has_original:
+            index_allowed = 1
+            if get_original:
+                index_allowed = 0
+            samples = [
+                samples[i] for i in range(len(samples)) if i % 2 == index_allowed
+            ]
+
+        return samples
+
+    @classmethod
+    def get_samples(
+        cls,
+        samples: Union[list, tuple],
+        method: Callable,
+        has_original: bool = False,
+        get_original: bool = True,
+    ) -> list:
         """Gets a list of samples and applies a method to that samples.
 
         Parameters
@@ -118,6 +179,11 @@ class AbstractModel(ABC):
         -------
         The list with the samples with the method applied on them
         """
+        samples = cls.filter_samples(samples, has_original, get_original)
+
+        if get_original:
+            method = lambda sample: sample
+
         return list(
             map(
                 lambda sample: method(sample.rstrip()),
