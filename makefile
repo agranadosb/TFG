@@ -24,7 +24,7 @@ KTSS_PARAMETERS = -k $(K) -ktss_nas False
 RATIO = 0.90
 
 build-docs:
-	pdoc --html src --force
+	pdoc --html --config show_source_code=False src --force
 test:
 	poetry run pytest
 black:
