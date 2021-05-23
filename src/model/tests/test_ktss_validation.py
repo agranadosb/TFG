@@ -386,13 +386,21 @@ class TestKTSSValidator(TestCase):
 
     def test_set_mappings_invalid(self):
         parser = ParserFactory()
-        delattr(ParserFactory, 'prefix_map')
+        delattr(ParserFactory, "prefix_map")
 
         is_invalid = False
         try:
             self.ktss_validator.set_mappings(parser)
         except NotImplementedError:
             is_invalid = True
-            setattr(ParserFactory, 'prefix_map', {})
+            setattr(ParserFactory, "prefix_map", {})
 
         self.assertTrue(is_invalid)
+
+    def test_get_minimum_distances(self):
+        distances = {"a": {"a": 1, "b": 0, "c": 2}, "b": {}, "c": False}
+        minimum_distances = {"a": {"b": 0}, "b": -1, "c": -1}
+
+        result = KTSSValidator.get_minimum_distances(distances)
+
+        self.assertEqual(result, minimum_distances)

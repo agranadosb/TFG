@@ -4,6 +4,7 @@ from src.argumentParser.argumentParser import ArgumentParser
 
 """ TODO: Añadir clase para los parsers """
 
+
 class AbstractModelArguments(ABC, ArgumentParser):
     """Class that allows to implenet command line arguments with a little configuration.
 

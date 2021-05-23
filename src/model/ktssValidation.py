@@ -47,6 +47,11 @@ class KTSSValidator(object):
         ----------
         parser: ParserVcf
             Parser where the mappings will be obtained
+
+        Raise
+        -----
+        NotImplementedError: When a mapping attribute (prefix_map, mutations_map,
+        suffix_map) is not defined on the parser class
         """
         try:
             self.prefix_map = parser.prefix_map
@@ -56,6 +61,10 @@ class KTSSValidator(object):
             raise NotImplementedError(
                 "For this metohd is necessary to define prefix_map, mutations_map, suffix_map attributes into the parser class"
             )
+
+        self.inverse_mutations_map = {
+            value: key for key, value in self.mutations_map.items()
+        }
 
     def get_next_state(self, sequence: str, state: bool = False) -> str:
         """Parse a sequence and gets the next state after parsing the sequence
@@ -233,12 +242,37 @@ class KTSSValidator(object):
         """
         return "".join(map(lambda char: mapping[char], sequence))
 
+    @staticmethod
+    def get_minimum_distances(distances: dict) -> dict:
+        """Gets the minum distance of a sequence for a dictionary of distances
+
+        Parameters
+        ----------
+        distances: dict
+            Dictionary with distances per sequence
+
+        Returns
+        -------
+        Dictionary with the minimum value per sequence
+        """
+        distances_copy = distances.copy()
+        for sequence in distances_copy:
+            sequence_distances = distances_copy[sequence]
+            if not sequence_distances or len(sequence_distances.keys()) == 0:
+                distances_copy[sequence] = -1
+                continue
+            min_key = min(sequence_distances, key=sequence_distances.get)
+            distances_copy[sequence] = {min_key: sequence_distances[min_key]}
+
+        return distances_copy
+
     def generate_distances(
         self,
         sequences: Union[list, tuple],
         separator: str = "-",
         prefix_length: int = 5,
         suffix_length: int = 5,
+        minimum: bool = False,
     ) -> SortedDict:
         """Generates all the distances of an infix of a given list of sequences of all
         the possible infixes
@@ -249,6 +283,12 @@ class KTSSValidator(object):
             List of sequences
         separator: str
             Separator of the sequence generator
+        prefix_length: int
+            Length of the prefix
+        suffix_length: int
+            Length of the suffix
+        minimum: bool
+            If true only returns the minimum value and infix of the all the distances
 
         Returns
         -------
@@ -271,15 +311,14 @@ class KTSSValidator(object):
                 self.mutations_map,
             )
 
-            sequence_key = f"{prefix}{separator}{infix}{separator}{suffix}"
-            result[sequence_key] = SortedDict()
+            result[sequence] = SortedDict()
 
             try:
                 infix_sequences = self.generate_infixes(
                     prefix, suffix, separator=separator
                 )
             except:
-                result[sequence_key] = False
+                result[sequence] = False
                 continue
 
             for infix_sequence in infix_sequences:
@@ -287,6 +326,13 @@ class KTSSValidator(object):
 
                 distance = self.string_distances(infix, infix_string)
 
-                result[sequence_key][infix_string] = distance
+                infix_key = "".join(
+                    [self.inverse_mutations_map[char] for char in infix_string]
+                )
+                result[sequence][infix_key] = distance
+        logger.info("Generation finished\n")
+
+        if minimum:
+            return KTSSValidator.get_minimum_distances(result)
 
         return result

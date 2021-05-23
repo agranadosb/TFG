@@ -18,7 +18,7 @@ class FastaReader(object):
 
     After parse the fasta file data, the class will have an attribute (fasta_data) with
     information per chromosome in a dictionary data structure:
-    
+
     - **label_length**: length of the chromosome label
     - **line_start**: the line where the chromosome starts in fasta file
     - **index_start**: index where the chromosome starts in fasta file

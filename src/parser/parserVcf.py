@@ -139,6 +139,7 @@ class ParserVcf(ABC):
             sequence[1] = mutation
         return f'{prefix}{"".join(sequence)}\n'
 
+    @property
     def default_filename(self) -> str:
         """Returns a default filename for the results
 
@@ -201,7 +202,7 @@ class ParserVcf(ABC):
             If true adds the original sequence into the file
         """
         if not filename:
-            filename = self.default_filename()
+            filename = self.default_filename
 
         with open(f"{path}/{filename}", "w") as parsed_data_file:
             for i in self.get_vcf():
