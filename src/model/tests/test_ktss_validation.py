@@ -221,7 +221,7 @@ class TestKTSSValidator(TestCase):
         self.ktss_validator.mutations_map = {"a": "a", "c": "c"}
         self.ktss_validator.suffix_map = {"c": "c"}
         sequences = [("caaac"), ("ccacc")]
-        distances = SortedDict({"c-aaa-c": False, "c-cac-c": False})
+        distances = SortedDict({"caaac": False, "ccacc": False})
         prefix_length = 1
         suffix_length = 1
 
@@ -259,6 +259,7 @@ class TestKTSSValidator(TestCase):
         self.ktss_validator.infix_symbols = ["a", "b"]
         self.ktss_validator.prefix_map = {"a": "a", "c": "c", "b": "b"}
         self.ktss_validator.mutations_map = {"a": "a", "c": "c", "b": "b"}
+        self.ktss_validator.inverse_mutations_map = {"a": "a", "c": "c", "b": "b"}
         self.ktss_validator.suffix_map = {"a": "a", "c": "c", "b": "b"}
         sequences = [
             "caaac",
@@ -274,7 +275,7 @@ class TestKTSSValidator(TestCase):
         suffix_length = 1
         distances = SortedDict(
             {
-                "c-aaa-c": {
+                "caaac": {
                     "aaa": 0,
                     "aab": 1,
                     "aba": 1,
@@ -284,7 +285,7 @@ class TestKTSSValidator(TestCase):
                     "bba": 2,
                     "bbb": 3,
                 },
-                "c-cac-c": {
+                "ccacc": {
                     "aaa": 2,
                     "aab": 2,
                     "aba": 3,
@@ -294,7 +295,7 @@ class TestKTSSValidator(TestCase):
                     "bba": 3,
                     "bbb": 3,
                 },
-                "c-aba-c": {
+                "cabac": {
                     "aaa": 1,
                     "aab": 2,
                     "aba": 0,
@@ -304,7 +305,7 @@ class TestKTSSValidator(TestCase):
                     "bba": 1,
                     "bbb": 2,
                 },
-                "c-bba-c": {
+                "cbbac": {
                     "aaa": 2,
                     "aab": 3,
                     "aba": 1,
@@ -314,7 +315,7 @@ class TestKTSSValidator(TestCase):
                     "bba": 0,
                     "bbb": 1,
                 },
-                "c-caa-c": {
+                "ccaac": {
                     "aaa": 1,
                     "aab": 2,
                     "aba": 2,
@@ -324,7 +325,7 @@ class TestKTSSValidator(TestCase):
                     "bba": 2,
                     "bbb": 3,
                 },
-                "c-bab-c": {
+                "cbabc": {
                     "aaa": 2,
                     "aab": 1,
                     "aba": 2,
@@ -334,7 +335,7 @@ class TestKTSSValidator(TestCase):
                     "bba": 2,
                     "bbb": 1,
                 },
-                "c-ccc-c": {
+                "ccccc": {
                     "aaa": 3,
                     "aab": 3,
                     "aba": 3,
@@ -344,7 +345,7 @@ class TestKTSSValidator(TestCase):
                     "bba": 3,
                     "bbb": 3,
                 },
-                "c-acc-c": {
+                "caccc": {
                     "aaa": 2,
                     "aab": 2,
                     "aba": 2,
