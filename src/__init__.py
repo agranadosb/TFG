@@ -5,9 +5,9 @@ from . import (
     constants,
     dataStructures,
     logging,
-    main,
     model,
     parser,
+    runner,
     utils,
     vcf,
 )

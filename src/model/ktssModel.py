@@ -32,7 +32,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         {
             "key": "k",
             "name": "k",
-            "help": f"k value for ktss model",
+            "help": "k value for ktss model",
             "default": 3,
             "type": int,
             "function_argumemnt": {"k_value": "k"},
@@ -40,10 +40,9 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         {
             "key": "ktss_nas",
             "name": "ktss-not-allowed-segments",
-            "help": f"Create not allowed segments",
-            "default": False,
-            "type": bool,
+            "help": "Create not allowed segments",
             "function_argumemnt": {"not_allowed_segements": "ktss_nas"},
+            "action": "store_true",
         },
     ]
 
