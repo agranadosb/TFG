@@ -4,11 +4,12 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Union
 
+from src.argumentParser.abstractArguments import AbstractParserArguments
 from src.vcf.vcfReader import FastaReader
 from vcf import Reader as VcfReader
 
 
-class ParserVcf(ABC):
+class ParserVcf(AbstractParserArguments, ABC):
     """Parses data from vcf and fasta files and prepare that data for a machine learning
     model.
 
@@ -32,6 +33,44 @@ class ParserVcf(ABC):
     fasta_path : str
         Path of the fasta file
     """
+
+    arguments: list = [
+        {
+            "key": "amto",
+            "name": "add-mutation-to-original",
+            "help": "Add mutation to original sequence on parser file",
+            "function_argumemnt": {"amto": "add_mutation_to_original"},
+            "action": "store_true",
+        },
+        {
+            "key": "ao",
+            "name": "add-original",
+            "help": "Writes original sequence into parsed sequences file on parser file",
+            "function_argumemnt": {"ao": "add_original"},
+            "action": "store_true",
+        },
+        {
+            "key": "wc",
+            "name": "write-chromosme",
+            "help": "Writes the chromsome where the sequence are from on parser file",
+            "function_argumemnt": {"wc": "write_chromosme"},
+            "action": "store_true",
+        },
+        {
+            "key": "pfilename",
+            "name": "parser-filename",
+            "help": "Filename of the parser file",
+            "type": str,
+            "function_argumemnt": {"pfilename": "pfilename"},
+        },
+    ]
+
+    generate_sequences_arguments: dict = {
+        "ao": "add_original",
+        "amto": "add_mutation_to_original",
+        "pfilename": "filename",
+        "wc": "write_chromosme",
+    }
 
     vcf_reader: FastaReader = None
 

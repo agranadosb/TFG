@@ -5,12 +5,8 @@ import logging
 import os
 from random import shuffle
 
-from src.constants.constants import (
-    EXTENDED_PARSER_CODE,
-    KTSS_MODEL,
-    PARSER_MODEL_OPERATION,
-    PARSER_OPERATION,
-)
+from src.constants.constants import (EXTENDED_PARSER_CODE, KTSS_MODEL,
+                                     PARSER_MODEL_OPERATION, PARSER_OPERATION)
 from src.model.ktssModel import KTSSModel
 from src.model.ktssValidation import KTSSValidator
 from src.parser.extendedParser import ExtendedParserVcf
@@ -56,9 +52,9 @@ def run(
         parser_engine = parser(vcf_path, fasta_path)
         parser_engine.generate_sequences(
             result_folder,
-            add_original=True,
             prefix_length=parser_prefix,
             suffix_length=parser_suffix,
+            **parser_engine.get_generate_sequences_arguments(**kwargs),
         )
 
         # Generate the samples to build the model
@@ -102,8 +98,7 @@ def run(
                 test_samples,
                 prefix_length=parser_prefix,
                 suffix_length=parser_suffix,
-                minimum=True,
-                add_original=False,
+                **validator.get_generate_distances_arguments(**kwargs),
             )
 
             with open(

@@ -3,6 +3,7 @@ from queue import Queue
 from typing import Callable, Union
 
 from sortedcontainers import SortedDict, SortedSet
+from src.argumentParser.abstractArguments import AbstractValidationArguments
 from src.dataStructures.dfa import DFA
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.parser.extendedParser import ExtendedParserVcf
@@ -11,7 +12,7 @@ from textdistance import levenshtein
 from tqdm import tqdm
 
 
-class KTSSValidator(object):
+class KTSSValidator(AbstractValidationArguments):
     """Operates from a DFA generated from a KTSS model and allows to generate distances
     between original sequences and sequences derived from the original sequences
 
@@ -22,6 +23,37 @@ class KTSSValidator(object):
     parser: ParserVCF = ExtendedParserVcf
         Parser of the model
     """
+
+    arguments: list = [
+        {
+            "key": "sep",
+            "name": "separator",
+            "help": "Specifies the separator between characters of each sequence of the valdiator",
+            "default": "-",
+            "type": str,
+            "function_argumemnt": {"sep": "separator"},
+        },
+        {
+            "key": "min",
+            "name": "minimum",
+            "help": "If true only returns the minimum value and infix of the all the distances of the valdiator",
+            "function_argumemnt": {"min": "minimum"},
+            "action": "store_true",
+        },
+        {
+            "key": "aoval",
+            "name": "add-original-validator",
+            "help": "If true returns the original sequence, if not returns the anotated sequence of the valdiator",
+            "function_argumemnt": {"aoval": "add_original_validator"},
+            "action": "store_true",
+        },
+    ]
+
+    generate_distances_arguments: dict = {
+        "sep": "separator",
+        "min": "minimum",
+        "aoval": "add_original",
+    }
 
     def __init__(
         self, model: Union[SortedDict, dict], parser: ParserVcf = ExtendedParserVcf

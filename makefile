@@ -17,7 +17,16 @@ LENGTH_SEQUENCE = -p_p $(LENGTH) -p_s $(LENGTH)
 # --------------------------------------------------------------------------------------
 KTSS_EXTENDED = -o pm -p e -m ktss
 K = 3
-KTSS_PARAMETERS = -k $(K) -ktss_nas False
+KTSS_PARAMETERS = -k $(K)
+
+# PARSER options
+# --------------------------------------------------------------------------------------
+PARSER = -ao -amto
+
+# VALIDATOR options
+# --------------------------------------------------------------------------------------
+ORIGNAL_VALDIATOR = -aoval
+VALIDATOR = $(ORIGNAL_VALDIATOR) -min
 
 # General model options
 # --------------------------------------------------------------------------------------
@@ -32,4 +41,4 @@ black:
 parser-extended:
 	$(INIT) -p e $(VCF) $(FASTA) -s $(SAVE)
 ktss-extended:
-	$(INIT) $(KTSS_EXTENDED) $(VCF) $(FASTA) -s $(SAVE) $(LENGTH_SEQUENCE) -r $(RATIO) $(KTSS_PARAMETERS)
+	$(INIT) $(KTSS_EXTENDED) $(VCF) $(FASTA) -s $(SAVE) $(LENGTH_SEQUENCE) -r $(RATIO) $(KTSS_PARAMETERS) $(PARSER) $(VALIDATOR)
