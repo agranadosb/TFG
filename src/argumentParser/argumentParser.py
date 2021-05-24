@@ -1,8 +1,12 @@
 from argparse import ArgumentParser as DefaultParser
 from typing import Any
 
-from src.constants.constants import (EXTENDED_PARSER_CODE, KTSS_MODEL,
-                                     PARSER_MODEL_OPERATION, PARSER_OPERATION)
+from src.constants.constants import (
+    EXTENDED_PARSER_CODE,
+    KTSS_MODEL,
+    PARSER_MODEL_OPERATION,
+    PARSER_OPERATION,
+)
 
 
 class ArgumentParser(object):

@@ -26,6 +26,7 @@ class AbstractValidationArguments(ABC, ArgumentParser):
         arguments_trainer = {...}
         model.trainer(samples, model.get_trainer_arguments(**arguments_trainer))
     """
+
     @property
     @abstractmethod
     def arguments() -> list:
@@ -48,6 +49,7 @@ class AbstractValidationArguments(ABC, ArgumentParser):
             for key, value in kwargs.items()
             if key in self.generate_distances_arguments
         }
+
 
 class AbstractParserArguments(ABC, ArgumentParser):
     """Class that allows to implenet command line arguments with a little configuration.
@@ -72,6 +74,7 @@ class AbstractParserArguments(ABC, ArgumentParser):
         arguments_trainer = {...}
         model.trainer(samples, model.get_trainer_arguments(**arguments_trainer))
     """
+
     @property
     @abstractmethod
     def arguments() -> list:
@@ -94,6 +97,7 @@ class AbstractParserArguments(ABC, ArgumentParser):
             for key, value in kwargs.items()
             if key in self.generate_sequences_arguments
         }
+
 
 class AbstractModelArguments(ABC, ArgumentParser):
     """Class that allows to implenet command line arguments with a little configuration.
