@@ -62,7 +62,7 @@ class KTSSValidator(AbstractValidationArguments):
         self.infix_symbols = parser.mutations_symbols
 
         self.set_mappings(parser)
-
+        self.parser = parser
         self.dfa = DFA(
             model["states"],
             model["alphabet"],
@@ -82,21 +82,15 @@ class KTSSValidator(AbstractValidationArguments):
 
         Raise
         -----
-        NotImplementedError: When a mapping attribute (prefix_map, mutations_map,
-        suffix_map) is not defined on the parser class
+        NotImplementedError: When a mapping attribute inverse_mutations_map is not
+        defined on the parser class
         """
         try:
-            self.prefix_map = parser.prefix_map
-            self.mutations_map = parser.mutations_map
-            self.suffix_map = parser.suffix_map
+            self.inverse_mutations_map = parser.inverse_mutations_map()
         except AttributeError:
             raise NotImplementedError(
                 "For this metohd is necessary to define prefix_map, mutations_map, suffix_map attributes into the parser class"
             )
-
-        self.inverse_mutations_map = {
-            value: key for key, value in self.mutations_map.items()
-        }
 
     def get_next_state(self, sequence: str, state: bool = False) -> str:
         """Parse a sequence and gets the next state after parsing the sequence
@@ -258,29 +252,6 @@ class KTSSValidator(AbstractValidationArguments):
         return method(string1, string2)
 
     @staticmethod
-    def transform_sequence(
-        sequence: str, mapping: dict, add_original: bool = True
-    ) -> str:
-        """Transforms a sequence using a dict that repsents a mapping
-
-        Parameters
-        ----------
-        sequence: str
-            Sequence to be mapped
-        mapping: dict
-            Dictionary that repsents the mapping
-        add_original: bool
-            If false the sequence will not be changed
-
-        Returns
-        -------
-        Sequence mapped
-        """
-        if add_original:
-            return "".join(map(lambda char: mapping[char], sequence))
-        return sequence
-
-    @staticmethod
     def get_minimum_distances(distances: dict) -> dict:
         """Gets the minum distance of a sequence for a dictionary of distances
 
@@ -340,17 +311,22 @@ class KTSSValidator(AbstractValidationArguments):
 
         result = SortedDict()
         logger.info("Generating validation data")
-        for sequence in tqdm(sequences, file=tqdm_out):
-            prefix = KTSSValidator.transform_sequence(
-                sequence[:prefix_length], self.prefix_map
+        for sequence_raw in tqdm(sequences, file=tqdm_out):
+            sequence_with_original = sequence_raw.split("|")
+            sequence = sequence_with_original[0]
+            sequence_ref = sequence_with_original[1]
+
+            prev_prefix = sequence[:prefix_length]
+            prev_suffix = sequence[len(sequence) - suffix_length :]
+            prev_infix = sequence[prefix_length : len(sequence) - suffix_length]
+
+            sequence_parsed = self.parser.method(
+                [prev_prefix, sequence_ref, prev_suffix], prev_infix
             )
-            suffix = KTSSValidator.transform_sequence(
-                sequence[len(sequence) - suffix_length :], self.suffix_map
-            )
-            infix = KTSSValidator.transform_sequence(
-                sequence[prefix_length : len(sequence) - suffix_length],
-                self.mutations_map,
-            )
+
+            prefix = "".join(sequence_parsed[0])
+            infix = "".join(sequence_parsed[1])
+            suffix = "".join(sequence_parsed[2])
 
             sequence_key = f"{prefix}{separator}{infix}{separator}{suffix}"
             if add_original:

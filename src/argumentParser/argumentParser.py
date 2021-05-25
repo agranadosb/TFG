@@ -4,6 +4,7 @@ from typing import Any
 from src.constants.constants import (
     EXTENDED_PARSER_CODE,
     KTSS_MODEL,
+    MUTATION_PARSER_CODE,
     PARSER_MODEL_OPERATION,
     PARSER_OPERATION,
 )
@@ -27,6 +28,7 @@ class ArgumentParser(object):
         self.parser: DefaultParser = DefaultParser(description=description)
         self.args_map: dict = {}
 
+        """ TODO: Hacer un atributo para añadir los modelos """
         self.add_argument(
             {
                 "key": "m",
@@ -49,14 +51,15 @@ class ArgumentParser(object):
                 "function_argumemnt": {"operation": "operation"},
             }
         )
+        """ TODO: Hacer un atributo para añadir los parsers """
         self.add_argument(
             {
                 "key": "p",
                 "name": "parser",
-                "help": f"Parser to use: extended -> {EXTENDED_PARSER_CODE}",
+                "help": f"Parser to use: extended -> {EXTENDED_PARSER_CODE}, mutation type -> {MUTATION_PARSER_CODE}",
                 "default": EXTENDED_PARSER_CODE,
                 "type": str,
-                "choices": [EXTENDED_PARSER_CODE],
+                "choices": [EXTENDED_PARSER_CODE, MUTATION_PARSER_CODE],
                 "function_argumemnt": {"parser": "parser"},
             }
         )
@@ -65,6 +68,7 @@ class ArgumentParser(object):
                 "key": "s",
                 "name": "save",
                 "help": "Folder where save results",
+                "required": True,
                 "type": str,
                 "function_argumemnt": {"result_folder": "save"},
             }

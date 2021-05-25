@@ -164,8 +164,19 @@ class FastaReader(object):
         number_new_line_char = (line_start - chromosome_position) * (
             self.line_length + 1
         )
+        """ La última linea no tiene porque estar completa """
+        index = number_new_line_char + previous_chromosmes_labels_length
 
-        return number_new_line_char + previous_chromosmes_labels_length
+        # If the last line is not complete the index will be greater that it could be,
+        # it's necessary to step back to get the real start
+        self.fasta_file.seek(index, 0)
+        char = self.fasta_file.read(1)
+        while char != ">":
+            index -= 1
+            self.fasta_file.seek(index, 0)
+            char = self.fasta_file.read(1)
+
+        return index
 
     def set_chromosme_start_data(self, chromosme: str):
         """Set the data about the start of a chromosme on a fasta file
