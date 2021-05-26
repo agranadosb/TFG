@@ -13,6 +13,7 @@ class ParserFactory(ExtendedParserVcf):
     def __init__(self):
         pass
 
+
 class InvalidParserFactory(object):
     def __init__(self):
         pass

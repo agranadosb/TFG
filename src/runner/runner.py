@@ -39,11 +39,12 @@ for i in KTSSModel.arguments + ParserVcf.arguments + KTSSValidator.arguments:
 
 
 class Runner(object):
-    def start(self):
-        Runner.run(**parser.get_function_arguments())
+    @staticmethod
+    def run():
+        Runner.start(**parser.get_function_arguments())
 
     @staticmethod
-    def run(
+    def start(
         vcf_path,
         fasta_path,
         model_type=KTSS_MODEL,
