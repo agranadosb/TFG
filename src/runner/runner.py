@@ -63,7 +63,6 @@ class Runner(object):
             level=logging.INFO,
             datefmt="%Y-%m-%d %H:%M:%S",
         )
-
         result_folder = parse_route(result_folder)
 
         if PARSER_MODEL_OPERATION == operation:
@@ -136,7 +135,7 @@ class Runner(object):
             parser_method = parsers[parser](vcf_path, fasta_path)
             parser_method.generate_sequences(
                 result_folder,
-                add_original=True,
                 prefix_length=parser_prefix,
                 suffix_length=parser_suffix,
+                **parser_method.get_generate_sequences_arguments(**kwargs),
             )

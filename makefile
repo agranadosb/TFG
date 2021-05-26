@@ -1,10 +1,11 @@
-.DEFAULT_GOAL := ktss-extended
+.DEFAULT_GOAL := model
 
 # FASTA and VCF options
 # --------------------------------------------------------------------------------------
 SAVE = /opt/UPV/TFG/src/example/
 VCF = -vcf $(SAVE)datosR1.vcf
 FASTA = -fasta $(SAVE)hg19.fa.gz
+FILE_OPTIONS = $(VCF) $(FASTA) -s $(SAVE)
 
 # Sequences options
 # --------------------------------------------------------------------------------------
@@ -14,7 +15,8 @@ SEQUENCE_OPTIONS = -p_p $(LENGTH) -p_s $(LENGTH)
 # PARSER options
 # --------------------------------------------------------------------------------------
 PARSER_TYPE = m
-PARSER_OPTIONS = -p $(PARSER_TYPE) -ao -amto
+PARSER_ADD_ORIGINAL = -ao
+PARSER_OPTIONS = -p $(PARSER_TYPE) $(PARSER_ADD_ORIGINAL) -amto
 
 # Model options
 # --------------------------------------------------------------------------------------
@@ -33,8 +35,7 @@ VALIDATOR_OPTIONS = $(ADD_ORIGNAL_VALIDATOR) -min $(ADD_MUTATION_VALIDATOR)
 RATIO = 0.90
 STEPS = 1
 INIT = python3 init.py
-
-GENERAL_OPTIONS = $(INIT) -r $(RATIO) -steps $(STEPS) $(VCF) $(FASTA) -s $(SAVE) -o pm
+GENERAL_OPTIONS = $(INIT) -r $(RATIO) -steps $(STEPS) -o pm $(FILE_OPTIONS)
 
 build-docs:
 	pdoc --html --config show_source_code=False src --force
@@ -42,7 +43,7 @@ test:
 	poetry run pytest
 black:
 	poetry run black .
-parser-extended:
-	$(INIT) -p e $(VCF) $(FASTA) -s $(SAVE)
-ktss-extended:
+parser:
+	$(INIT) $(PARSER_OPTIONS) $(FILE_OPTIONS)
+model:
 	$(GENERAL_OPTIONS) $(SEQUENCE_OPTIONS) $(PARSER_OPTIONS) $(KTSS_OPTIONS) $(VALIDATOR_OPTIONS)
