@@ -43,6 +43,12 @@ class ExtendedParserVcf(ParserVcf):
         Path of the fasta file
     """
 
+    prefix_map: dict = generate_dict_values(PREFIX_SYMBOLS)
+    mutations_map: dict = generate_dict_values(MUTATIONS_SYMBOLS)
+    suffix_map: dict = generate_dict_values(SUFFIX_SYMBOLS)
+
+    mutations_symbols: Union[list, tuple] = MUTATIONS_SYMBOLS
+
     @classmethod
     def inverse_mutations_map(cls):
         return {value: key for key, value in cls.mutations_map.items()}

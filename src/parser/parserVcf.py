@@ -157,7 +157,11 @@ class ParserVcf(AbstractParserArguments, ABC):
         pass
 
     def original_sequence_to_string(
-        self, prefix: str, sequence: list, mutation: str = None
+        self,
+        prefix: str,
+        sequence: list,
+        mutation: str = None,
+        original_separator: str = "|",
     ) -> str:
         """Generates a string of a sequence by append the prefix, infix and suffix and
         append at the starts a given prefix. If is needed to as the mutation, it can be
@@ -171,18 +175,19 @@ class ParserVcf(AbstractParserArguments, ABC):
             Sequence
         mutation: str
             Mutation of the sequence
+        original_separator: str
+            Symbol that divides an original sequence between the sequence and the
+            reference sequence
 
         Returns
         -------
         The sequence in a string shape with a given prefix
         """
-        """ TODO: Añadir previous como parametro """
-        """ TODO: Reprar los tests """
-        previous = "|"
+        original_separator = "|"
         if mutation:
-            previous += sequence[1]
+            original_separator += sequence[1]
             sequence[1] = mutation
-        return f'{prefix}{"".join(sequence)}{previous}\n'
+        return f'{prefix}{"".join(sequence)}{original_separator}\n'
 
     @property
     def default_filename(self) -> str:

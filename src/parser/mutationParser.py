@@ -1,12 +1,18 @@
 from typing import Union
 
 import Levenshtein
-from src.parser.extendedParser import PREFIX_SYMBOLS, SUFFIX_SYMBOLS, ExtendedParserVcf
+from src.parser.extendedParser import ExtendedParserVcf
 from src.utils.genomics import generate_dict_values
 
 MUTATIONS_INSERTION_SYMBOLS = ["t", "y", "u", "i"]
 MUTATIONS_EARSED_SYMBOLS = ["g", "h", "j", "k"]
 MUTATIONS_SUBSITUTION_SYMBOLS = ["a", "s", "d", "f"]
+
+MUTATION_SYMBOLS = (
+    MUTATIONS_INSERTION_SYMBOLS
+    + MUTATIONS_EARSED_SYMBOLS
+    + MUTATIONS_SUBSITUTION_SYMBOLS
+)
 
 INSERT = "insert"
 DELETE = "delete"
@@ -77,6 +83,11 @@ class MutationParser(ExtendedParserVcf):
         + MUTATIONS_EARSED_SYMBOLS
         + MUTATIONS_SUBSITUTION_SYMBOLS
     )
+
+    mutations_map: dict = {
+        operation: generate_dict_values(symbols)
+        for operation, symbols in MUTATION_TYPES
+    }
 
     @classmethod
     def inverse_mutations_map(cls):

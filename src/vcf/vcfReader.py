@@ -131,11 +131,12 @@ class FastaReader(object):
         fasta_path : str
             Path of the fasta file
         """
-        logging.info("Unzip fasta gz file")
-        self.fasta_file = gzip.open(fasta_path, "r")
+        if not os.path.isfile(self.fasta_filename):
+            logging.info("Unzip fasta gz file")
+            self.fasta_file = gzip.open(fasta_path, "r")
 
-        with open(self.fasta_filename, "wb") as f_out:
-            shutil.copyfileobj(self.fasta_file, f_out)
+            with open(self.fasta_filename, "wb") as f_out:
+                shutil.copyfileobj(self.fasta_file, f_out)
 
         self.fasta_file = open(self.fasta_filename, "r")
 
@@ -280,6 +281,7 @@ class FastaReader(object):
 
         self.set_fasta_line_length()
 
+        """ TODO: Add compatibility with windows using "type file | findstr /R /C:">" """
         command = (
             f"cat {self.fasta_filename} | grep -n '>' > {self.fasta_index_filename}"
         )

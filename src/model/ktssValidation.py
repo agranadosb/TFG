@@ -47,12 +47,20 @@ class KTSSValidator(AbstractValidationArguments):
             "function_argumemnt": {"aoval": "add_original_validator"},
             "action": "store_true",
         },
+        {
+            "key": "amval",
+            "name": "add-mutation-validator",
+            "help": "If true returns the mutation, if not returns the reference sequence",
+            "function_argumemnt": {"amval": "add_mutation_validator"},
+            "action": "store_true",
+        },
     ]
 
     generate_distances_arguments: dict = {
         "sep": "separator",
         "min": "minimum",
         "aoval": "add_original",
+        "amval": "add_mutation",
     }
 
     def __init__(
@@ -283,6 +291,8 @@ class KTSSValidator(AbstractValidationArguments):
         suffix_length: int = 5,
         minimum: bool = False,
         add_original: bool = True,
+        add_mutation: bool = False,
+        original_separator: str = "|",
     ) -> SortedDict:
         """Generates all the distances of an infix of a given list of sequences of all
         the possible infixes
@@ -301,6 +311,11 @@ class KTSSValidator(AbstractValidationArguments):
             If true only returns the minimum value and infix of the all the distances
         add_original:
             If true returns the original sequence, if not returns the anotated sequence
+        add_mutation:
+            If true returns the mutation, if not returns the reference sequence
+        original_separator: str
+            Symbol that divides an original sequence between the sequence and the
+            reference sequence
 
         Returns
         -------
@@ -312,7 +327,7 @@ class KTSSValidator(AbstractValidationArguments):
         result = SortedDict()
         logger.info("Generating validation data")
         for sequence_raw in tqdm(sequences, file=tqdm_out):
-            sequence_with_original = sequence_raw.split("|")
+            sequence_with_original = sequence_raw.split(original_separator)
             sequence = sequence_with_original[0]
             sequence_ref = sequence_with_original[1]
 
@@ -348,7 +363,7 @@ class KTSSValidator(AbstractValidationArguments):
                 distance = self.string_distances(infix, infix_string)
 
                 infix_key = infix_string
-                if add_original:
+                if not add_mutation:
                     infix_key = "".join(
                         [self.inverse_mutations_map[char] for char in infix_string]
                     )

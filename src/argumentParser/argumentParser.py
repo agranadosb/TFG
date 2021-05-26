@@ -123,6 +123,16 @@ class ArgumentParser(object):
                 "function_argumemnt": {"fasta_path": "fasta"},
             }
         )
+        self.add_argument(
+            {
+                "key": "steps",
+                "name": "steps",
+                "help": "Rounds to execute the validator",
+                "default": 10,
+                "type": int,
+                "function_argumemnt": {"steps": "steps"},
+            }
+        )
 
     def add_argument(self, options: dict):
         """Adds an argument to the argument parser
