@@ -1,7 +1,5 @@
 .DEFAULT_GOAL := ktss-extended
 
-INIT = python3 init.py
-
 # FASTA and VCF options
 # --------------------------------------------------------------------------------------
 SAVE = /opt/UPV/TFG/src/example/
@@ -11,26 +9,32 @@ FASTA = -fasta $(SAVE)hg19.fa.gz
 # Sequences options
 # --------------------------------------------------------------------------------------
 LENGTH = 20
-LENGTH_SEQUENCE = -p_p $(LENGTH) -p_s $(LENGTH)
-
-# KTSS Model options
-# --------------------------------------------------------------------------------------
-KTSS_EXTENDED = -o pm -p e -m ktss
-K = 3
-KTSS_PARAMETERS = -k $(K)
+SEQUENCE_OPTIONS = -p_p $(LENGTH) -p_s $(LENGTH)
 
 # PARSER options
 # --------------------------------------------------------------------------------------
-PARSER = -ao -amto
+PARSER_TYPE = m
+PARSER_OPTIONS = -p $(PARSER_TYPE) -ao -amto
+
+# Model options
+# --------------------------------------------------------------------------------------
+K = 3
+MODEL = ktss
+KTSS_OPTIONS = -m $(MODEL) -k $(K)
 
 # VALIDATOR options
 # --------------------------------------------------------------------------------------
-ORIGNAL_VALDIATOR = -aoval
-VALIDATOR = $(ORIGNAL_VALDIATOR) -min
+ADD_MUTATION_VALIDATOR = -amval
+ADD_ORIGNAL_VALIDATOR = -aoval
+VALIDATOR_OPTIONS = $(ADD_ORIGNAL_VALIDATOR) -min $(ADD_MUTATION_VALIDATOR)
 
 # General model options
 # --------------------------------------------------------------------------------------
 RATIO = 0.90
+STEPS = 1
+INIT = python3 init.py
+
+GENERAL_OPTIONS = $(INIT) -r $(RATIO) -steps $(STEPS) $(VCF) $(FASTA) -s $(SAVE) -o pm
 
 build-docs:
 	pdoc --html --config show_source_code=False src --force
@@ -41,4 +45,4 @@ black:
 parser-extended:
 	$(INIT) -p e $(VCF) $(FASTA) -s $(SAVE)
 ktss-extended:
-	$(INIT) $(KTSS_EXTENDED) $(VCF) $(FASTA) -s $(SAVE) $(LENGTH_SEQUENCE) -r $(RATIO) $(KTSS_PARAMETERS) $(PARSER) $(VALIDATOR)
+	$(GENERAL_OPTIONS) $(SEQUENCE_OPTIONS) $(PARSER_OPTIONS) $(KTSS_OPTIONS) $(VALIDATOR_OPTIONS)

@@ -131,11 +131,12 @@ class FastaReader(object):
         fasta_path : str
             Path of the fasta file
         """
-        logging.info("Unzip fasta gz file")
-        self.fasta_file = gzip.open(fasta_path, "r")
+        if not os.path.isfile(self.fasta_filename):
+            logging.info("Unzip fasta gz file")
+            self.fasta_file = gzip.open(fasta_path, "r")
 
-        with open(self.fasta_filename, "wb") as f_out:
-            shutil.copyfileobj(self.fasta_file, f_out)
+            with open(self.fasta_filename, "wb") as f_out:
+                shutil.copyfileobj(self.fasta_file, f_out)
 
         self.fasta_file = open(self.fasta_filename, "r")
 
@@ -164,8 +165,19 @@ class FastaReader(object):
         number_new_line_char = (line_start - chromosome_position) * (
             self.line_length + 1
         )
+        """ La última linea no tiene porque estar completa """
+        index = number_new_line_char + previous_chromosmes_labels_length
 
-        return number_new_line_char + previous_chromosmes_labels_length
+        # If the last line is not complete the index will be greater that it could be,
+        # it's necessary to step back to get the real start
+        self.fasta_file.seek(index, 0)
+        char = self.fasta_file.read(1)
+        while char != ">":
+            index -= 1
+            self.fasta_file.seek(index, 0)
+            char = self.fasta_file.read(1)
+
+        return index
 
     def set_chromosme_start_data(self, chromosme: str):
         """Set the data about the start of a chromosme on a fasta file
@@ -269,6 +281,7 @@ class FastaReader(object):
 
         self.set_fasta_line_length()
 
+        """ TODO: Add compatibility with windows using "type file | findstr /R /C:">" """
         command = (
             f"cat {self.fasta_filename} | grep -n '>' > {self.fasta_index_filename}"
         )

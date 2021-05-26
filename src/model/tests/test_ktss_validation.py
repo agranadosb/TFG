@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from sortedcontainers import SortedDict, SortedSet
 from src.model.ktssValidation import KTSSValidator
-from src.model.tests.factories import ParserFactory
+from src.model.tests.factories import InvalidParserFactory, ParserFactory
 
 
 class TestKTSSValidator(TestCase):
@@ -220,7 +220,7 @@ class TestKTSSValidator(TestCase):
         self.ktss_validator.prefix_map = {"c": "c"}
         self.ktss_validator.mutations_map = {"a": "a", "c": "c"}
         self.ktss_validator.suffix_map = {"c": "c"}
-        sequences = [("caaac"), ("ccacc")]
+        sequences = [("caaac|a"), ("ccacc|a")]
         distances = SortedDict({"caaac": False, "ccacc": False})
         prefix_length = 1
         suffix_length = 1
@@ -261,15 +261,16 @@ class TestKTSSValidator(TestCase):
         self.ktss_validator.mutations_map = {"a": "a", "c": "c", "b": "b"}
         self.ktss_validator.inverse_mutations_map = {"a": "a", "c": "c", "b": "b"}
         self.ktss_validator.suffix_map = {"a": "a", "c": "c", "b": "b"}
+        self.ktss_validator.parser = ParserFactory
         sequences = [
-            "caaac",
-            "ccacc",
-            "cabac",
-            "cbbac",
-            "ccaac",
-            "cbabc",
-            "ccccc",
-            "caccc",
+            "caaac|a",
+            "ccacc|a",
+            "cabac|a",
+            "cbbac|a",
+            "ccaac|a",
+            "cbabc|a",
+            "ccccc|a",
+            "caccc|a",
         ]
         prefix_length = 1
         suffix_length = 1
@@ -364,24 +365,6 @@ class TestKTSSValidator(TestCase):
 
         self.assertEqual(result, distances)
 
-    def test_transform_sequence(self):
-        sequence = "ababababab"
-        mapping = {"a": "b", "b": "a"}
-        sequence_mapped = "bababababa"
-
-        result = KTSSValidator.transform_sequence(sequence, mapping)
-
-        self.assertEqual(result, sequence_mapped)
-
-    def test_transform_sequence_without_original(self):
-        sequence = "ababababab"
-        mapping = {"a": "b", "b": "a"}
-        sequence_mapped = "ababababab"
-
-        result = KTSSValidator.transform_sequence(sequence, mapping, add_original=False)
-
-        self.assertEqual(result, sequence_mapped)
-
     def test_set_mappings_valid(self):
         parser = ParserFactory()
 
@@ -395,15 +378,11 @@ class TestKTSSValidator(TestCase):
         self.assertTrue(is_valid)
 
     def test_set_mappings_invalid(self):
-        parser = ParserFactory()
-        delattr(ParserFactory, "prefix_map")
-
         is_invalid = False
         try:
-            self.ktss_validator.set_mappings(parser)
+            self.ktss_validator.set_mappings(InvalidParserFactory)
         except NotImplementedError:
             is_invalid = True
-            setattr(ParserFactory, "prefix_map", {})
 
         self.assertTrue(is_invalid)
 

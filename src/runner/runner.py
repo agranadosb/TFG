@@ -9,19 +9,24 @@ from src.argumentParser.argumentParser import ArgumentParser
 from src.constants.constants import (
     EXTENDED_PARSER_CODE,
     KTSS_MODEL,
+    MUTATION_PARSER_CODE,
     PARSER_MODEL_OPERATION,
     PARSER_OPERATION,
 )
 from src.model.ktssModel import KTSSModel
 from src.model.ktssValidation import KTSSValidator
 from src.parser.extendedParser import ExtendedParserVcf
+from src.parser.mutationParser import MutationParser
 from src.parser.parserVcf import ParserVcf
 from src.utils.folders import parse_route
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
-parsers = {EXTENDED_PARSER_CODE: ExtendedParserVcf}
+parsers = {
+    EXTENDED_PARSER_CODE: ExtendedParserVcf,
+    MUTATION_PARSER_CODE: MutationParser,
+}
 
 models = {KTSS_MODEL: KTSSModel}
 
@@ -34,11 +39,12 @@ for i in KTSSModel.arguments + ParserVcf.arguments + KTSSValidator.arguments:
 
 
 class Runner(object):
-    def start(self):
-        Runner.run(**parser.get_function_arguments())
+    @staticmethod
+    def run():
+        Runner.start(**parser.get_function_arguments())
 
     @staticmethod
-    def run(
+    def start(
         vcf_path,
         fasta_path,
         model_type=KTSS_MODEL,
@@ -61,10 +67,10 @@ class Runner(object):
         result_folder = parse_route(result_folder)
 
         if PARSER_MODEL_OPERATION == operation:
-            model = models[model_type](save_path=result_folder)
-
             # Get and parse the data from a file
-            parser = model.parser or parsers[parser]
+            parser = parsers[parser]
+
+            model = models[model_type](save_path=result_folder, parser=parser)
             parser_engine = parser(vcf_path, fasta_path)
             parser_engine.generate_sequences(
                 result_folder,
@@ -111,7 +117,7 @@ class Runner(object):
                 model.saver()
 
                 # Test the model
-                validator = validators[model_type](model.model, parser=model.parser)
+                validator = validators[model_type](model.model, parser=parser)
 
                 distances = validator.generate_distances(
                     test_samples,

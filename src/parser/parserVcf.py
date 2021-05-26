@@ -5,7 +5,9 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 from src.argumentParser.abstractArguments import AbstractParserArguments
+from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.vcf.vcfReader import FastaReader
+from tqdm import tqdm
 from vcf import Reader as VcfReader
 
 
@@ -155,7 +157,11 @@ class ParserVcf(AbstractParserArguments, ABC):
         pass
 
     def original_sequence_to_string(
-        self, prefix: str, sequence: list, mutation: str = None
+        self,
+        prefix: str,
+        sequence: list,
+        mutation: str = None,
+        original_separator: str = "|",
     ) -> str:
         """Generates a string of a sequence by append the prefix, infix and suffix and
         append at the starts a given prefix. If is needed to as the mutation, it can be
@@ -169,14 +175,19 @@ class ParserVcf(AbstractParserArguments, ABC):
             Sequence
         mutation: str
             Mutation of the sequence
+        original_separator: str
+            Symbol that divides an original sequence between the sequence and the
+            reference sequence
 
         Returns
         -------
         The sequence in a string shape with a given prefix
         """
+        original_separator = "|"
         if mutation:
+            original_separator += sequence[1]
             sequence[1] = mutation
-        return f'{prefix}{"".join(sequence)}\n'
+        return f'{prefix}{"".join(sequence)}{original_separator}\n'
 
     @property
     def default_filename(self) -> str:
@@ -240,13 +251,17 @@ class ParserVcf(AbstractParserArguments, ABC):
         add_original : bool = False
             If true adds the original sequence into the file
         """
+        logger = logging.getLogger()
+        tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
+
         if not filename:
             filename = self.default_filename
 
+        logging.info(f"Parsing sequences using {self.name}")
         with open(f"{path}/{filename}", "w") as parsed_data_file:
-            for i in self.get_vcf():
+            for i in tqdm(self.get_vcf(), file=tqdm_out):
                 sequence = self.vcf_reader.get_sequence(
-                    i.CHROM, i.REF, i.POS, prefix_length, suffix_length
+                    i.CHROM, i.REF, i.POS - 1, prefix_length, suffix_length
                 )
 
                 prefix = ""
@@ -259,7 +274,7 @@ class ParserVcf(AbstractParserArguments, ABC):
                     if add_mutation_to_original:
                         mutation = i.ALT[0].sequence
                     original_sequence = self.original_sequence_to_string(
-                        prefix, sequence, mutation=mutation
+                        prefix, sequence.copy(), mutation=mutation
                     )
 
                 parsed_data_file.write(
@@ -267,3 +282,4 @@ class ParserVcf(AbstractParserArguments, ABC):
                         original_sequence, prefix, sequence, i.ALT[0].sequence
                     )
                 )
+        logging.info("Parsing finalized\n")
