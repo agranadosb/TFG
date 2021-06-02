@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import pathlib
-from logging import setLogRecordFactory
 from unittest import TestCase
 
 from src.vcf.vcfReader import FastaReader
