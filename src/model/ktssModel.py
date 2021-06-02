@@ -45,11 +45,14 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
             "action": "store_true",
         },
     ]
+    """ Arguments that will be used by command line """
 
     trainer_arguments: dict = {
         "k_value": "k",
         "not_allowed_segements": "get_not_allowed_segements",
     }
+    """ Mapping between command line arguments and function arguments of the
+    **trainer** method """
 
     def __init__(self, save_path=False, restore_path=False, parser=ExtendedParserVcf):
         super().__init__(save_path=save_path, restore_path=restore_path)
