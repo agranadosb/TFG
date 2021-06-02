@@ -70,11 +70,20 @@ class FastaReader(object):
     """
 
     vcf_file: VcfReader = None
+    """ VCF file """
+
     fasta_data: str = {}
+    """ A dictionary that contains all chromosomes data of the FASTA file, Each key is
+    the identifier of each chromosome """
+
     chromosmes: list = []
+    """ List of the identifiers of all the chromosomes of the FASTA file """
+
     fasta_filename: str = None
-    fasta_index_filename: str = None
+    """ Name of the fasta file """
+
     line_length: int = 50
+    """ Length of the lines that contains a sequence of the chromosome """
 
     def __init__(self, vcf_path: str, fasta_path: str):
         logging.info("Loading vcf file")
@@ -82,7 +91,6 @@ class FastaReader(object):
 
         logging.info("Loading fasta file")
         self.fasta_filename = fasta_path.replace(".gz", "")
-        self.fasta_index_filename = fasta_path.replace(".gz", ".index")
 
         logging.info("Loading fasta information")
         self.set_fasta_file(fasta_path)
@@ -275,17 +283,19 @@ class FastaReader(object):
         logger = logging.getLogger()
         tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
 
+
+        fasta_index_filename = f"{self.fasta_filename}.index"
         self.fasta_data = {}
         self.chromosmes = []
         self.set_fasta_line_length()
 
         """ TODO: Add compatibility with windows using "type file | findstr /R /C:">" """
         command = (
-            f"cat {self.fasta_filename} | grep -n '>' > {self.fasta_index_filename}"
+            f"cat {self.fasta_filename} | grep -n '>' > {fasta_index_filename}"
         )
         os.system(command)
         logging.info("Loading chromosomes")
-        with open(self.fasta_index_filename, "r") as fasta_index_file:
+        with open(fasta_index_filename, "r") as fasta_index_file:
             for i in tqdm(fasta_index_file, file=tqdm_out):
                 self.set_chromosme_start_data(i)
 
@@ -293,7 +303,7 @@ class FastaReader(object):
         for i in tqdm(range(len(self.chromosmes)), file=tqdm_out):
             self.set_chromosme_end_data(i)
 
-        os.remove(self.fasta_index_filename)
+        os.remove(fasta_index_filename)
 
         return self.fasta_data
 
