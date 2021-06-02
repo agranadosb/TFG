@@ -24,9 +24,6 @@ class FastaReader(object):
     - **line_start**: the line where the chromosome starts in fasta file
     - **index_start**: index where the chromosome starts in fasta file
     - **index_ends**: index where the chromosome ends in fasta file
-    - **next_label_length**: label length of the next chromosome (0 if the chromosome
-    is the last)
-    - **is_last**: shows if the chromosome is the last
     - **index**: chromosome index on the local list of chromosomes
     - **chromosme_length**: number of nucleotides that are in the chromosome
 
@@ -38,8 +35,6 @@ class FastaReader(object):
                 'line_start': ...,
                 'index_start': ...,
                 'index_ends': ...,
-                'next_label_length': ...,
-                'is_last': ...,
                 'index': ...,
                 'chromosme_length': ...,
             },
@@ -48,8 +43,6 @@ class FastaReader(object):
                 'line_start': ...,
                 'index_start': ...,
                 'index_ends': ...,
-                'next_label_length': ...,
-                'is_last': ...,
                 'index': ...,
                 'chromosme_length': ...,
             }
@@ -90,7 +83,6 @@ class FastaReader(object):
         logging.info("Loading fasta file")
         self.fasta_filename = fasta_path.replace(".gz", "")
         self.fasta_index_filename = fasta_path.replace(".gz", ".index")
-        self.line_length = 50
 
         logging.info("Loading fasta information")
         self.set_fasta_file(fasta_path)
@@ -229,9 +221,6 @@ class FastaReader(object):
         dictionary with the keys:
 
          - **index_ends**: index where the chromosome ends in fasta file
-         - **next_label_length**: label length of the next chromosome (0 if the chromosome
-           is the last)
-         - **is_last**: shows if the chromosome is the last
          - **index**: chromosome index on the local list of chromosomes
          - **chromosme_length**: number of nucleotides that are in the chromosome
 
@@ -246,26 +235,21 @@ class FastaReader(object):
         """
         chromosome = self.chromosmes[chromosme_local_index]
         chromosome_data = self.fasta_data[chromosome]
-        is_last_chromosme = chromosme_local_index == len(self.chromosmes) - 1
 
         label_length = self.fasta_data[chromosome]["label_length"]
         index_start = self.fasta_data[chromosome]["index_start"]
 
-        if not is_last_chromosme:
+        if not chromosme_local_index == len(self.chromosmes) - 1:
             next_chromosome = self.chromosmes[chromosme_local_index + 1]
             index_ends = self.fasta_data[next_chromosome]["index_start"]
-            next_label_length = len(f">{next_chromosome}\n")
         else:
             index_ends = os.stat(self.fasta_filename).st_size
-            next_label_length = 0
 
         number_of_chars = index_ends - (label_length + index_start)
         newlines_chars = math.ceil(number_of_chars / (self.line_length + 1))
         chromosme_length = number_of_chars - newlines_chars
 
         chromosome_data["index_ends"] = index_ends
-        chromosome_data["next_label_length"] = next_label_length
-        chromosome_data["is_last"] = is_last_chromosme
         chromosome_data["index"] = chromosme_local_index
         chromosome_data["chromosme_length"] = chromosme_length
 
@@ -281,9 +265,6 @@ class FastaReader(object):
         - **line_start**: the line where the chromosome starts in fasta file
         - **index_start**: index where the chromosome starts in fasta file
         - **index_ends**: index where the chromosome ends in fasta file
-        - **next_label_length**: label length of the next chromosome (0 if the chromosome
-        is the last)
-        - **is_last**: shows if the chromosome is the last
         - **index**: chromosome index on the local list of chromosomes
         - **chromosme_length**: number of nucleotides that are in the chromosome
 
