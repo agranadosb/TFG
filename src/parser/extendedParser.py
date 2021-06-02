@@ -157,7 +157,7 @@ class ExtendedParserVcf(ParserVcf):
     ) -> tuple:
         """Gets a string sequence and returns the sequence in a tuple type.
 
-        For example, if our sequence is **ACGT\*prefix\*q-w-e-r f-d-s-a z-x-c-v** the
+        For example, if our sequence is **ACGT*prefix*q-w-e-r f-d-s-a z-x-c-v** the
         method will return:
 
             ("qwer", "fdsa", "zxcv")
@@ -202,7 +202,7 @@ class ExtendedParserVcf(ParserVcf):
     ) -> str:
         """Gets a string sequence and returns the sequence in a tuple type.
 
-        For example, if our sequence is **ACGT\*prefix\*q-w-e-r f-d-s-a z-x-c-v** the
+        For example, if our sequence is **ACGT*prefix*q-w-e-r f-d-s-a z-x-c-v** the
         method will return:
 
             "qwerfdsazxcv"
