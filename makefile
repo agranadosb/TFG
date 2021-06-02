@@ -39,6 +39,8 @@ GENERAL_OPTIONS = $(INIT) -r $(RATIO) -steps $(STEPS) -o pm $(FILE_OPTIONS)
 
 build-docs:
 	pdoc --html --config show_source_code=False src --force
+build-docs-pdf:
+	pdoc --pdf --config show_source_code=False src --force
 test:
 	poetry run pytest
 black:

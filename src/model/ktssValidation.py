@@ -55,6 +55,7 @@ class KTSSValidator(AbstractValidationArguments):
             "action": "store_true",
         },
     ]
+    """ Arguments that will be used by command line """
 
     generate_distances_arguments: dict = {
         "sep": "separator",
@@ -62,6 +63,8 @@ class KTSSValidator(AbstractValidationArguments):
         "aoval": "add_original",
         "amval": "add_mutation",
     }
+    """ Mapping between command line arguments and function arguments of the
+    **generate_distances** method """
 
     def __init__(
         self, model: Union[SortedDict, dict], parser: ParserVcf = ExtendedParserVcf
@@ -297,7 +300,7 @@ class KTSSValidator(AbstractValidationArguments):
         """Generates all the distances of an infix of a given list of sequences of all
         the possible infixes
 
-        Paameters
+        Parameters
         ---------
         sequences: list
             List of sequences

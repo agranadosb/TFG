@@ -34,10 +34,17 @@ class AbstractModel(ABC):
      - **model**: Attribute which returns the model after training
      - **saver**: Method that save the model in a file
      - **loader**: Method that loads the model from a file
+
+    Parameters
+    ----------
+    save_path: str
+        The path where the results will be stored
+    restore_path: str
+        Path from where the results will be retrieved
     """
 
     @abstractmethod
-    def __init__(self, save_path: str = None, restore_path: str = None):
+    def __init__(self, save_path: str, restore_path: str):
         self.save_path = parse_route(save_path)
         self.restore_path = parse_route(restore_path)
 

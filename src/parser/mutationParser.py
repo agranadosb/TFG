@@ -83,14 +83,24 @@ class MutationParser(ExtendedParserVcf):
         + MUTATIONS_EARSED_SYMBOLS
         + MUTATIONS_SUBSITUTION_SYMBOLS
     )
+    """ List of mutation symbols """
 
     mutations_map: dict = {
         operation: generate_dict_values(symbols)
         for operation, symbols in MUTATION_TYPES
     }
+    """ Mapping between nucleotides and the mutation symbols divided in each operation:
+
+        {
+            operation_1: {...} # mapping
+            operation_2: {...} # mapping
+            ...
+        }
+    """
 
     @classmethod
     def inverse_mutations_map(cls):
+        """ Inverse of mutations_map """
         res = {}
         for operation in cls.mutations_map:
             for symbol in cls.mutations_map[operation]:
@@ -100,6 +110,10 @@ class MutationParser(ExtendedParserVcf):
     @classmethod
     def method(cls, sequence: Union[tuple, list], mutation: str) -> tuple:
         """Generates the mutation type sequence from a sequence:
+
+            sequence:               (ACGT,ACGT,ACGT)
+            mutation:               GTTCAC
+            mutation type sequence: ([q,w,e,r],[u,a,d,t,f],[z,x,c,v])
 
         Parameters
         ----------
