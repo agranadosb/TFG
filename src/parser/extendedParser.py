@@ -89,10 +89,10 @@ class ExtendedParserVcf(ParserVcf):
 
     def sequence_to_string(
         self,
-        original_sequence: str,
-        prefix: str,
         sequence: Union[tuple, list],
         mutation: str,
+        original_sequence: str,
+        prefix: str,
         separator_symbols: str = "-",
         separator_sequences: str = " ",
         prefix_separator: str = "*",

@@ -27,7 +27,7 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
     def test_default_filename(self):
         filename = "parsed_extended_data.pvcf"
 
-        result = self.parser.default_filename
+        result = self.parser._default_filename
 
         self.assertEqual(result, filename)
 
@@ -85,7 +85,10 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
         parsed_sequence = f"{original_sequence}*{prefix}*q-w-e-r f-d-s-a z-x-c-v\n"
 
         result = self.parser.sequence_to_string(
-            original_sequence, prefix, sequence, mutation
+            sequence,
+            mutation,
+            original_sequence,
+            prefix,
         )
 
         self.assertEqual(result, parsed_sequence)
