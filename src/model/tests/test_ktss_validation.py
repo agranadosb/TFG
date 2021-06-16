@@ -33,19 +33,19 @@ class TestKTSSValidator(TestCase):
 
         return super().setUp()
 
-    def test_get_next_state(self):
+    def test__get_next_state(self):
         prefix = "aa"
         state = "aa"
 
-        result = self.ktss_validator.get_next_state(prefix)
+        result = self.ktss_validator._get_next_state(prefix)
 
         self.assertEqual(result, state)
 
-    def test_get_next_state_from_empty_string(self):
+    def test__get_next_state_from_empty_string(self):
         prefix = ""
         state = ""
 
-        result = self.ktss_validator.get_next_state(prefix)
+        result = self.ktss_validator._get_next_state(prefix)
 
         self.assertEqual(result, state)
 
@@ -136,7 +136,7 @@ class TestKTSSValidator(TestCase):
         self.ktss_validator.infix_symbols = ["a"]
         sequences = SortedSet(["a-a-b"])
 
-        result = self.ktss_validator.generate_infixes(prefix, suffix)
+        result = self.ktss_validator._generate_infixes(prefix, suffix)
 
         self.assertEqual(result, sequences)
 
@@ -146,7 +146,7 @@ class TestKTSSValidator(TestCase):
         self.ktss_validator.infix_symbols = ["a"]
         sequences = SortedSet(["-a-b", "-aa-b"])
 
-        result = self.ktss_validator.generate_infixes(prefix, suffix)
+        result = self.ktss_validator._generate_infixes(prefix, suffix)
 
         self.assertEqual(result, sequences)
 
@@ -156,7 +156,7 @@ class TestKTSSValidator(TestCase):
         self.ktss_validator.infix_symbols = ["a"]
         sequences = SortedSet(["-a-bb"])
 
-        result = self.ktss_validator.generate_infixes(prefix, suffix)
+        result = self.ktss_validator._generate_infixes(prefix, suffix)
 
         self.assertEqual(result, sequences)
 
@@ -166,7 +166,7 @@ class TestKTSSValidator(TestCase):
         self.ktss_validator.infix_symbols = ["a"]
         sequences = SortedSet(["a-a-", "a-aa-"])
 
-        result = self.ktss_validator.generate_infixes(prefix, suffix)
+        result = self.ktss_validator._generate_infixes(prefix, suffix)
 
         self.assertEqual(result, sequences)
 
@@ -211,7 +211,7 @@ class TestKTSSValidator(TestCase):
             ]
         )
 
-        result = self.ktss_validator.generate_infixes(prefix, suffix)
+        result = self.ktss_validator._generate_infixes(prefix, suffix)
 
         self.assertEqual(result, sequences)
 
@@ -221,7 +221,12 @@ class TestKTSSValidator(TestCase):
         self.ktss_validator.mutations_map = {"a": "a", "c": "c"}
         self.ktss_validator.suffix_map = {"c": "c"}
         sequences = [("caaac|a"), ("ccacc|a")]
-        distances = SortedDict({"caaac": False, "ccacc": False})
+        distances = SortedDict(
+            {
+                "caaac": SortedDict({"false-aaa": 0.5}),
+                "ccacc": SortedDict({"false-sas": 0.5}),
+            }
+        )
         prefix_length = 1
         suffix_length = 1
 
@@ -276,86 +281,102 @@ class TestKTSSValidator(TestCase):
         suffix_length = 1
         distances = SortedDict(
             {
-                "caaac": {
-                    "aaa": 0,
-                    "aab": 1,
-                    "aba": 1,
-                    "abb": 2,
-                    "baa": 1,
-                    "bab": 2,
-                    "bba": 2,
-                    "bbb": 3,
-                },
-                "ccacc": {
-                    "aaa": 2,
-                    "aab": 2,
-                    "aba": 3,
-                    "abb": 3,
-                    "baa": 2,
-                    "bab": 2,
-                    "bba": 3,
-                    "bbb": 3,
-                },
-                "cabac": {
-                    "aaa": 1,
-                    "aab": 2,
-                    "aba": 0,
-                    "abb": 1,
-                    "baa": 2,
-                    "bab": 2,
-                    "bba": 1,
-                    "bbb": 2,
-                },
-                "cbbac": {
-                    "aaa": 2,
-                    "aab": 3,
-                    "aba": 1,
-                    "abb": 2,
-                    "baa": 1,
-                    "bab": 2,
-                    "bba": 0,
-                    "bbb": 1,
-                },
-                "ccaac": {
-                    "aaa": 1,
-                    "aab": 2,
-                    "aba": 2,
-                    "abb": 3,
-                    "baa": 1,
-                    "bab": 2,
-                    "bba": 2,
-                    "bbb": 3,
-                },
-                "cbabc": {
-                    "aaa": 2,
-                    "aab": 1,
-                    "aba": 2,
-                    "abb": 2,
-                    "baa": 1,
-                    "bab": 0,
-                    "bba": 2,
-                    "bbb": 1,
-                },
-                "ccccc": {
-                    "aaa": 3,
-                    "aab": 3,
-                    "aba": 3,
-                    "abb": 3,
-                    "baa": 3,
-                    "bab": 3,
-                    "bba": 3,
-                    "bbb": 3,
-                },
-                "caccc": {
-                    "aaa": 2,
-                    "aab": 2,
-                    "aba": 2,
-                    "abb": 2,
-                    "baa": 3,
-                    "bab": 3,
-                    "bba": 3,
-                    "bbb": 3,
-                },
+                "caaac": SortedDict(
+                    {
+                        "aaa": 0.0,
+                        "aab": 0.007936507936507936,
+                        "aba": 0.007936507936507936,
+                        "abb": 0.015873015873015872,
+                        "baa": 0.007936507936507936,
+                        "bab": 0.015873015873015872,
+                        "bba": 0.015873015873015872,
+                        "bbb": 0.023809523809523808,
+                    }
+                ),
+                "cabac": SortedDict(
+                    {
+                        "aaa": 0.007936507936507936,
+                        "aab": 0.015873015873015872,
+                        "aba": 0.0,
+                        "abb": 0.007936507936507936,
+                        "baa": 0.015873015873015872,
+                        "bab": 0.015873015873015872,
+                        "bba": 0.007936507936507936,
+                        "bbb": 0.015873015873015872,
+                    }
+                ),
+                "caccc": SortedDict(
+                    {
+                        "aaa": 0.015873015873015872,
+                        "aab": 0.015873015873015872,
+                        "aba": 0.015873015873015872,
+                        "abb": 0.015873015873015872,
+                        "baa": 0.023809523809523808,
+                        "bab": 0.023809523809523808,
+                        "bba": 0.023809523809523808,
+                        "bbb": 0.023809523809523808,
+                    }
+                ),
+                "cbabc": SortedDict(
+                    {
+                        "aaa": 0.015873015873015872,
+                        "aab": 0.007936507936507936,
+                        "aba": 0.015873015873015872,
+                        "abb": 0.015873015873015872,
+                        "baa": 0.007936507936507936,
+                        "bab": 0.0,
+                        "bba": 0.015873015873015872,
+                        "bbb": 0.007936507936507936,
+                    }
+                ),
+                "cbbac": SortedDict(
+                    {
+                        "aaa": 0.015873015873015872,
+                        "aab": 0.023809523809523808,
+                        "aba": 0.007936507936507936,
+                        "abb": 0.015873015873015872,
+                        "baa": 0.007936507936507936,
+                        "bab": 0.015873015873015872,
+                        "bba": 0.0,
+                        "bbb": 0.007936507936507936,
+                    }
+                ),
+                "ccaac": SortedDict(
+                    {
+                        "aaa": 0.007936507936507936,
+                        "aab": 0.015873015873015872,
+                        "aba": 0.015873015873015872,
+                        "abb": 0.023809523809523808,
+                        "baa": 0.007936507936507936,
+                        "bab": 0.015873015873015872,
+                        "bba": 0.015873015873015872,
+                        "bbb": 0.023809523809523808,
+                    }
+                ),
+                "ccacc": SortedDict(
+                    {
+                        "aaa": 0.015873015873015872,
+                        "aab": 0.015873015873015872,
+                        "aba": 0.023809523809523808,
+                        "abb": 0.023809523809523808,
+                        "baa": 0.015873015873015872,
+                        "bab": 0.015873015873015872,
+                        "bba": 0.023809523809523808,
+                        "bbb": 0.023809523809523808,
+                    }
+                ),
+                "ccccc": SortedDict(
+                    {
+                        "aaa": 0.023809523809523808,
+                        "aab": 0.023809523809523808,
+                        "aba": 0.023809523809523808,
+                        "abb": 0.023809523809523808,
+                        "baa": 0.023809523809523808,
+                        "bab": 0.023809523809523808,
+                        "bba": 0.023809523809523808,
+                        "bbb": 0.023809523809523808,
+                    }
+                ),
             }
         )
 
@@ -365,31 +386,31 @@ class TestKTSSValidator(TestCase):
 
         self.assertEqual(result, distances)
 
-    def test_set_mappings_valid(self):
+    def test__set_mappings_valid(self):
         parser = ParserFactory()
 
         is_valid = False
         try:
-            self.ktss_validator.set_mappings(parser)
+            self.ktss_validator._set_mappings(parser)
             is_valid = True
         except NotImplementedError:
             pass
 
         self.assertTrue(is_valid)
 
-    def test_set_mappings_invalid(self):
+    def test__set_mappings_invalid(self):
         is_invalid = False
         try:
-            self.ktss_validator.set_mappings(InvalidParserFactory)
+            self.ktss_validator._set_mappings(InvalidParserFactory)
         except NotImplementedError:
             is_invalid = True
 
         self.assertTrue(is_invalid)
 
-    def test_get_minimum_distances(self):
+    def test__get_minimum_distances(self):
         distances = {"a": {"a": 1, "b": 0, "c": 2}, "b": {}, "c": False}
         minimum_distances = {"a": {"b": 0}, "b": -1, "c": -1}
 
-        result = KTSSValidator.get_minimum_distances(distances)
+        result = KTSSValidator._get_minimum_distances(distances)
 
         self.assertEqual(result, minimum_distances)
