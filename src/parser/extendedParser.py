@@ -39,7 +39,7 @@ class ExtendedParserVcf(ParserVcf):
 
     - ("qwer", "asdf", "zxcv")
 
-    The transformed sequence is named **extended** sequence.
+    The transformed sequence is named the **extended** sequence.
 
     Parameters
     ----------
@@ -82,7 +82,11 @@ class ExtendedParserVcf(ParserVcf):
         the method changes it to:
 
         ```python
-            (["q","w","e","r"],["a","s","d","f"],["z","x","c","v"])
+            (
+                ["q", "w", "e", "r"],
+                ["a", "s", "d", "f"],
+                ["z", "x", "c", "v"]
+            )
         ```
 
         Parameters
@@ -94,7 +98,7 @@ class ExtendedParserVcf(ParserVcf):
 
         Returns
         -------
-        Sequence simplified.
+        Transformed sequence.
         """
 
         left = [cls.prefix_map[nucletid.upper()] for nucletid in sequence[0]]

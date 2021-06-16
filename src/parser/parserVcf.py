@@ -193,7 +193,7 @@ class ParserVcf(AbstractParserArguments, ABC):
 
         Returns
         -------
-        The parsed sequence
+        Transformed sequence.
         """
         pass
 

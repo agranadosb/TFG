@@ -64,6 +64,63 @@ it to:
 - ("qwer", "asdf", "zxcv")
 
 The transformed sequence is named **extended** sequence.
+
+**MutationParser** *extends ExtendedParser*
+-------------------------------------------
+
+Parses data from the files VCF and FASTA and prepares that data for a machine
+learning model in a file.
+
+The **mutation parser** is similar to the **extended parser**, the difference is the
+symbols present in the infix (or mutation) of the transformed sequence. In the
+mutation parser case, each type of modification between the reference and the
+mutation has a different symbol.
+
+This means that we can get three types of mutations:
+
+- **Insertion**
+- **Erase**
+- **Substitution**
+
+So, if we have "A", "C", "G" and "T" symbols for the infix, each symbol has three
+possible mutations:
+
+    A -> ["A_insertion", "A_earsed", "A_substitution"]
+    C -> ["C_insertion", "C_earsed", "C_substitution"]
+    G -> ["G_insertion", "G_earsed", "G_substitution"]
+    T -> ["T_insertion", "T_earsed", "T_substitution"]
+
+In this case, this method differentiates between prefix symbols and suffix symbols
+(as the extended parser), so the transformation of each symbol in each position is:
+
+- **Prefix**
+    - A -> q
+    - C -> w
+    - G -> e
+    - T -> r
+- **Infix**
+    - **Insertion**
+        - A -> t
+        - C -> y
+        - G -> u
+        - T -> i
+    - **Erase**
+        - A -> g
+        - C -> h
+        - G -> j
+        - T -> k
+    - **Substitution**
+        - A -> a
+        - C -> s
+        - G -> d
+        - T -> f
+- **Suffix**
+    - A -> z
+    - C -> x
+    - G -> c
+    - T -> v
+
+The transformed sequence is named the **mutation** sequence.
 """
 from . import extendedParser, parserVcf
 
