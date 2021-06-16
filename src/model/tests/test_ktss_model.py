@@ -8,11 +8,11 @@ class TestKTSSModel(TestCase):
         self.model = KTSSModel()
         return super().setUp()
 
-    def test_state_in_list(self):
+    def test__state_in_list(self):
         state = (0, 0, 0)
         lst = [(0, 0, 0), (1, 0, 0), (2, 0, 0), (3, 0, 0)]
 
-        result = self.model.state_in_list(state, lst)
+        result = self.model._state_in_list(state, lst)
 
         self.assertTrue(result)
 
@@ -20,20 +20,20 @@ class TestKTSSModel(TestCase):
         state = (0, 0, 0)
         lst = [(1, 0, 0), (2, 0, 0), (3, 0, 0)]
 
-        result = self.model.state_in_list(state, lst)
+        result = self.model._state_in_list(state, lst)
 
         self.assertFalse(result)
 
-    def test_generate_sigma_k_1(self):
+    def test__generate_sigma_k_1(self):
         alphabet = {"C", "G", "T", "A"}
         k = 1
         sigma = {"C", "G", "T", "A"}
 
-        result = self.model.generate_sigma(alphabet, k)
+        result = self.model._generate_sigma(alphabet, k)
 
         self.assertEqual(result, sigma)
 
-    def test_generate_sigma_k_2(self):
+    def test__generate_sigma_k_2(self):
         alphabet = {"C", "G", "T", "A"}
         k = 2
         sigma = {
@@ -59,74 +59,74 @@ class TestKTSSModel(TestCase):
             "AA",
         }
 
-        result = self.model.generate_sigma(alphabet, k)
+        result = self.model._generate_sigma(alphabet, k)
 
         self.assertEqual(result, sigma)
 
-    def test_get_prefix_k_1(self):
+    def test__get_prefix_k_1(self):
         string = "ABCDEFG"
         k = 1
         prefix = ""
 
-        result = self.model.get_prefix(string, k)
+        result = self.model._get_prefix(string, k)
 
         self.assertEqual(result, prefix)
 
-    def test_get_prefix_k_3(self):
+    def test__get_prefix_k_3(self):
         string = "ABCDEFG"
         k = 3
         prefix = "AB"
 
-        result = self.model.get_prefix(string, k)
+        result = self.model._get_prefix(string, k)
 
         self.assertEqual(result, prefix)
 
-    def test_get_prefix_k_greater_string(self):
+    def test__get_prefix_k_greater_string(self):
         string = "ABCDEFG"
         k = 10
         prefix = "ABCDEFG"
 
-        result = self.model.get_prefix(string, k)
+        result = self.model._get_prefix(string, k)
 
         self.assertEqual(result, prefix)
 
-    def test_get_suffix_k_1(self):
+    def test__get_suffix_k_1(self):
         string = "ABCDEFG"
         k = 1
         suffix = ""
 
-        result = self.model.get_suffix(string, k)
+        result = self.model._get_suffix(string, k)
 
         self.assertEqual(result, suffix)
 
-    def test_get_suffix_k_3(self):
+    def test__get_suffix_k_3(self):
         string = "ABCDEFG"
         k = 3
         suffix = "FG"
 
-        result = self.model.get_suffix(string, k)
+        result = self.model._get_suffix(string, k)
 
         self.assertEqual(result, suffix)
 
-    def test_get_suffix_k_greater_string(self):
+    def test__get_suffix_k_greater_string(self):
         string = "ABCDEFG"
         k = 10
         suffix = "ABCDEFG"
 
-        result = self.model.get_suffix(string, k)
+        result = self.model._get_suffix(string, k)
 
         self.assertEqual(result, suffix)
 
-    def test_get_infixes_k_1(self):
+    def test__get_infixes_k_1(self):
         string = "ABCDEFG"
         k = 1
         infixes = [i for i in "ABCDEFG"]
 
-        result = self.model.get_infixes(string, k)
+        result = self.model._get_infixes(string, k)
 
         self.assertEqual(result, infixes)
 
-    def test_get_infixes_k_3(self):
+    def test__get_infixes_k_3(self):
         string = "ABCDEFG"
         k = 3
         infixes = [
@@ -137,16 +137,16 @@ class TestKTSSModel(TestCase):
             "EFG",
         ]
 
-        result = self.model.get_infixes(string, k)
+        result = self.model._get_infixes(string, k)
 
         self.assertEqual(result, infixes)
 
-    def test_get_infixes_k_greater_string(self):
+    def test__get_infixes_k_greater_string(self):
         string = "ABCDEFG"
         k = 10
         infixes = ["ABCDEFG"]
 
-        result = self.model.get_infixes(string, k)
+        result = self.model._get_infixes(string, k)
 
         self.assertEqual(result, infixes)
 
@@ -202,23 +202,23 @@ class TestKTSSModel(TestCase):
         self.assertEqual(result["final_states"], final_states)
         self.assertEqual(result["not_allowed_segments"], not_allowed_segments)
 
-    def test_add_transition_empty_transitions(self):
+    def test__add_transition_empty_transitions(self):
         transitions = {}
         from_state = "a"
         symbol = "b"
         to_state = "c"
 
-        self.model.add_transition(transitions, from_state, symbol, to_state)
+        self.model._add_transition(transitions, from_state, symbol, to_state)
 
         self.assertEqual(transitions, {"a": {"b": "c"}})
 
-    def test_add_transition_not_empty_transitions(self):
+    def test__add_transition_not_empty_transitions(self):
         transitions = {"a": {"d": "e"}}
         from_state = "a"
         symbol = "b"
         to_state = "c"
 
-        self.model.add_transition(transitions, from_state, symbol, to_state)
+        self.model._add_transition(transitions, from_state, symbol, to_state)
 
         self.assertEqual(transitions, {"a": {"b": "c", "d": "e"}})
 

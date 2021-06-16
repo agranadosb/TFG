@@ -150,8 +150,8 @@ class Runner(object):
         )
         self.model.saver()
 
-    def _genreate_samples(self):
-        self.samples = self.model.get_samples(
+    def _generate_samples(self):
+        self.samples = self.model.get_model_samples(
             f"{self.result_folder}{self.parser_engine._default_filename}"
         )
         self.training_length = int(len(self.samples) / 2 * self.test_ratio) * 2
@@ -166,7 +166,7 @@ class Runner(object):
     def train_and_test_model(self):
         total_error = 0.0
         step_ratio = 1 / self.steps
-        self._genreate_samples()
+        self._generate_samples()
 
         for step in range(self.steps):
             logging.info("###########################################")
