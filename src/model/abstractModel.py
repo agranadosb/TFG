@@ -8,39 +8,38 @@ from src.utils.folders import parse_route
 
 
 class AbstractModel(ABC):
-    """
-    This class contains default functionallity to generate a model that will have
+    """This class contains default functionality to generate a model that will have
     functions to train and functions to get the generated model.
 
-    This class will need data to train the model. This data will be tipically a list of
-    pairs (sample, result) or a list of samples that will be used to train an specified
+    This class will need data to train the model. This data will be typically a list of
+    pairs (sample, result) or a list of samples that will be used to train a specified
     model.
 
-    The model will be a defined data structure, and will be created using a trainer.
+    The model will be a defined data structure and will be created using a trainer.
 
-    A trainer is a function that gets samples as input (tipically a list of pairs or a
+    A trainer is a function that gets samples as input (typically a list of pairs or a
     list of samples) and returns the trained model.
 
     The steps will be:
 
-        DATA -----> PARSER -----> TRAINER -----> MODEL -----> TESTER [-----> SAVER]
-        DATA -----> PARSER [-----> LOADER] -----> MODEL -----> TESTER -----> RESULT
+     - DATA -----> PARSER -----> TRAINER -----> MODEL -----> TESTER [-----> SAVER]
+     - DATA -----> PARSER [-----> LOADER] -----> MODEL -----> TESTER -----> RESULT
 
     So, to implement this class, will be necessary to define the next methods and
     attributes:
 
-     - **parser**: Attriubte which is the class of the parser used by the model
-     - **trainer**: Attriubte which returns the function to train the model
-     - **model**: Attribute which returns the model after training
-     - **saver**: Method that save the model in a file
-     - **loader**: Method that loads the model from a file
+     - **parser**: Attribute which is the class of the parser used by the model.
+     - **trainer**: Attribute which returns the function to train the model.
+     - **model**: Attribute which returns the model after training.
+     - **saver**: Method that saves the model in a file.
+     - **loader**: Method that loads the model from a file.
 
     Parameters
     ----------
     save_path: str
-        The path where the results will be stored
+        The path where the results will be stored.
     restore_path: str
-        Path from where the results will be retrieved
+        Path from where the results will be retrieved.
     """
 
     @abstractmethod
@@ -69,7 +68,7 @@ class AbstractModel(ABC):
     @property
     @abstractmethod
     def tester(self):
-        """Attribute which returns the model after training."""
+        """Attribute which is the class of the tester of the model."""
         pass
 
     @abstractmethod
@@ -89,31 +88,32 @@ class AbstractModel(ABC):
 
     @property
     def retrive_string_sequence(self) -> Callable:
-        """Gets a string sequence and returns the sequence in a string type.
+        """Gets a sequence in a string format and returns it in a different string
+        format.
 
         Parameters
         ----------
         sequence: str
-            Sequence in string format
+            Sequence in string format.
 
         Returns
         -------
-        The sequence in a string format
+        The sequence in a string format.
         """
         return self.parser.retrive_string_sequence
 
     @property
     def retrive_sequence(self) -> Callable:
-        """Gets a string sequence and returns the sequence in a tuple type.
+        """Gets a sequence in a string format and returns it in a tuple format.
 
         Parameters
         ----------
         sequence: str
-            Sequence in string format
+            Sequence in string format.
 
         Returns
         -------
-        Sequence in a list format
+        Sequence in a list format.
         """
         return self.parser.retrive_sequence
 
@@ -123,15 +123,15 @@ class AbstractModel(ABC):
         has_original: bool = False,
         get_original: bool = False,
     ) -> Union[list, tuple]:
-        """If the samples have been parsed with the flag write_original to True, this
-        method only takes the lines that are in position odd or even, depends if
-        get_orignal is set True or False.
+        """If the samples have been parsed with the flag `write_original` to True, this
+        method only takes the lines that are in position odd and even, depends if
+        `get_orignal` is set True or False.
 
+        This is because the parser creates a file (with the flag `write_original` to
+        True) which is an original sequence and parsed sequence per each pair of lines
+        in the file.
 
-        This is because the parser creates a file (with the flag write_original to True)
-        which is an original  sequence and parsed sequence per each pair of lines.
-
-        The file with the sequences will look like:
+        It means that the file with the sequences will look like this:
 
             Original_1
             Parsed_1
@@ -143,23 +143,25 @@ class AbstractModel(ABC):
 
         So the list will be:
 
-            [Original_1,Parsed_1,Original_2,Parsed_2,...,Original_N,Parsed_N]
+        ```python
+            ["Original_1", "Parsed_1", ..., "Original_N", "Parsed_N"]
+        ```
 
-        That's the reason for filter depending on the parity of the index of the sample
+        That's the reason for filter depending on the parity of the index of the sample.
 
         Parameters
         ----------
         samples: list, tuple
-            Samples to be filtered
+            Samples to be filtered.
         has_original: bool
-            Specifies if the file has the original sequence
+            Specifies if the file has the original sequence.
         get_original: bool
             Specifies if the seqeunce that is wanted to be filtered is the original or
-            not
+            not.
 
         Returns
         -------
-        List of the filtered samples
+        List of the filtered samples.
         """
         if has_original:
             index_allowed = 1
@@ -184,13 +186,13 @@ class AbstractModel(ABC):
         Parameters
         ----------
         samples: list, tuple
-            List of samples
+            List of samples.
         methods: function
-            Function to apply to the samples
+            Function to apply to the samples.
 
         Returns
         -------
-        The list with the samples with the method applied on them
+        The list with the samples with the method applied on them.
         """
         samples = cls.filter_samples(samples, has_original, get_original)
 
