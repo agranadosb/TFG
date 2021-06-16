@@ -12,22 +12,22 @@ from tqdm import tqdm
 
 
 class FastaReader(object):
-    """Gets vcf and fasta file and generates data about the fasta file and the
-    chromosomes that are in the fasta file.
+    """Gets a FASTA file and parse it, getting information about the chromosomes.
 
-    After parse the fasta file data, the class will have an attribute (fasta_data) with
-    information per chromosome in a dictionary data structure:
+    After parse the fasta file, the class will have an attribute (`fasta_data`) with
+    information per chromosome in a dictionary data structure type with this keys:
 
-    - **label_length**: length of the chromosome label
-    - **line_start**: the line where the chromosome starts in fasta file
-    - **index_start**: index where the chromosome starts in fasta file
-    - **index_ends**: index where the chromosome ends in fasta file
-    - **index**: chromosome index on the local list of chromosomes
-    - **chromosme_length**: number of nucleotides that are in the chromosome
+    - **label_length**: length of the chromosome label.
+    - **line_start**: the line where the chromosome starts in fasta file.
+    - **index_start**: index where the chromosome starts in fasta file.
+    - **index_ends**: index where the chromosome ends in fasta file.
+    - **index**: index of the chromosome on the local list of chromosomes.
+    - **chromosme_length**: number of nucleotides that are in the chromosome.
 
     For example, after analize a Fasta file with two chromosmes, the dictionary will be:
 
-        {
+    ```python
+        fasta_data = {
             'chr1': {
                 'label_length': ...,
                 'line_start': ...,
@@ -45,38 +45,37 @@ class FastaReader(object):
                 'chromosme_length': ...,
             }
         }
+    ```
 
     The class has an attribute (chromosmes) that contains the number and labels of all
-    the chrosmomes that are in the fasta file. Getting the previous example, this
+    the chrosmomes that are in the fasta file. Using the previous example, this
     attribute would be:
 
+    ```python
         chromosmes = ['chr1', 'chr2']
+    ```
 
-    This class allow to get sequences from the fasta file and from chrosomes using the
-    methods:
-         - get_sequence
-         - _get_prefix
-         - _get_nucleotides
-         - _get_suffix
+    This class allow to get sequences from the fasta file from chromosomes using
+    `get_sequence` method.
 
     Parameters
     ----------
     fasta_path : str
-        Path of the fasta file
+        Path of the fasta file.
     """
 
     fasta_data: str = {}
-    """ A dictionary that contains all chromosomes data of the FASTA file, Each key is
-    the identifier of each chromosome """
+    """The dictionary that contains all chromosomes data of the FASTA file, Each key is
+    the identifier of each chromosome."""
 
     chromosmes: list = []
-    """ List of the identifiers of all the chromosomes of the FASTA file """
+    """List of the identifiers of all the chromosomes of the FASTA file."""
 
     fasta_filename: str = None
-    """ Name of the fasta file """
+    """Name of the fasta file"""
 
-    line_length: int = 50
-    """ Length of the lines that contains a sequence of the chromosome """
+    _line_length: int = 50
+    """Length of the lines that contains nucleotides of the chromosome"""
 
     def __init__(self, fasta_path: str):
         logging.info("Loading fasta file")
@@ -87,36 +86,37 @@ class FastaReader(object):
         self._get_fasta_data()
 
     def get_fasta(self) -> IOBase:
-        """Returns fasta file
+        """Returns the fasta file.
 
         Returns
         -------
-        Fasta file
+        Fasta file.
         """
         return self.fasta_file
 
     def _set_fasta_line_length(self) -> int:
-        """Sets the line length of the fasta file
+        """Sets the line length of the fasta file.
 
         Returns
         -------
-        Fasta line length
+        Fasta line length.
         """
         self.fasta_file.seek(0, 0)
         for i in self.fasta_file:
             if not i.startswith(">"):
-                self.line_length = len(i) - 1
+                self._line_length = len(i) - 1
                 break
-        return self.line_length
+        return self._line_length
 
     def _set_fasta_file(self, fasta_path: str):
         """Gets the fasta file from gz file and unzip the file to get the complete fasta
-        file.
+        file. If there is a unziped file with the same name without .gz extension, the
+        class use that file instead of unzip the gz one.
 
         Parameters
         ----------
         fasta_path : str
-            Path of the fasta file
+            Path of the fasta file.
         """
         if not os.path.isfile(self.fasta_filename):
             logging.info("Unzip fasta gz file")
@@ -128,16 +128,16 @@ class FastaReader(object):
         self.fasta_file = open(self.fasta_filename, "r")
 
     def _get_chromosome_index(self, chromosome: str) -> int:
-        """Returns the index of the chromosome on the fasta file
+        """Returns the index of the chromosome on the fasta file.
 
         Parameters
         ----------
         chromosome: str
-            Label of the chromosome
+            Label of the chromosome.
 
         Returns
         -------
-        Chromosome index on fasta file
+        Chromosome index on fasta file.
         """
         line_start = self.fasta_data[chromosome]["line_start"]
 
@@ -150,7 +150,7 @@ class FastaReader(object):
         )
 
         number_new_line_char = (line_start - chromosome_position) * (
-            self.line_length + 1
+            self._line_length + 1
         )
 
         index = number_new_line_char + previous_chromosmes_labels_length
@@ -167,24 +167,24 @@ class FastaReader(object):
         return index
 
     def _set_chromosme_start_data(self, chromosme: str) -> dict:
-        """Set the data about the start of a chromosme on a fasta file
+        """Sets the data about the start of a chromosme on a fasta file.
 
         The data of the chromosme is stored as a dictionary in the chromosmes data
-        dictionary with the keys:
+        dictionary (`fasta_data`) with the keys:
 
-         - **label_length**: length of the chromosome label
-         - **line_start**: the line where the chromosome starts in fasta file
-         - **index_start**: index where the chromosome starts in fasta file
+        - **label_length**: length of the chromosome label.
+        - **line_start**: the line where the chromosome starts in fasta file.
+        - **index_start**: index where the chromosome starts in fasta file.
 
         Parameters
         ----------
         chromosme : str
-            Chromosome label as 'line_fasta:>chromosme', which is obtained from .index
-            generated file
+            Chromosome labeled as `line_fasta:>chromosme`, which is obtained from
+            `.index` file, generated previously.
 
         Returns
         -------
-        Chromosome start data
+        Chromosome start data.
         """
         chromosme_id = chromosme.split(":")
         chromosme_label = chromosme_id[1].rstrip().replace(">", "")
@@ -203,39 +203,40 @@ class FastaReader(object):
         return self.fasta_data[chromosme_label]
 
     def _set_chromosme_end_data(self, chromosme_local_index: int) -> dict:
-        """Set the data about the end of a chromosme in a fasta file. This method has to
-        be executed after _set_chromosme_start_data to work correctly.
+        """Sets the data about the end of a chromosme in the fasta file. This method has
+        to be executed after `_set_chromosme_start_data` to work correctly.
 
         The data of the chromosme is stored as a dictionary in the chromosmes data
-        dictionary with the keys:
+        dictionary (`fasta_data`) with the keys:
 
-         - **index_ends**: index where the chromosome ends in fasta file
-         - **index**: chromosome index on the local list of chromosomes
-         - **chromosme_length**: number of nucleotides that are in the chromosome
+        - **index_ends**: index where the chromosome ends in fasta file.
+        - **index**: index of the chromosome on the local list of chromosomes.
+        - **chromosme_length**: number of nucleotides that are in the chromosome.
 
         Parameters
         ----------
         chromosme_local_index: int
-            Index of the chromosme in the local list
+            Index of the chromosme in the local list.
 
         Returns
         -------
-        Chromosome end data
+        Chromosome end data.
         """
         chromosome = self.chromosmes[chromosme_local_index]
         chromosome_data = self.fasta_data[chromosome]
 
         label_length = self.fasta_data[chromosome]["label_length"]
         index_start = self.fasta_data[chromosome]["index_start"]
+        is_last = chromosme_local_index == len(self.chromosmes) - 1
 
-        if not chromosme_local_index == len(self.chromosmes) - 1:
+        index_ends = os.stat(self.fasta_filename).st_size
+        if not is_last:
             next_chromosome = self.chromosmes[chromosme_local_index + 1]
             index_ends = self.fasta_data[next_chromosome]["index_start"]
-        else:
-            index_ends = os.stat(self.fasta_filename).st_size
 
         number_of_chars = index_ends - (label_length + index_start)
-        newlines_chars = math.ceil(number_of_chars / (self.line_length + 1))
+        # Count the number of '\n (new line character)' present into the chromsome
+        newlines_chars = math.ceil(number_of_chars / (self._line_length + 1))
         chromosme_length = number_of_chars - newlines_chars
 
         chromosome_data["index_ends"] = index_ends
@@ -245,21 +246,48 @@ class FastaReader(object):
         return chromosome_data
 
     def _get_fasta_data(self) -> dict:
-        """Generates data about the chromosomes in the fasta file.
+        """Generates the data of the chromosomes from the fasta file.
 
-        The data of each chromosme is stored as a dictionary in the chromosmes data
-        dictionary with the keys:
+        The data of each chromosome is stored in the chromosomes data dictionary
+        (`fasta_data`), which have a key per chromsome.
 
-        - **label_length**: length of the chromosome label
-        - **line_start**: the line where the chromosome starts in fasta file
-        - **index_start**: index where the chromosome starts in fasta file
-        - **index_ends**: index where the chromosome ends in fasta file
-        - **index**: chromosome index on the local list of chromosomes
-        - **chromosme_length**: number of nucleotides that are in the chromosome
+        Each chromosome has as value a dictionary with data about the chromsome in the
+        fasta file, with the next keys:
+
+        - **label_length**: length of the chromosome label.
+        - **line_start**: the line where the chromosome starts in fasta file.
+        - **index_start**: index where the chromosome starts in fasta file.
+        - **index_ends**: index where the chromosome ends in fasta file.
+        - **index**: index of the chromosome on the local list of chromosomes.
+        - **chromosme_length**: number of nucleotides that are in the chromosome.
+
+        For example, after analize a Fasta file with two chromosmes, the dictionary
+        will be:
+
+        ```python
+            fasta_data = {
+                'chr1': {
+                    'label_length': ...,
+                    'line_start': ...,
+                    'index_start': ...,
+                    'index_ends': ...,
+                    'index': ...,
+                    'chromosme_length': ...,
+                },
+                'chr2': {
+                    'label_length': ...,
+                    'line_start': ...,
+                    'index_start': ...,
+                    'index_ends': ...,
+                    'index': ...,
+                    'chromosme_length': ...,
+                }
+            }
+        ```
 
         Returns
         -------
-        Fasta data
+        Fasta data.
         """
         logger = logging.getLogger()
         tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
@@ -288,21 +316,21 @@ class FastaReader(object):
         return self.fasta_data
 
     def _get_nucleotide_index(self, pos: int, chromosome: str) -> int:
-        """Gets the index of a nucleotide by its position in a chromosome
+        """Gets the index of a nucleotide by its position in a chromosome.
 
         Parameters
         ----------
         pos : int
-            Index of the nucletoide on the chromoome
+            Index of the nucletoide on the chromosome.
         chromosome : str
-            Label of the chromosome
+            Label of the chromosome.
 
         IndexError
-            When index is greater tha chromsome length or lower than 0
+            When index is greater tha chromsome length or lower than 0.
 
         Returns
         -------
-        Index of the nucleotide on the fasta file
+        Index of the nucleotide on the fasta file.
         """
         chromosme_length = self.fasta_data[chromosome]["chromosme_length"] - 1
 
@@ -312,8 +340,8 @@ class FastaReader(object):
             )
 
         # It's necessary to taking into account that seek method counts new lines as a
-        # character
-        num_new_lines = int(pos / self.line_length)
+        # character, that's why we add new line characters ('\n')
+        num_new_lines = int(pos / self._line_length)
         index_start = self.fasta_data[chromosome]["index_start"]
         label_length = self.fasta_data[chromosome]["label_length"]
 
@@ -328,18 +356,18 @@ class FastaReader(object):
         Parameters
         ----------
         length : int
-            Length of the sequence
+            Length of the sequence.
         starts : int
-            Index of the fasta file where the sequence starts
+            Index of the fasta file where the sequence starts.
 
         Raises
         ------
         IndexError
-            When the start position is wrong or invalid
+            When the start position is wrong or invalid.
 
         Returns
         -------
-        The sequence
+        The sequence.
         """
         self.fasta_file.seek(starts, 0)
         sequence = ""
@@ -353,20 +381,20 @@ class FastaReader(object):
         return sequence.upper()
 
     def _get_prefix(self, pos: int, length: int, chromosome: str) -> str:
-        """Gets the prefix of a given length from a given position in a chromosome
+        """Gets the prefix of a given length from a given position in a chromosome.
 
         Parameters
         ----------
         pos : int
-            Position on a chromosome
+            Position on a chromosome.
         length : int
-            Length of the prefix
+            Length of the prefix.
         chromosome : str
-            Label of the chromosome
+            Label of the chromosome.
 
         Returns
         -------
-        The prefix
+        The prefix.
         """
         starts = pos - length
         if starts <= 0:
@@ -378,20 +406,20 @@ class FastaReader(object):
         return self._get_from_interval(index, length)
 
     def _get_suffix(self, pos: int, length: int, chromosome: str) -> str:
-        """Gets the prefix of a given length from a given position in a chromosome
+        """Gets the suffix of a given length from a given position in a chromosome.
 
         Parameters
         ----------
         pos : int
-            Position on a chromosome
+            Position on a chromosome.
         length : int
-            Length of the suffix
+            Length of the suffix.
         chromosome : str
-            Label of the chromosome
+            Label of the chromosome.
 
         Returns
         -------
-        The suffix
+        The suffix.
         """
         pos += 1
         chromosme_length = self.fasta_data[chromosome]["chromosme_length"]
@@ -403,21 +431,21 @@ class FastaReader(object):
         return self._get_from_interval(index, length)
 
     def _get_nucleotides(self, chromosome: str, pos: int, length: int = 1) -> str:
-        """Gets a sequence of nucletoides from a chrosome from a given position on the
-        chromosome. The default length of the sequence is 1.
+        """Gets a sequence of nucleotides from a chromosome from a given position on the
+        chromosome.
 
         Parameters
         ----------
         chromosome : str
-            The chromosome where the nucleotide is going to be obtained
+            The chromosome where the nucleotide is going to be obtained.
         pos : int
-            Position of the nucleotide on the chromosome
+            Position of the nucleotide on the chromosome.
         length : int = 1
-            Length of the sequence
+            Length of the sequence.
 
         Returns
         -------
-        The sequence of nucletoides
+        The sequence of nucletoides.
         """
         return self._get_from_interval(
             self._get_nucleotide_index(pos, chromosome), length
@@ -431,25 +459,25 @@ class FastaReader(object):
         from_nuc: int,
         to_nuc: int,
     ) -> list:
-        """Gets a fasta's sequence by the position on a chromosome, with a given prefix
-        and a suffix length.
+        """Gets a sequence from the fasta file by the position of a nucleotide on a
+        chromosome, with a specified prefix length and suffix length.
 
         Parameters
         ----------
         chromosome : str
-            The chromosome where the sequence is going to be obtained
+            The chromosome where the sequence is going to be obtained.
         nucleotide : str
-            Label of the nucleotide
+            Label of the nucleotide.
         pos : int
-            Position of the nucleotide on the chromosome
+            Position of the nucleotide on the chromosome.
         from_nuc : int
-            Length of the prefix of the sequence
+            Length of the prefix of the sequence.
         to_nuc : int
-            Length of the suffix of the sequence
+            Length of the suffix of the sequence.
 
         Returns
         -------
-        The sequence divided in (prefix, nucleotide, suffix)
+        The sequence divided in (prefix, nucleotide, suffix).
         """
         length = len(nucleotide)
 

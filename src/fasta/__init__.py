@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+"""Classes to parse data from FASTA file.
+"""
+
 from . import fastaReader
 
 __pdoc__ = {}
