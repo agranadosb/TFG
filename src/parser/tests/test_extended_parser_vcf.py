@@ -38,10 +38,10 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
 
         self.assertEqual(result, filename)
 
-    def test_get_vcf_reader(self):
-        filename = f"{self.static_dir}vcfTest.vcf"
+    def test_get_fasta_reader(self):
+        filename = f"{self.static_dir}test.fa"
 
-        result = self.parser.get_vcf_reader().get_vcf().filename
+        result = self.parser.get_fasta_reader().get_fasta().name
 
         self.assertEqual(result, filename)
 

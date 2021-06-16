@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import vcfReader
+from . import fastaReader
 
 __pdoc__ = {}
 

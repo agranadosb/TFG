@@ -10,8 +10,6 @@ from io import IOBase
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from tqdm import tqdm
 
-from vcf import Reader as VcfReader
-
 
 class FastaReader(object):
     """Gets vcf and fasta file and generates data about the fasta file and the
@@ -57,20 +55,15 @@ class FastaReader(object):
     This class allow to get sequences from the fasta file and from chrosomes using the
     methods:
          - get_sequence
-         - get_prefix
-         - get_nucleotides
-         - get_suffix
+         - _get_prefix
+         - _get_nucleotides
+         - _get_suffix
 
     Parameters
     ----------
-    vcf_path : str
-        Path of the vcf file
     fasta_path : str
         Path of the fasta file
     """
-
-    vcf_file: VcfReader = None
-    """ VCF file """
 
     fasta_data: str = {}
     """ A dictionary that contains all chromosomes data of the FASTA file, Each key is
@@ -85,25 +78,13 @@ class FastaReader(object):
     line_length: int = 50
     """ Length of the lines that contains a sequence of the chromosome """
 
-    def __init__(self, vcf_path: str, fasta_path: str):
-        logging.info("Loading vcf file")
-        self.vcf_file = VcfReader(open(vcf_path, "r"))
-
+    def __init__(self, fasta_path: str):
         logging.info("Loading fasta file")
         self.fasta_filename = fasta_path.replace(".gz", "")
 
         logging.info("Loading fasta information")
-        self.set_fasta_file(fasta_path)
-        self.get_fasta_data()
-
-    def get_vcf(self) -> VcfReader:
-        """Returns vcf file
-
-        Returns
-        -------
-        Vcf file
-        """
-        return self.vcf_file
+        self._set_fasta_file(fasta_path)
+        self._get_fasta_data()
 
     def get_fasta(self) -> IOBase:
         """Returns fasta file
@@ -114,7 +95,7 @@ class FastaReader(object):
         """
         return self.fasta_file
 
-    def set_fasta_line_length(self) -> int:
+    def _set_fasta_line_length(self) -> int:
         """Sets the line length of the fasta file
 
         Returns
@@ -128,7 +109,7 @@ class FastaReader(object):
                 break
         return self.line_length
 
-    def set_fasta_file(self, fasta_path: str):
+    def _set_fasta_file(self, fasta_path: str):
         """Gets the fasta file from gz file and unzip the file to get the complete fasta
         file.
 
@@ -146,7 +127,7 @@ class FastaReader(object):
 
         self.fasta_file = open(self.fasta_filename, "r")
 
-    def get_chromosome_index(self, chromosome: str) -> int:
+    def _get_chromosome_index(self, chromosome: str) -> int:
         """Returns the index of the chromosome on the fasta file
 
         Parameters
@@ -185,7 +166,7 @@ class FastaReader(object):
 
         return index
 
-    def set_chromosme_start_data(self, chromosme: str) -> dict:
+    def _set_chromosme_start_data(self, chromosme: str) -> dict:
         """Set the data about the start of a chromosme on a fasta file
 
         The data of the chromosme is stored as a dictionary in the chromosmes data
@@ -215,15 +196,15 @@ class FastaReader(object):
             "line_start": int(chromosme_id[0]) - 1,
         }
 
-        self.fasta_data[chromosme_label]["index_start"] = self.get_chromosome_index(
+        self.fasta_data[chromosme_label]["index_start"] = self._get_chromosome_index(
             chromosme_label
         )
 
         return self.fasta_data[chromosme_label]
 
-    def set_chromosme_end_data(self, chromosme_local_index: int) -> dict:
+    def _set_chromosme_end_data(self, chromosme_local_index: int) -> dict:
         """Set the data about the end of a chromosme in a fasta file. This method has to
-        be executed after set_chromosme_start_data to work correctly.
+        be executed after _set_chromosme_start_data to work correctly.
 
         The data of the chromosme is stored as a dictionary in the chromosmes data
         dictionary with the keys:
@@ -263,7 +244,7 @@ class FastaReader(object):
 
         return chromosome_data
 
-    def get_fasta_data(self) -> dict:
+    def _get_fasta_data(self) -> dict:
         """Generates data about the chromosomes in the fasta file.
 
         The data of each chromosme is stored as a dictionary in the chromosmes data
@@ -283,11 +264,10 @@ class FastaReader(object):
         logger = logging.getLogger()
         tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
 
-
         fasta_index_filename = f"{self.fasta_filename}.index"
         self.fasta_data = {}
         self.chromosmes = []
-        self.set_fasta_line_length()
+        self._set_fasta_line_length()
 
         """ TODO: Add compatibility with windows using "type file | findstr /R /C:">" """
         command = (
@@ -297,17 +277,17 @@ class FastaReader(object):
         logging.info("Loading chromosomes")
         with open(fasta_index_filename, "r") as fasta_index_file:
             for i in tqdm(fasta_index_file, file=tqdm_out):
-                self.set_chromosme_start_data(i)
+                self._set_chromosme_start_data(i)
 
         logging.info(f"Loading chromosomes sizes")
         for i in tqdm(range(len(self.chromosmes)), file=tqdm_out):
-            self.set_chromosme_end_data(i)
+            self._set_chromosme_end_data(i)
 
         os.remove(fasta_index_filename)
 
         return self.fasta_data
 
-    def get_nucleotide_index(self, pos: int, chromosome: str) -> int:
+    def _get_nucleotide_index(self, pos: int, chromosome: str) -> int:
         """Gets the index of a nucleotide by its position in a chromosome
 
         Parameters
@@ -341,7 +321,7 @@ class FastaReader(object):
         # we use seek)
         return pos + index_start + label_length + num_new_lines
 
-    def get_from_interval(self, starts: int, length: int) -> str:
+    def _get_from_interval(self, starts: int, length: int) -> str:
         """Returns a sequence that starts at a given index of the fasta file and has a
         given length.
 
@@ -372,7 +352,7 @@ class FastaReader(object):
 
         return sequence.upper()
 
-    def get_prefix(self, pos: int, length: int, chromosome: str) -> str:
+    def _get_prefix(self, pos: int, length: int, chromosome: str) -> str:
         """Gets the prefix of a given length from a given position in a chromosome
 
         Parameters
@@ -393,11 +373,11 @@ class FastaReader(object):
             length += starts
             starts = 0
 
-        index = self.get_nucleotide_index(starts, chromosome)
+        index = self._get_nucleotide_index(starts, chromosome)
 
-        return self.get_from_interval(index, length)
+        return self._get_from_interval(index, length)
 
-    def get_suffix(self, pos: int, length: int, chromosome: str) -> str:
+    def _get_suffix(self, pos: int, length: int, chromosome: str) -> str:
         """Gets the prefix of a given length from a given position in a chromosome
 
         Parameters
@@ -415,14 +395,14 @@ class FastaReader(object):
         """
         pos += 1
         chromosme_length = self.fasta_data[chromosome]["chromosme_length"]
-        index = self.get_nucleotide_index(pos, chromosome)
+        index = self._get_nucleotide_index(pos, chromosome)
 
         if pos + length >= chromosme_length:
             length = chromosme_length - pos
 
-        return self.get_from_interval(index, length)
+        return self._get_from_interval(index, length)
 
-    def get_nucleotides(self, chromosome: str, pos: int, length: int = 1) -> str:
+    def _get_nucleotides(self, chromosome: str, pos: int, length: int = 1) -> str:
         """Gets a sequence of nucletoides from a chrosome from a given position on the
         chromosome. The default length of the sequence is 1.
 
@@ -439,8 +419,8 @@ class FastaReader(object):
         -------
         The sequence of nucletoides
         """
-        return self.get_from_interval(
-            self.get_nucleotide_index(pos, chromosome), length
+        return self._get_from_interval(
+            self._get_nucleotide_index(pos, chromosome), length
         )
 
     def get_sequence(
@@ -473,8 +453,8 @@ class FastaReader(object):
         """
         length = len(nucleotide)
 
-        pref = self.get_prefix(pos, from_nuc, chromosome)
-        nucleotide = self.get_nucleotides(chromosome, pos, length)
-        suff = self.get_suffix(pos + length - 1, to_nuc, chromosome)
+        pref = self._get_prefix(pos, from_nuc, chromosome)
+        nucleotide = self._get_nucleotides(chromosome, pos, length)
+        suff = self._get_suffix(pos + length - 1, to_nuc, chromosome)
 
         return [pref, nucleotide, suff]

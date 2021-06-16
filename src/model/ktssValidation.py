@@ -329,6 +329,7 @@ class KTSSValidator(AbstractValidationArguments):
 
         result = SortedDict()
         logger.info("Generating validation data")
+        total_chars = 0
         for sequence_raw in tqdm(sequences, file=tqdm_out):
             sequence_with_original = sequence_raw.split(original_separator)
             sequence = sequence_with_original[0]
@@ -357,7 +358,7 @@ class KTSSValidator(AbstractValidationArguments):
                     prefix, suffix, separator=separator
                 )
             except:
-                result[sequence_key] = False
+                result[sequence_key][f"false-{infix}"] = len(infix)
                 continue
 
             for infix_sequence in infix_sequences:
@@ -371,7 +372,19 @@ class KTSSValidator(AbstractValidationArguments):
                         [self.inverse_mutations_map[char] for char in infix_string]
                     )
                 result[sequence_key][infix_key] = distance
+            
+            if len(result[sequence_key].keys()) == 0:
+                result[sequence_key][f"false-{infix}"] = len(infix)
+
         logger.info("Generation finished\n")
+
+        for sequence in result:
+            for infix in result[sequence]:
+                total_chars += result[sequence][infix]
+
+        for sequence in result:
+            for infix in result[sequence]:
+                result[sequence][infix] /= total_chars
 
         if minimum:
             return KTSSValidator.get_minimum_distances(result)

@@ -6,7 +6,7 @@ from typing import Union
 
 from src.argumentParser.abstractArguments import AbstractParserArguments
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
-from src.vcf.vcfReader import FastaReader
+from src.fasta.fastaReader import FastaReader
 from tqdm import tqdm
 from vcf import Reader as VcfReader
 
@@ -77,11 +77,14 @@ class ParserVcf(AbstractParserArguments, ABC):
     """ Mapping between command line arguments and function arguments of the
     **generate_sequence** method """
 
-    vcf_reader: FastaReader = None
+    fasta_reader: FastaReader = None
     """ Fasta reader """
 
     def __init__(self, vcf_path: str, fasta_path: str):
-        self.vcf_reader = FastaReader(vcf_path, fasta_path)
+        logging.info("Loading vcf file")
+        self.vcf_file = VcfReader(open(vcf_path, "r"))
+
+        self.fasta_reader = FastaReader(fasta_path)
         logging.info("Loading finalized\n")
 
     @property
@@ -102,16 +105,16 @@ class ParserVcf(AbstractParserArguments, ABC):
         -------
         Vcf file
         """
-        return self.vcf_reader.get_vcf()
+        return self.vcf_file
 
-    def get_vcf_reader(self) -> FastaReader:
+    def get_fasta_reader(self) -> FastaReader:
         """Returns vcf reader
 
         Returns
         -------
         Vcf reader
         """
-        return self.vcf_reader
+        return self.fasta_reader
 
     def original_sequence_to_string(
         self,
@@ -243,7 +246,7 @@ class ParserVcf(AbstractParserArguments, ABC):
         sequences = []
         with open(f"{path}/{filename}", "w") as parsed_data_file:
             for i in tqdm(self.get_vcf(), file=tqdm_out):
-                sequence = self.vcf_reader.get_sequence(
+                sequence = self.fasta_reader.get_sequence(
                     i.CHROM, i.REF, i.POS - 1, prefix_length, suffix_length
                 )
 
