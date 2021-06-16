@@ -99,8 +99,8 @@ class MutationParser(ExtendedParserVcf):
     """
 
     @classmethod
-    def inverse_mutations_map(cls):
-        """ Inverse of mutations_map """
+    def _inverse_mutations_map(cls):
+        """Inverse of `mutations_map`"""
         res = {}
         for operation in cls.mutations_map:
             for symbol in cls.mutations_map[operation]:

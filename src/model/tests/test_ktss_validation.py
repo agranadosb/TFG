@@ -259,7 +259,7 @@ class TestKTSSValidator(TestCase):
         self.ktss_validator.infix_symbols = ["a", "b"]
         self.ktss_validator.prefix_map = {"a": "a", "c": "c", "b": "b"}
         self.ktss_validator.mutations_map = {"a": "a", "c": "c", "b": "b"}
-        self.ktss_validator.inverse_mutations_map = {"a": "a", "c": "c", "b": "b"}
+        self.ktss_validator._inverse_mutations_map = {"a": "a", "c": "c", "b": "b"}
         self.ktss_validator.suffix_map = {"a": "a", "c": "c", "b": "b"}
         self.ktss_validator.parser = ParserFactory
         sequences = [

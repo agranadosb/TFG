@@ -93,11 +93,11 @@ class KTSSValidator(AbstractValidationArguments):
 
         Raise
         -----
-        NotImplementedError: When a mapping attribute inverse_mutations_map is not
+        NotImplementedError: When a mapping attribute _inverse_mutations_map is not
         defined on the parser class
         """
         try:
-            self.inverse_mutations_map = parser.inverse_mutations_map()
+            self._inverse_mutations_map = parser._inverse_mutations_map()
         except AttributeError:
             raise NotImplementedError(
                 "For this metohd is necessary to define prefix_map, mutations_map, suffix_map attributes into the parser class"
@@ -369,7 +369,7 @@ class KTSSValidator(AbstractValidationArguments):
                 infix_key = infix_string
                 if not add_mutation:
                     infix_key = "".join(
-                        [self.inverse_mutations_map[char] for char in infix_string]
+                        [self._inverse_mutations_map[char] for char in infix_string]
                     )
                 result[sequence_key][infix_key] = distance
             

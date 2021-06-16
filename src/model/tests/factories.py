@@ -7,7 +7,7 @@ class ParserFactory(ExtendedParserVcf):
     suffix_map = {"A": "a", "C": "c", "B": "b"}
 
     @classmethod
-    def inverse_mutations_map(cls):
+    def _inverse_mutations_map(cls):
         return {}
 
     def __init__(self):
