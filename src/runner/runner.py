@@ -30,7 +30,7 @@ validators = {KTSS_MODEL: KTSSValidator}
 parser = ArgumentParser("Executes a parser or executes a parser and a model")
 
 """ TODO: Hacer que se detecten automáticamente todos las clases de argumentos """
-for i in KTSSModel.arguments + ParserVcf.arguments + KTSSValidator.arguments:
+for i in KTSSModel._arguments + ParserVcf._arguments + KTSSValidator._arguments:
     parser.add_argument(i)
 
 

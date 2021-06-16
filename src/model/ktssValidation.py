@@ -24,7 +24,7 @@ class KTSSValidator(AbstractValidationArguments):
         Parser of the model
     """
 
-    arguments: list = [
+    _arguments: list = [
         {
             "key": "sep",
             "name": "separator",
@@ -57,7 +57,7 @@ class KTSSValidator(AbstractValidationArguments):
     ]
     """ Arguments that will be used by command line """
 
-    generate_distances_arguments: dict = {
+    _generate_distances_arguments: dict = {
         "sep": "separator",
         "min": "minimum",
         "aoval": "add_original",

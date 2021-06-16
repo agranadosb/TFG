@@ -28,7 +28,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         Parser that will generate the data
     """
 
-    arguments: list = [
+    _arguments: list = [
         {
             "key": "k",
             "name": "k",
@@ -47,7 +47,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
     ]
     """ Arguments that will be used by command line """
 
-    trainer_arguments: dict = {
+    _trainer_arguments: dict = {
         "k_value": "k",
         "not_allowed_segements": "get_not_allowed_segements",
     }

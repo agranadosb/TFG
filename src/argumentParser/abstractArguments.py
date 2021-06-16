@@ -29,12 +29,12 @@ class AbstractValidationArguments(ABC, ArgumentParser):
 
     @property
     @abstractmethod
-    def arguments() -> list:
+    def _arguments() -> list:
         return []
 
     @property
     @abstractmethod
-    def generate_distances_arguments() -> dict:
+    def _generate_distances_arguments() -> dict:
         return {}
 
     def get_generate_distances_arguments(self, **kwargs) -> dict:
@@ -45,9 +45,9 @@ class AbstractValidationArguments(ABC, ArgumentParser):
         Dictionary with the arguments for the generate_distances method
         """
         return {
-            self.generate_distances_arguments[key]: value
+            self._generate_distances_arguments[key]: value
             for key, value in kwargs.items()
-            if key in self.generate_distances_arguments
+            if key in self._generate_distances_arguments
         }
 
 
@@ -77,12 +77,12 @@ class AbstractParserArguments(ABC, ArgumentParser):
 
     @property
     @abstractmethod
-    def arguments() -> list:
+    def _arguments() -> list:
         return []
 
     @property
     @abstractmethod
-    def generate_sequences_arguments() -> dict:
+    def _generate_sequences_arguments() -> dict:
         return {}
 
     def get_generate_sequences_arguments(self, **kwargs) -> dict:
@@ -93,9 +93,9 @@ class AbstractParserArguments(ABC, ArgumentParser):
         Dictionary with the arguments for the generate_sequences method
         """
         return {
-            self.generate_sequences_arguments[key]: value
+            self._generate_sequences_arguments[key]: value
             for key, value in kwargs.items()
-            if key in self.generate_sequences_arguments
+            if key in self._generate_sequences_arguments
         }
 
 
@@ -125,12 +125,12 @@ class AbstractModelArguments(ABC, ArgumentParser):
 
     @property
     @abstractmethod
-    def arguments() -> list:
+    def _arguments() -> list:
         return []
 
     @property
     @abstractmethod
-    def trainer_arguments() -> dict:
+    def _trainer_arguments() -> dict:
         return {}
 
     def get_trainer_arguments(self, **kwargs) -> dict:
@@ -141,7 +141,7 @@ class AbstractModelArguments(ABC, ArgumentParser):
         Dictionary with the arguments for the trainer method
         """
         return {
-            self.trainer_arguments[key]: value
+            self._trainer_arguments[key]: value
             for key, value in kwargs.items()
-            if key in self.trainer_arguments
+            if key in self._trainer_arguments
         }

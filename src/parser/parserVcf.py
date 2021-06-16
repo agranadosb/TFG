@@ -5,8 +5,8 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 from src.argumentParser.abstractArguments import AbstractParserArguments
-from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.fasta.fastaReader import FastaReader
+from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from tqdm import tqdm
 from vcf import Reader as VcfReader
 
@@ -36,7 +36,7 @@ class ParserVcf(AbstractParserArguments, ABC):
         Path of the fasta file
     """
 
-    arguments: list = [
+    _arguments: list = [
         {
             "key": "amto",
             "name": "add-mutation-to-original",
@@ -68,7 +68,7 @@ class ParserVcf(AbstractParserArguments, ABC):
     ]
     """ Arguments that will be used by command line """
 
-    generate_sequences_arguments: dict = {
+    _generate_sequences_arguments: dict = {
         "ao": "add_original",
         "amto": "add_mutation_to_original",
         "pfilename": "filename",
@@ -116,7 +116,7 @@ class ParserVcf(AbstractParserArguments, ABC):
         """
         return self.fasta_reader
 
-    def original_sequence_to_string(
+    def _original_sequence_to_string(
         self,
         prefix: str,
         sequence: list,
@@ -259,7 +259,7 @@ class ParserVcf(AbstractParserArguments, ABC):
                     mutation = None
                     if add_mutation_to_original:
                         mutation = i.ALT[0].sequence
-                    original_sequence = self.original_sequence_to_string(
+                    original_sequence = self._original_sequence_to_string(
                         prefix, sequence.copy(), mutation=mutation
                     )
 

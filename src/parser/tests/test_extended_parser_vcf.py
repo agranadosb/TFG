@@ -45,22 +45,22 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
 
         self.assertEqual(result, filename)
 
-    def test_original_sequence_to_string(self):
+    def test__original_sequence_to_string(self):
         prefix = "prefix"
         sequence = ["ACGT", "ACGT", "ACGT"]
         string_sequence = f"{prefix}ACGTACGTACGT\n"
 
-        result = self.parser.original_sequence_to_string(prefix, sequence)
+        result = self.parser._original_sequence_to_string(prefix, sequence)
 
         self.assertEqual(result, string_sequence)
 
-    def test_original_sequence_to_string_with_mutation(self):
+    def test__original_sequence_to_string_with_mutation(self):
         prefix = "prefix"
         sequence = ["ACGT", "ACGT", "ACGT"]
         mutation = "TGCA"
         string_sequence = f"{prefix}ACGTTGCAACGT|ACGT\n"
 
-        result = self.parser.original_sequence_to_string(prefix, sequence, mutation)
+        result = self.parser._original_sequence_to_string(prefix, sequence, mutation)
 
         self.assertEqual(result, string_sequence)
 
