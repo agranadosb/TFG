@@ -11,24 +11,27 @@ from sortedcontainers import SortedDict, SortedSet
 from src.argumentParser.abstractArguments import AbstractModelArguments
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.model.abstractModel import AbstractModel
+from src.model.ktssValidation import KTSSValidator
 from src.parser.extendedParser import ExtendedParserVcf
 from tqdm import tqdm
 
 
 class KTSSModel(AbstractModel, AbstractModelArguments):
-    """Model that creates a DFA from a list of sequences using the ktss method
+    """Model that creates a DFA from a list of sequences using the ktss method.
+
+    Check [KTSS information](https://riunet.upv.es/bitstream/handle/10251/47562/L%c3%b3pez%20-%20Inference%20of%20k-Testable%20Directed%20Acyclic%20Graph%20Languages.pdf?sequence=1&isAllowed=y)
 
     Parameters
     ----------
     save_path: bool = False
-        The path where the model will be saved
+        The path where the model will be saved.
     restore_path: bool = False
-        The path from the model ill be loaded
+        The path from the model ill be loaded.
     parser: ParserVcf = ExtendedParserVcf
-        Parser that will generate the data
+        Parser that will generate the data.
     """
 
-    arguments: list = [
+    _arguments: list = [
         {
             "key": "k",
             "name": "k",
@@ -45,34 +48,41 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
             "action": "store_true",
         },
     ]
-    """ Arguments that will be used by command line """
+    """Arguments that will be used by command line."""
 
-    trainer_arguments: dict = {
+    _trainer_arguments: dict = {
         "k_value": "k",
         "not_allowed_segements": "get_not_allowed_segements",
     }
-    """ Mapping between command line arguments and function arguments of the
-    **trainer** method """
+    """Mapping between command line arguments and function arguments of the
+    **trainer** method."""
 
-    def __init__(self, save_path=False, restore_path=False, parser=ExtendedParserVcf):
+    def __init__(
+        self,
+        save_path=False,
+        restore_path=False,
+        parser=ExtendedParserVcf,
+        tester=KTSSValidator,
+    ):
         super().__init__(save_path=save_path, restore_path=restore_path)
         self._model = False
         self.parser_class = parser
+        self.tester_class = tester
         self.trainer_name = "ktt"
 
-    def state_in_list(self, state: tuple, lst: list) -> bool:
-        """Checks if a state is in a list of states
+    def _state_in_list(self, state: tuple, lst: list) -> bool:
+        """Checks if a state is in a list of states.
 
         Parameters
         ----------
         state: tuple
-            State to be searched (s0, s1, s2)
+            State to be searched (s0, s1, s2).
         lst: list
-            list where the state will be searched
+            list where the state will be searched.
 
         Returns
         -------
-        True if the state is in the list, if not false
+        True if the state is in the list, if not false.
         """
         for state_list in lst:
             if (
@@ -83,16 +93,16 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
                 return True
         return False
 
-    def generate_sigma(self, alphabet: Union[list, set], k: int) -> Union[list, set]:
+    def _generate_sigma(self, alphabet: Union[list, set], k: int) -> Union[list, set]:
         """Generates sigma for a k given, for example, if k = 2 and alphabet = [A, B]
-        it generates [A, B, AA, AB, BA, BB]
+        it generates [A, B, AA, AB, BA, BB].
 
         Parameters
         ----------
         alphabet: list, set
-            alphabet to generate sigma
+            alphabet to generate sigma.
         k: int
-            length of the maximum strings of sigma
+            length of the maximum strings of sigma.
 
         Returns
         -------
@@ -106,53 +116,53 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
 
         return words
 
-    def get_prefix(self, string: str, k: int) -> str:
-        """Returns the prefix of a string
+    def _get_prefix(self, string: str, k: int) -> str:
+        """Returns the prefix of a string.
 
         Parameters
         ----------
         string: str
-            Strong where the prefix will be obtained
+            Strong where the prefix will be obtained.
         k: int
-            Length of the prefix - 1
+            Length of the prefix - 1.
 
         Returns
         -------
-        The prefix of the string
+        The prefix of the string.
         """
         return string[: k - 1]
 
-    def get_suffix(self, string: str, k: int) -> str:
-        """Returns the suffix of a string
+    def _get_suffix(self, string: str, k: int) -> str:
+        """Returns the suffix of a string.
 
         Parameters
         ----------
         string: str
-            String where the suffix will be obtained
+            String where the suffix will be obtained.
         k: int
-            Length of the suffix - 1
+            Length of the suffix - 1.
 
         Returns
         -------
-        The suffix of the string
+        The suffix of the string.
         """
         if k >= len(string):
             return string
         return string[len(string) - k + 1 :]
 
-    def get_infixes(self, string: str, k: int) -> list:
-        """Generates all the possible infixes of a string for a lengt k given
+    def _get_infixes(self, string: str, k: int) -> list:
+        """Generates all the possible infixes of a string for a lengt k given.
 
         Parameters
         ----------
         string: str
-            String where the infixes will be obtained
+            String where the infixes will be obtained.
         k: int
-            Length of the infixes
+            Length of the infixes.
 
         Rreturns
         --------
-        List of all the infixes
+        List of all the infixes.
         """
         if k >= len(string):
             return [string]
@@ -165,29 +175,29 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
             fin += 1
         return result
 
-    def add_transition(
+    def _add_transition(
         self,
         transitions: Union[OrderedDict, dict],
         from_state: str,
         symbol: str,
         to_state: str,
     ) -> Union[OrderedDict, dict]:
-        """Append a transition into an ordered dict that represent the transitions
+        """Append a transition into an ordered dict that represent the transitions.
 
         Parameters
         ----------
         transitions: OrderedDict, dict
-            Ordered dict that contains transitions
+            Ordered dict that contains transitions.
         from_state: str
-            String that represent the source state
+            String that represent the source state.
         symbol: str
-            String that represents the transitions symbol
+            String that represents the transitions symbol.
         to_state: str
-            String tht represents the destination state
+            String tht represents the destination state.
 
         Returns
         -------
-        The updated ordered dictionary with the new transition
+        The updated ordered dictionary with the new transition.
         """
         if not transitions.get(from_state):
             transitions[from_state] = SortedDict({})
@@ -201,19 +211,20 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         k: int,
         get_not_allowed_segements: bool = False,
     ) -> Union[OrderedDict, dict]:
-        """Generates a ktss model from the samples and a k given
+        """Generates a ktss model from the samples and a k given.
 
         Parameters
         ----------
         samples: list
-            List of samples to training the model
+            List of samples to training the model.
         k: int
-            Parameter of the ktss model
+            Parameter of the ktss model.
         get_not_allowed_segements: bool
-            If true returns not allowed segements
+            If true returns not allowed segements.
 
         Returns
         -------
+        ```python
             {
                 "states": states,
                 "alphabet": alphabet,
@@ -222,6 +233,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
                 "final_states": final_states,
                 "not_allowed_segments": not_allowed_segments,
             }
+        ```
         """
         logger = logging.getLogger()
         tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
@@ -244,13 +256,13 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         suffixes = lower_than_k.copy()
         infixes = SortedSet()
         for sample in tqdm(greater_or_equal_than_k, file=tqdm_out):
-            prefixes.add(self.get_prefix(sample, k))
-            suffixes.add(self.get_suffix(sample, k))
-            infixes.update(self.get_infixes(sample, k))
+            prefixes.add(self._get_prefix(sample, k))
+            suffixes.add(self._get_suffix(sample, k))
+            infixes.update(self._get_infixes(sample, k))
 
         if get_not_allowed_segements:
             logging.info(f"Generating sigma with alphabet {alphabet}")
-            not_allowed_segments = self.generate_sigma(alphabet, k) - infixes
+            not_allowed_segments = self._generate_sigma(alphabet, k) - infixes
 
         q = [""]
         s = SortedDict({})
@@ -258,18 +270,18 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
 
         logging.info("Generating states from prefixes")
         for prefix in tqdm(prefixes, file=tqdm_out):
-            self.add_transition(s, "", prefix[0], prefix[0])
+            self._add_transition(s, "", prefix[0], prefix[0])
             for char_index in range(len(prefix)):
                 q.append([prefix[: char_index + 1]])
 
-                self.add_transition(
+                self._add_transition(
                     s, prefix[:char_index], prefix[char_index], prefix[: char_index + 1]
                 )
 
         logging.info("Generating states from infixes")
         for infix in tqdm(infixes, file=tqdm_out):
             q.append([infix[: k - 1], infix[2:k]])
-            self.add_transition(s, infix[: k - 1], infix[k - 1], infix[1:k])
+            self._add_transition(s, infix[: k - 1], infix[k - 1], infix[1:k])
 
         logging.info("Remove repeated and empty states")
         q = SortedSet(
@@ -296,6 +308,10 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
     @property
     def parser(self):
         return self.parser_class
+
+    @property
+    def tester(self):
+        return self.tester_class
 
     @property
     def trainer(self):
@@ -380,3 +396,24 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         return AbstractModel.get_samples(
             samples, self.retrive_sequence, has_original, get_original
         )
+
+    def get_model_samples(self, path: str) -> zip:
+        """Gets samples from a file that has a pair sample, one item per line.
+
+        Parameters
+        ----------
+        path: str
+            Path of the file with the samples.
+        
+        Returns
+        -------
+        Samples in a list of pairs.
+        """
+        with open(path) as samples_file:
+            lines = samples_file.readlines()
+            original_lines = [
+                lines[line] for line in range(len(lines)) if line % 2 == 0
+            ]
+            parsed_lines = [lines[line] for line in range(len(lines)) if line % 2 == 1]
+
+        return list(zip(original_lines, parsed_lines))

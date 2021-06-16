@@ -27,7 +27,7 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
     def test_default_filename(self):
         filename = "parsed_extended_data.pvcf"
 
-        result = self.parser.default_filename
+        result = self.parser._default_filename
 
         self.assertEqual(result, filename)
 
@@ -38,29 +38,29 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
 
         self.assertEqual(result, filename)
 
-    def test_get_vcf_reader(self):
-        filename = f"{self.static_dir}vcfTest.vcf"
+    def test_get_fasta_reader(self):
+        filename = f"{self.static_dir}test.fa"
 
-        result = self.parser.get_vcf_reader().get_vcf().filename
+        result = self.parser.get_fasta_reader().get_fasta().name
 
         self.assertEqual(result, filename)
 
-    def test_original_sequence_to_string(self):
+    def test__original_sequence_to_string(self):
         prefix = "prefix"
         sequence = ["ACGT", "ACGT", "ACGT"]
         string_sequence = f"{prefix}ACGTACGTACGT\n"
 
-        result = self.parser.original_sequence_to_string(prefix, sequence)
+        result = self.parser._original_sequence_to_string(prefix, sequence)
 
         self.assertEqual(result, string_sequence)
 
-    def test_original_sequence_to_string_with_mutation(self):
+    def test__original_sequence_to_string_with_mutation(self):
         prefix = "prefix"
         sequence = ["ACGT", "ACGT", "ACGT"]
         mutation = "TGCA"
         string_sequence = f"{prefix}ACGTTGCAACGT|ACGT\n"
 
-        result = self.parser.original_sequence_to_string(prefix, sequence, mutation)
+        result = self.parser._original_sequence_to_string(prefix, sequence, mutation)
 
         self.assertEqual(result, string_sequence)
 
@@ -85,7 +85,10 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
         parsed_sequence = f"{original_sequence}*{prefix}*q-w-e-r f-d-s-a z-x-c-v\n"
 
         result = self.parser.sequence_to_string(
-            original_sequence, prefix, sequence, mutation
+            sequence,
+            mutation,
+            original_sequence,
+            prefix,
         )
 
         self.assertEqual(result, parsed_sequence)

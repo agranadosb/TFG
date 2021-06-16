@@ -11,74 +11,94 @@ SUFFIX_SYMBOLS = ["z", "x", "c", "v"]
 
 
 class ExtendedParserVcf(ParserVcf):
-    """Parses data from vcf and fasta and prepare that data for a machine learning model
+    """Parses data from the files VCF and FASTA and prepares that data for a machine
+    learning model in a file.
 
-    The extended parser gets a sequence (prefix, infix, suffix) and maps each character
-    to another depending if the character is in the prefix, infix or suffix:
+    The extended parser gets a sequence in a tuple format (prefix, infix, suffix) and
+    maps each character of the sequence to another depending if the character is in the
+    prefix, infix or suffix:
 
-     - Prefix mapping:
-         - A -> q
-         - C -> w
-         - G -> e
-         - T -> r
-     - Infix mapping:
-         - A -> a
-         - C -> s
-         - G -> d
-         - T -> f
+    - Prefix mapping:
+        - A -> q
+        - C -> w
+        - G -> e
+        - T -> r
+    - Infix mapping:
+        - A -> a
+        - C -> s
+        - G -> d
+        - T -> f
     - Suffix mapping:
-         - A -> z
-         - C -> x
-         - G -> c
-         - T -> v
+        - A -> z
+        - C -> x
+        - G -> c
+        - T -> v
 
-    So, for a given sequence ("ACGT", "ACGT", "ACGT") the parsers changes it to:
-     - ("qwer", "asdf", "zxcv")
+    So, for instance, for a given sequence ("ACGT", "ACGT", "ACGT") the parsers change
+    it to:
+
+    - ("qwer", "asdf", "zxcv")
+
+    The transformed sequence is named the **extended** sequence.
 
     Parameters
     ----------
     vcf_path: str
-        Path of the vcf file
+        Path of the vcf file.
     fasta_path: str
-        Path of the fasta file
+        Path of the fasta file.
     """
 
     prefix_map: dict = generate_dict_values(PREFIX_SYMBOLS)
-    """ Mapping between nucleotides and the prefix symbols """
+    """Mapping between nucleotides and the prefix symbols."""
 
     mutations_map: dict = generate_dict_values(MUTATIONS_SYMBOLS)
-    """ Mapping between nucleotides and the mutation symbols """
+    """Mapping between nucleotides and the mutation symbols."""
 
     suffix_map: dict = generate_dict_values(SUFFIX_SYMBOLS)
-    """ Mapping between nucleotides and the suffix symbols """
+    """Mapping between nucleotides and the suffix symbols."""
 
     mutations_symbols: Union[list, tuple] = MUTATIONS_SYMBOLS
-    """ List of mutation symbols """
+    """List of mutation symbols."""
 
     @classmethod
-    def inverse_mutations_map(cls):
-        """ Inverse of mutations_map """
+    def _inverse_mutations_map(cls):
+        """Inverse of `mutations_map`."""
         return {value: key for key, value in cls.mutations_map.items()}
 
     name: str = "extended"
 
     @classmethod
     def method(cls, sequence: Union[tuple, list], mutation: str) -> tuple:
-        """Generates the extended sequence from a equence:
-            
-            sequence:               (ACGT,ACGT,ACGT)
-            sequence extended:      ([q,w,e,r],[a,s,d,f],[z,x,c,v])
+        """Parse the sequence with a given mutation to a new sequence with different
+        noation, in this case a **extended** sequence.
+
+        For instance, if the sequence is
+
+        ```python
+            ("ACGT","ACGT","ACGT")
+        ```
+
+        the method changes it to:
+
+        ```python
+            (
+                ["q", "w", "e", "r"],
+                ["a", "s", "d", "f"],
+                ["z", "x", "c", "v"]
+            )
+        ```
 
         Parameters
         ----------
         sequence: tuple
-            Sequence to simplify
+            Sequence.
         mutation: str
-            Mutation sequence
+            Mutation sequence.
 
         Returns
         -------
-        Sequence simplified
+        Transformed sequence.
         """
 
         left = [cls.prefix_map[nucletid.upper()] for nucletid in sequence[0]]
@@ -89,44 +109,58 @@ class ExtendedParserVcf(ParserVcf):
 
     def sequence_to_string(
         self,
-        original_sequence: str,
-        prefix: str,
         sequence: Union[tuple, list],
         mutation: str,
+        original_sequence: str,
+        prefix: str,
         separator_symbols: str = "-",
         separator_sequences: str = " ",
         prefix_separator: str = "*",
     ) -> str:
-        """Creates a string from a sequence and a mutation with the original sequence
-        (in a string shape) and a given prefix.
+        """Transforms a sequence (in a tuple format) to a string format, adding to this
+        string the original sequence (in a string format), the mutation, and a prefix.
 
-        For example, if our sequence is **(ACGT, ACGT, ACGT)**, te original sequence is
-        **ACGT**, the prefix is **prefix** and the mutation is **TGCA**, the method will
-        return:
+        This method use symbols that help to split the result into different parts:
 
+        - The symbol used to split the prefix, the original sequence, and the
+        transformed sequence is `"*"`.
+                
+        - The symbol used to split the prefix, infix, and suffix of the transformed
+        sequence are`" "`.
+
+        - The symbol used to split each symbol of the transformed sequence is `"-"`.
+
+        All these symbols can be changed if is necessary using the parameters of the
+        method.
+
+        For example, if our sequence is `("ACGT", "ACGT", "ACGT")`, te original sequence
+        is `"ACGT"`, the prefix is `"prefix"` and the mutation is `"TGCA"`, the method
+        will return:
+
+        ```python
             "ACGT*prefix*q-w-e-r f-d-s-a z-x-c-v"
+        ```
 
         Parameters
         ----------
         original_sequence: str
-            Original sequence in a string shape
+            Original sequence in a string shape.
         prefix: str
-            Prefix to append before the parsed sequence
+            Prefix to append before the parsed sequence.
         sequence: list, tuple
-            Sequence
+            Sequence.
         mutation: str
-            Mutation
+            Mutation.
         separator_symbols: str = "-"
-            Symbol that is between each symbol of the parsed sequence
+            Symbol that is between each symbol of the parsed sequence.
         separator_sequences: str = " "
-            Symbol that is between each part of the sequence (prefix, symbol, infix,
-            symbol, suffix)
+            Symbol that is between each symbol of the transformed sequence.
         prefix_separator: str = "*"
-            Symbols that divide each part of the prefix
+            Symbols that divide each part of the prefix.
 
         Returns
         -------
-        Sequence and original sequence with the prefix
+        Transformed sequence.
         """
         result_sequence = self.method(sequence, mutation)
 
@@ -155,24 +189,32 @@ class ExtendedParserVcf(ParserVcf):
         separator_sequences: str = " ",
         prefix_separator: str = "*",
     ) -> tuple:
-        """Gets a string sequence and returns the sequence in a tuple type.
+        """Gets a sequence in a string format and returns it in a tuple format. This
+        method will get the string sequences that had been transformed by
+        `sequence_to_string` method.
 
-        For example, if our sequence is **ACGT*prefix*q-w-e-r f-d-s-a z-x-c-v** the
-        method will return:
+        For instance, if our transformed sequence is:
 
+        ```python
+            "ACGT*prefix*q-w-e-r f-d-s-a z-x-c-v"
+        ```
+        
+        the method will return:
+
+        ```python
             ("qwer", "fdsa", "zxcv")
+        ```
 
         Parameters
         ----------
         sequence: str
-            Sequence in string format
+            Transformed sequence in string format.
         separator_symbols: str = "-"
-            Symbol that is between each symbol of the parsed sequence
+            Symbol that is between each symbol of the parsed sequence.
         separator_sequences: str = " "
-            Symbol that is between each part of the sequence (prefix, symbol, infix,
-            symbol, suffix)
+            Symbol that is between each symbol of the transformed sequence.
         prefix_separator: str = "*"
-            Symbols that divide each part of the prefix
+            Symbols that divide each part of the prefix.
 
         Returns
         -------
@@ -200,24 +242,32 @@ class ExtendedParserVcf(ParserVcf):
         separator_sequences: str = " ",
         prefix_separator: str = "*",
     ) -> str:
-        """Gets a string sequence and returns the sequence in a tuple type.
+        """Gets a sequence in a string format and returns it in a different string
+        format. This method will get the string sequences that had been transformed by
+        `sequence_to_string` method.
 
-        For example, if our sequence is **ACGT*prefix*q-w-e-r f-d-s-a z-x-c-v** the
-        method will return:
+        For instance, if our transformed sequence is:
 
+        ```python
+            "ACGT*prefix*q-w-e-r f-d-s-a z-x-c-v"
+        ```
+        
+        the method will return:
+
+        ```python
             "qwerfdsazxcv"
+        ```
 
         Parameters
         ----------
         sequence: str
-            Sequence in string format
+            Transformed sequence in string format.
         separator_symbols: str = "-"
-            Symbol that is between each symbol of the parsed sequence
+            Symbol that is between each symbol of the parsed sequence.
         separator_sequences: str = " "
-            Symbol that is between each part of the sequence (prefix, symbol, infix,
-            symbol, suffix)
+            Symbol that is between each symbol of the transformed sequence.
         prefix_separator: str = "*"
-            Symbols that divide each part of the prefix
+            Symbols that divide each part of the prefix.
 
         Returns
         -------

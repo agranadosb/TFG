@@ -26,27 +26,30 @@ MUTATION_TYPES = [
 
 
 class MutationParser(ExtendedParserVcf):
-    """Parser that transforms sequences into mutation type sequences and operates
-    between them.
+    """Parses data from the files VCF and FASTA and prepares that data for a machine
+    learning model in a file.
 
-    A mutation type sequence is a sequence that has a different symbol for each type of
-    mutation.
+    The **mutation parser** is similar to the **extended parser**, the difference is the
+    symbols present in the infix (or mutation) of the transformed sequence. In the
+    mutation parser case, each type of modification between the reference and the
+    mutation has a different symbol.
 
-    It means that we can get three types of mutations:
+    This means that we can get three types of mutations:
 
-        Insertion
-        Erase
-        Substitution
+    - **Insertion**
+    - **Erase**
+    - **Substitution**
 
-    And, if we have A,C,G and T symbols, each symbol has three possible mutations:
+    So, if we have "A", "C", "G" and "T" symbols for the infix, each symbol has three
+    possible mutations:
 
-        A -> [A_insertion, A_earsed, A_substitution]
-        C -> [C_insertion, C_earsed, C_substitution]
-        G -> [G_insertion, G_earsed, G_substitution]
-        T -> [T_insertion, T_earsed, T_substitution]
+        A -> ["A_insertion", "A_earsed", "A_substitution"]
+        C -> ["C_insertion", "C_earsed", "C_substitution"]
+        G -> ["G_insertion", "G_earsed", "G_substitution"]
+        T -> ["T_insertion", "T_earsed", "T_substitution"]
 
-    In this case, this method differentiates between prefix symbols and suffix symbols,
-    so the transformation of each symbol in each position is:
+    In this case, this method differentiates between prefix symbols and suffix symbols
+    (as the extended parser), so the transformation of each symbol in each position is:
 
     - **Prefix**
         - A -> q
@@ -74,6 +77,15 @@ class MutationParser(ExtendedParserVcf):
         - C -> x
         - G -> c
         - T -> v
+
+    The transformed sequence is named the **mutation** sequence.
+
+    Parameters
+    ----------
+    vcf_path: str
+        Path of the vcf file.
+    fasta_path: str
+        Path of the fasta file.
     """
 
     name: str = "mutation-type"
@@ -83,7 +95,7 @@ class MutationParser(ExtendedParserVcf):
         + MUTATIONS_EARSED_SYMBOLS
         + MUTATIONS_SUBSITUTION_SYMBOLS
     )
-    """ List of mutation symbols """
+    """List of mutation symbols."""
 
     mutations_map: dict = {
         operation: generate_dict_values(symbols)
@@ -91,16 +103,18 @@ class MutationParser(ExtendedParserVcf):
     }
     """ Mapping between nucleotides and the mutation symbols divided in each operation:
 
-        {
-            operation_1: {...} # mapping
-            operation_2: {...} # mapping
-            ...
-        }
+        ```python
+            {
+                operation_1: {...} # mapping
+                operation_2: {...} # mapping
+                ...
+            }
+        ```
     """
 
     @classmethod
-    def inverse_mutations_map(cls):
-        """ Inverse of mutations_map """
+    def _inverse_mutations_map(cls):
+        """Inverse of `mutations_map`"""
         res = {}
         for operation in cls.mutations_map:
             for symbol in cls.mutations_map[operation]:
@@ -109,22 +123,41 @@ class MutationParser(ExtendedParserVcf):
 
     @classmethod
     def method(cls, sequence: Union[tuple, list], mutation: str) -> tuple:
-        """Generates the mutation type sequence from a sequence:
+        """Parse the sequence with a given mutation to a new sequence with different
+        noation, in this case a **mutation** sequence.
+        
+        For instance, if the sequence is
 
-            sequence:               (ACGT,ACGT,ACGT)
-            mutation:               GTTCAC
-            mutation type sequence: ([q,w,e,r],[u,a,d,t,f],[z,x,c,v])
+        ```python
+            ("ACGT","ACGT","ACGT")
+        ```
+
+        and our mutation is:
+
+        ```python
+            "GTTCAC"
+        ```
+
+        the method changes it to:
+
+        ```python
+            (
+                ["q", "w", "e", "r"],
+                ["u", "a", "d", "t", "f"],
+                ["z", "x", "c", "v"]
+            )
+        ```
 
         Parameters
         ----------
         sequence : tuple
-            Sequence to simplify
+            Sequence.
         mutation : str
-            Mutation sequence
+            Mutation sequence.
 
         Returns
         -------
-        Sequence in a mutation type way
+        Transformed sequence.
         """
         infix = sequence[1]
 
