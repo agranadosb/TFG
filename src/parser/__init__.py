@@ -122,7 +122,7 @@ In this case, this method differentiates between prefix symbols and suffix symbo
 
 The transformed sequence is named the **mutation** sequence.
 """
-from . import extendedParser, parserVcf
+from . import extendedParser, mutationParser, parserVcf
 
 __pdoc__ = {}
 

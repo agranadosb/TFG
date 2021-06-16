@@ -23,8 +23,8 @@ class AbstractModel(ABC):
 
     The steps will be:
 
-        DATA -----> PARSER -----> TRAINER -----> MODEL [-----> SAVER]
-        DATA -----> PARSER [-----> LOADER] -----> MODEL -----> RESULT
+        DATA -----> PARSER -----> TRAINER -----> MODEL -----> TESTER [-----> SAVER]
+        DATA -----> PARSER [-----> LOADER] -----> MODEL -----> TESTER -----> RESULT
 
     So, to implement this class, will be necessary to define the next methods and
     attributes:
@@ -63,6 +63,12 @@ class AbstractModel(ABC):
     @property
     @abstractmethod
     def model(self):
+        """Attribute which returns the model after training."""
+        pass
+
+    @property
+    @abstractmethod
+    def tester(self):
         """Attribute which returns the model after training."""
         pass
 

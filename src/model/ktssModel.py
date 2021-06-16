@@ -11,6 +11,7 @@ from sortedcontainers import SortedDict, SortedSet
 from src.argumentParser.abstractArguments import AbstractModelArguments
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.model.abstractModel import AbstractModel
+from src.model.ktssValidation import KTSSValidator
 from src.parser.extendedParser import ExtendedParserVcf
 from tqdm import tqdm
 
@@ -54,10 +55,17 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
     """ Mapping between command line arguments and function arguments of the
     **trainer** method """
 
-    def __init__(self, save_path=False, restore_path=False, parser=ExtendedParserVcf):
+    def __init__(
+        self,
+        save_path=False,
+        restore_path=False,
+        parser=ExtendedParserVcf,
+        tester=KTSSValidator,
+    ):
         super().__init__(save_path=save_path, restore_path=restore_path)
         self._model = False
         self.parser_class = parser
+        self.tester_class = tester
         self.trainer_name = "ktt"
 
     def state_in_list(self, state: tuple, lst: list) -> bool:
@@ -298,6 +306,10 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         return self.parser_class
 
     @property
+    def tester(self):
+        return self.tester_class
+
+    @property
     def trainer(self):
         return self.training
 
@@ -380,3 +392,15 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         return AbstractModel.get_samples(
             samples, self.retrive_sequence, has_original, get_original
         )
+
+    def get_samples(self, path: str) -> zip:
+        with open(path) as samples_file:
+            lines = samples_file.readlines()
+            original_lines = [
+                lines[line] for line in range(len(lines)) if line % 2 == 0
+            ]
+            parsed_lines = [lines[line] for line in range(len(lines)) if line % 2 == 1]
+
+            zipped_lines = list(zip(original_lines, parsed_lines))
+        
+        return zipped_lines
