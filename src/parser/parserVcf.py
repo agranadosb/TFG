@@ -30,12 +30,15 @@ class ParserVcf(AbstractParserArguments, ABC):
     The parser will have static methods to send and retrieve the parsed and transformed
     sequence to a file in a specified format. To do this, the parser will need to be defined the methods:
 
-    - ** sequence_to_string **: Transforms a sequence in a list or tuple shape into a
-    string shape to be written into a file.
-    - ** retrive_sequence **: Get a sequence in a string shape and returns it as a
-    tuple.
-    - ** retrive_string_sequence **: Get a sequence in a string shape and returns it as
-    a string.
+    - ** sequence_to_string **: Transforms a sequence (in a tuple format) to a string
+    format, adding to this string the original sequence (in a string format), the
+    mutation and a prefix.
+    - ** retrive_sequence **: Gets a sequence in a string format and returns it in a
+    tuple format. This method will get the string sequences that had been transformed by
+    `sequence_to_string` method.
+    - ** retrive_string_sequence **: Gets a sequence in a string format and returns it
+    in a different string format. This method will get the string sequences that had
+    been transformed by `sequence_to_string` method.
 
     Parameters
     ----------
