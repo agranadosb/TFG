@@ -1,7 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from . import (argumentParser, constants, dataStructures, fasta, logging,
-               model, parser, runner, utils)
+from . import (
+    argumentParser,
+    constants,
+    dataStructures,
+    fasta,
+    logging,
+    model,
+    parser,
+    runner,
+    utils,
+)
 
 __pdoc__ = {}
 

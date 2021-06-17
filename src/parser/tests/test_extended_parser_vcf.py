@@ -107,7 +107,7 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
             "CTGACCGACTG|T\n**w-r-e-q-w s c-z-x-v-c\n",
         ]
         with patch("builtins.open", mock_open(read_data="data")):
-            result = self.parser.generate_sequences("")
+            result = self.parser._generate_sequences("")
 
         self.assertEqual(result, sequences)
 
@@ -125,7 +125,7 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
             "chr2\tCTGACCGACTG|T\n*chr2\t*w-r-e-q-w s c-z-x-v-c\n",
         ]
         with patch("builtins.open", mock_open(read_data="data")):
-            result = self.parser.generate_sequences("", write_chromosme=True)
+            result = self.parser._generate_sequences("", write_chromosme=True)
 
         self.assertEqual(result, sequences)
 
@@ -143,7 +143,7 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
             "**w-r-e-q-w s c-z-x-v-c\n",
         ]
         with patch("builtins.open", mock_open(read_data="data")):
-            result = self.parser.generate_sequences("", add_original=False)
+            result = self.parser._generate_sequences("", add_original=False)
 
         self.assertEqual(result, sequences)
 
@@ -161,7 +161,7 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
             "CTGACTGACTG\n**w-r-e-q-w s c-z-x-v-c\n",
         ]
         with patch("builtins.open", mock_open(read_data="data")):
-            result = self.parser.generate_sequences("", add_mutation_to_original=False)
+            result = self.parser._generate_sequences("", add_mutation_to_original=False)
 
         self.assertEqual(result, sequences)
 

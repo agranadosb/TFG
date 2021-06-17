@@ -2,7 +2,13 @@ from unittest import TestCase
 
 from sortedcontainers import SortedDict, SortedSet
 from src.model.ktssValidation import KTSSValidator
-from src.model.tests.factories import InvalidParserFactory, ParserFactory
+from src.model.tests.factories import (
+    InvalidParserFactory,
+    ParserFactory,
+    ParserFactoryKTSSValidatorAnnotate,
+    ParserFactoryKTSSValidatorAnnotateNested,
+    ParserFactoryKTSSValidatorDistances,
+)
 
 
 class TestKTSSValidator(TestCase):
@@ -33,359 +39,6 @@ class TestKTSSValidator(TestCase):
 
         return super().setUp()
 
-    def test__get_next_state(self):
-        prefix = "aa"
-        state = "aa"
-
-        result = self.ktss_validator._get_next_state(prefix)
-
-        self.assertEqual(result, state)
-
-    def test__get_next_state_from_empty_string(self):
-        prefix = ""
-        state = ""
-
-        result = self.ktss_validator._get_next_state(prefix)
-
-        self.assertEqual(result, state)
-
-    def test_generate_sequence(self):
-        symbol_list = ["a", "b"]
-        sequences = SortedSet(
-            [
-                "a",
-                "b",
-                "aa",
-                "ab",
-                "ba",
-                "bb",
-                "aaa",
-                "aab",
-                "aba",
-                "abb",
-                "baa",
-                "bab",
-                "bba",
-                "bbb",
-            ]
-        )
-
-        result = self.ktss_validator.generate_sequence(symbol_list)
-
-        self.assertEqual(result, sequences)
-
-    def test_generate_sequence_from_state(self):
-        symbol_list = ["a", "b"]
-        state = "a"
-        sequences = SortedSet(["a", "b", "aa", "ab", "ba", "bb"])
-
-        result = self.ktss_validator.generate_sequence(symbol_list, state=state)
-
-        self.assertEqual(result, sequences)
-
-    def test_generate_sequence_without_symbols(self):
-        symbol_list = []
-        state = "a"
-        sequences = SortedSet()
-
-        result = self.ktss_validator.generate_sequence(symbol_list, state=state)
-
-        self.assertEqual(result, sequences)
-
-    def test_generate_sequence_with_invalid_state(self):
-        symbol_list = ["a", "b"]
-        state = "c"
-        sequences = SortedSet()
-
-        result = self.ktss_validator.generate_sequence(symbol_list, state=state)
-
-        self.assertEqual(result, sequences)
-
-    def test_generate_sequence_with_invalid_symbols(self):
-        symbol_list = ["c"]
-        sequences = SortedSet()
-
-        result = self.ktss_validator.generate_sequence(symbol_list)
-
-        self.assertEqual(result, sequences)
-
-    def test_generate_sequence_with_valid_symbols(self):
-        symbol_list = ["a"]
-        sequences = SortedSet(["a", "aa", "aaa"])
-
-        result = self.ktss_validator.generate_sequence(symbol_list)
-
-        self.assertEqual(result, sequences)
-
-    def test_generate_sequence_example_case(self):
-        self.ktss_validator.dfa.transitions = {
-            "a": {"a": "aa", "b": "ab"},
-            "aa": {"a": "aaa", "b": "aab"},
-        }
-        symbol_list = ["a"]
-        state = "a"
-        sequences = SortedSet(["a", "aa"])
-
-        result = self.ktss_validator.generate_sequence(symbol_list, state=state)
-
-        self.assertEqual(result, sequences)
-
-    def test_get_model_sequence(self):
-        prefix = "a"
-        suffix = "b"
-        self.ktss_validator.infix_symbols = ["a"]
-        sequences = SortedSet(["a-a-b"])
-
-        result = self.ktss_validator._generate_infixes(prefix, suffix)
-
-        self.assertEqual(result, sequences)
-
-    def test_get_model_sequence_empty_prefix(self):
-        prefix = ""
-        suffix = "b"
-        self.ktss_validator.infix_symbols = ["a"]
-        sequences = SortedSet(["-a-b", "-aa-b"])
-
-        result = self.ktss_validator._generate_infixes(prefix, suffix)
-
-        self.assertEqual(result, sequences)
-
-    def test_get_model_sequence_empty_prefix_bb_suffix(self):
-        prefix = ""
-        suffix = "bb"
-        self.ktss_validator.infix_symbols = ["a"]
-        sequences = SortedSet(["-a-bb"])
-
-        result = self.ktss_validator._generate_infixes(prefix, suffix)
-
-        self.assertEqual(result, sequences)
-
-    def test_get_model_sequence_empty_suffix(self):
-        prefix = "a"
-        suffix = ""
-        self.ktss_validator.infix_symbols = ["a"]
-        sequences = SortedSet(["a-a-", "a-aa-"])
-
-        result = self.ktss_validator._generate_infixes(prefix, suffix)
-
-        self.assertEqual(result, sequences)
-
-    def test_get_model_sequence_all_big_sequences(self):
-        self.ktss_validator.dfa.alphabet = {"a", "b", "c"}
-        self.ktss_validator.dfa.add_transition("", "c", "c")
-        self.ktss_validator.dfa.add_transition("c", "a", "ca")
-        self.ktss_validator.dfa.add_transition("c", "b", "cb")
-        self.ktss_validator.dfa.add_transition("ca", "a", "caa")
-        self.ktss_validator.dfa.add_transition("cb", "a", "cba")
-        self.ktss_validator.dfa.add_transition("ca", "b", "cab")
-        self.ktss_validator.dfa.add_transition("cb", "b", "cbb")
-        self.ktss_validator.dfa.add_transition("caa", "a", "caaa")
-        self.ktss_validator.dfa.add_transition("cba", "a", "cbaa")
-        self.ktss_validator.dfa.add_transition("cab", "a", "caba")
-        self.ktss_validator.dfa.add_transition("cbb", "a", "cbba")
-        self.ktss_validator.dfa.add_transition("caa", "b", "caab")
-        self.ktss_validator.dfa.add_transition("cba", "b", "cbab")
-        self.ktss_validator.dfa.add_transition("cab", "b", "cabb")
-        self.ktss_validator.dfa.add_transition("cbb", "b", "cbbb")
-        self.ktss_validator.dfa.add_transition("caaa", "c", "caaac")
-        self.ktss_validator.dfa.add_transition("cbaa", "c", "cbaac")
-        self.ktss_validator.dfa.add_transition("caba", "c", "cabac")
-        self.ktss_validator.dfa.add_transition("cbba", "c", "cbbac")
-        self.ktss_validator.dfa.add_transition("caab", "c", "caabc")
-        self.ktss_validator.dfa.add_transition("cbab", "c", "cbabc")
-        self.ktss_validator.dfa.add_transition("cabb", "c", "cabbc")
-        self.ktss_validator.dfa.add_transition("cbbb", "c", "cbbbc")
-        prefix = "c"
-        suffix = "c"
-        self.ktss_validator.infix_symbols = ["a", "b"]
-        sequences = SortedSet(
-            [
-                "c-aaa-c",
-                "c-baa-c",
-                "c-aba-c",
-                "c-bba-c",
-                "c-aab-c",
-                "c-bab-c",
-                "c-abb-c",
-                "c-bbb-c",
-            ]
-        )
-
-        result = self.ktss_validator._generate_infixes(prefix, suffix)
-
-        self.assertEqual(result, sequences)
-
-    def test_generate_distances_invalid(self):
-        self.ktss_validator.infix_symbols = ["a", "b"]
-        self.ktss_validator.prefix_map = {"c": "c"}
-        self.ktss_validator.mutations_map = {"a": "a", "c": "c"}
-        self.ktss_validator.suffix_map = {"c": "c"}
-        sequences = [("caaac|a"), ("ccacc|a")]
-        distances = SortedDict(
-            {
-                "caaac": SortedDict({"false-aaa": 0.5}),
-                "ccacc": SortedDict({"false-sas": 0.5}),
-            }
-        )
-        prefix_length = 1
-        suffix_length = 1
-
-        result = self.ktss_validator.generate_distances(
-            sequences, prefix_length=prefix_length, suffix_length=suffix_length
-        )
-
-        self.assertEqual(result, distances)
-
-    def test_generate_distances(self):
-        self.ktss_validator.dfa.alphabet = {"a", "b", "c"}
-        self.ktss_validator.dfa.add_transition("", "c", "c")
-        self.ktss_validator.dfa.add_transition("c", "a", "ca")
-        self.ktss_validator.dfa.add_transition("c", "b", "cb")
-        self.ktss_validator.dfa.add_transition("ca", "a", "caa")
-        self.ktss_validator.dfa.add_transition("cb", "a", "cba")
-        self.ktss_validator.dfa.add_transition("ca", "b", "cab")
-        self.ktss_validator.dfa.add_transition("cb", "b", "cbb")
-        self.ktss_validator.dfa.add_transition("caa", "a", "caaa")
-        self.ktss_validator.dfa.add_transition("cba", "a", "cbaa")
-        self.ktss_validator.dfa.add_transition("cab", "a", "caba")
-        self.ktss_validator.dfa.add_transition("cbb", "a", "cbba")
-        self.ktss_validator.dfa.add_transition("caa", "b", "caab")
-        self.ktss_validator.dfa.add_transition("cba", "b", "cbab")
-        self.ktss_validator.dfa.add_transition("cab", "b", "cabb")
-        self.ktss_validator.dfa.add_transition("cbb", "b", "cbbb")
-        self.ktss_validator.dfa.add_transition("caaa", "c", "caaac")
-        self.ktss_validator.dfa.add_transition("cbaa", "c", "cbaac")
-        self.ktss_validator.dfa.add_transition("caba", "c", "cabac")
-        self.ktss_validator.dfa.add_transition("cbba", "c", "cbbac")
-        self.ktss_validator.dfa.add_transition("caab", "c", "caabc")
-        self.ktss_validator.dfa.add_transition("cbab", "c", "cbabc")
-        self.ktss_validator.dfa.add_transition("cabb", "c", "cabbc")
-        self.ktss_validator.dfa.add_transition("cbbb", "c", "cbbbc")
-        self.ktss_validator.infix_symbols = ["a", "b"]
-        self.ktss_validator.prefix_map = {"a": "a", "c": "c", "b": "b"}
-        self.ktss_validator.mutations_map = {"a": "a", "c": "c", "b": "b"}
-        self.ktss_validator._inverse_mutations_map = {"a": "a", "c": "c", "b": "b"}
-        self.ktss_validator.suffix_map = {"a": "a", "c": "c", "b": "b"}
-        self.ktss_validator.parser = ParserFactory
-        sequences = [
-            "caaac|a",
-            "ccacc|a",
-            "cabac|a",
-            "cbbac|a",
-            "ccaac|a",
-            "cbabc|a",
-            "ccccc|a",
-            "caccc|a",
-        ]
-        prefix_length = 1
-        suffix_length = 1
-        distances = SortedDict(
-            {
-                "caaac": SortedDict(
-                    {
-                        "aaa": 0.0,
-                        "aab": 0.007936507936507936,
-                        "aba": 0.007936507936507936,
-                        "abb": 0.015873015873015872,
-                        "baa": 0.007936507936507936,
-                        "bab": 0.015873015873015872,
-                        "bba": 0.015873015873015872,
-                        "bbb": 0.023809523809523808,
-                    }
-                ),
-                "cabac": SortedDict(
-                    {
-                        "aaa": 0.007936507936507936,
-                        "aab": 0.015873015873015872,
-                        "aba": 0.0,
-                        "abb": 0.007936507936507936,
-                        "baa": 0.015873015873015872,
-                        "bab": 0.015873015873015872,
-                        "bba": 0.007936507936507936,
-                        "bbb": 0.015873015873015872,
-                    }
-                ),
-                "caccc": SortedDict(
-                    {
-                        "aaa": 0.015873015873015872,
-                        "aab": 0.015873015873015872,
-                        "aba": 0.015873015873015872,
-                        "abb": 0.015873015873015872,
-                        "baa": 0.023809523809523808,
-                        "bab": 0.023809523809523808,
-                        "bba": 0.023809523809523808,
-                        "bbb": 0.023809523809523808,
-                    }
-                ),
-                "cbabc": SortedDict(
-                    {
-                        "aaa": 0.015873015873015872,
-                        "aab": 0.007936507936507936,
-                        "aba": 0.015873015873015872,
-                        "abb": 0.015873015873015872,
-                        "baa": 0.007936507936507936,
-                        "bab": 0.0,
-                        "bba": 0.015873015873015872,
-                        "bbb": 0.007936507936507936,
-                    }
-                ),
-                "cbbac": SortedDict(
-                    {
-                        "aaa": 0.015873015873015872,
-                        "aab": 0.023809523809523808,
-                        "aba": 0.007936507936507936,
-                        "abb": 0.015873015873015872,
-                        "baa": 0.007936507936507936,
-                        "bab": 0.015873015873015872,
-                        "bba": 0.0,
-                        "bbb": 0.007936507936507936,
-                    }
-                ),
-                "ccaac": SortedDict(
-                    {
-                        "aaa": 0.007936507936507936,
-                        "aab": 0.015873015873015872,
-                        "aba": 0.015873015873015872,
-                        "abb": 0.023809523809523808,
-                        "baa": 0.007936507936507936,
-                        "bab": 0.015873015873015872,
-                        "bba": 0.015873015873015872,
-                        "bbb": 0.023809523809523808,
-                    }
-                ),
-                "ccacc": SortedDict(
-                    {
-                        "aaa": 0.015873015873015872,
-                        "aab": 0.015873015873015872,
-                        "aba": 0.023809523809523808,
-                        "abb": 0.023809523809523808,
-                        "baa": 0.015873015873015872,
-                        "bab": 0.015873015873015872,
-                        "bba": 0.023809523809523808,
-                        "bbb": 0.023809523809523808,
-                    }
-                ),
-                "ccccc": SortedDict(
-                    {
-                        "aaa": 0.023809523809523808,
-                        "aab": 0.023809523809523808,
-                        "aba": 0.023809523809523808,
-                        "abb": 0.023809523809523808,
-                        "baa": 0.023809523809523808,
-                        "bab": 0.023809523809523808,
-                        "bba": 0.023809523809523808,
-                        "bbb": 0.023809523809523808,
-                    }
-                ),
-            }
-        )
-
-        result = self.ktss_validator.generate_distances(
-            sequences, prefix_length=prefix_length, suffix_length=suffix_length
-        )
-
-        self.assertEqual(result, distances)
-
     def test__set_mappings_valid(self):
         parser = ParserFactory()
 
@@ -407,10 +60,247 @@ class TestKTSSValidator(TestCase):
 
         self.assertTrue(is_invalid)
 
-    def test__get_minimum_distances(self):
-        distances = {"a": {"a": 1, "b": 0, "c": 2}, "b": {}, "c": False}
-        minimum_distances = {"a": {"b": 0}, "b": -1, "c": -1}
+    def test__string_distances_match(self):
+        string1 = "AAA"
+        string2 = "AAA"
+        difference = 0
 
-        result = KTSSValidator._get_minimum_distances(distances)
+        result = self.ktss_validator._string_distances(string1, string2)
 
-        self.assertEqual(result, minimum_distances)
+        self.assertEqual(result, difference)
+
+    def test__string_distances_not_match(self):
+        string1 = "AAA"
+        string2 = "AAB"
+        difference = 1
+
+        result = self.ktss_validator._string_distances(string1, string2)
+
+        self.assertEqual(result, difference)
+
+    def test__add_symbol_true(self):
+        symbol = "a"
+        mapping = {"a": "s"}
+        symbols = []
+        result = ["s"]
+
+        KTSSValidator._add_symbol(symbol, mapping, symbols)
+
+        self.assertEqual(symbols, result)
+
+    def test__add_symbol_false(self):
+        symbol = "v"
+        mapping = {"a": "s"}
+        symbols = []
+        result = []
+
+        KTSSValidator._add_symbol(symbol, mapping, symbols)
+
+        self.assertEqual(symbols, result)
+
+    def test__is_nested_true(self):
+        mapping = {"a": {}}
+
+        result = KTSSValidator._is_nested(mapping)
+
+        self.assertTrue(result)
+
+    def test__is_nested_false(self):
+        mapping = {}
+
+        result = KTSSValidator._is_nested(mapping)
+
+        self.assertFalse(result)
+
+    def test__filter_possibles(self):
+        state = ""
+        symbols = ["a", "b", "c", "d"]
+        possible_symbols = ["a", "b"]
+
+        result = self.ktss_validator._filter_possibles(state, symbols)
+
+        self.assertEqual(result, possible_symbols)
+
+    def test__filter_possibles_empty(self):
+        state = ""
+        symbols = ["c", "d"]
+        possible_symbols = []
+
+        result = self.ktss_validator._filter_possibles(state, symbols)
+
+        self.assertEqual(result, possible_symbols)
+
+
+class TestKTSSValidatorAnnotate(TestCase):
+    def setUp(self) -> None:
+        alphabet = {"a", "b", "d"}
+        states = {"1", "2", "3", "4", "5", "6", "7"}
+        transitions = {
+            "1": {"a": "2", "b": "3"},
+            "2": {"a": "4", "b": "5", "d": "6", "l": "15"},
+            "3": {"a": "7", "b": "8", "d": "9"},
+            "4": {"z": "10", "x": "11"},
+            "6": {"z": "12"},
+            "9": {"z": "13", "x": "14"},
+            "15": {"z": "16"},
+        }
+        initial_state = "1"
+        final_states = {}
+        model = {
+            "alphabet": alphabet,
+            "states": states,
+            "transitions": transitions,
+            "initial_state": initial_state,
+            "final_states": final_states,
+        }
+        self.ktss_validator = KTSSValidator(model)
+        self.ktss_validator.parser = ParserFactoryKTSSValidatorAnnotate
+        return super().setUp()
+
+    def test_annotate_sequence_empty(self):
+        sequence = ""
+        annotated = ""
+
+        result = self.ktss_validator.annotate_sequence(sequence)
+
+        self.assertEqual(result, annotated)
+
+    def test_2(self):
+        sequence = "A"
+        annotated = "a"
+
+        result = self.ktss_validator.annotate_sequence(sequence)
+
+        self.assertEqual(result, annotated)
+
+    def test_3(self):
+        sequence = "AAA"
+        annotated1 = "aaz"
+        annotated2 = "alz"
+
+        results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
+
+        self.assertIn(annotated1, results)
+        self.assertIn(annotated2, results)
+
+    def test_4(self):
+        sequence = "AC"
+        annotated = "ad"
+
+        result = self.ktss_validator.annotate_sequence(sequence)
+
+        self.assertEqual(result, annotated)
+
+    def test_5(self):
+        sequence = "AA"
+        annotated_mutation = "al"
+        annotated_not_muutation = "aa"
+
+        results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
+
+        self.assertIn(annotated_mutation, results)
+        self.assertIn(annotated_not_muutation, results)
+
+    def test_6(self):
+        sequence = "AAA"
+        annotated_mutation = "alz"
+        annotated_not_muutation = "aaz"
+
+        results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
+
+        self.assertIn(annotated_mutation, results)
+        self.assertIn(annotated_not_muutation, results)
+
+    def test_9(self):
+        sequence = "Z"
+        annotated1 = "a"
+        annotated2 = "b"
+
+        results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
+
+        self.assertIn(annotated1, results)
+        self.assertIn(annotated2, results)
+
+
+class TestKTSSValidatorAnnotateNested(TestCase):
+    def setUp(self) -> None:
+        alphabet = {"a", "b", "d"}
+        states = {"1", "2", "3", "4", "5", "6", "7"}
+        transitions = {
+            "1": {"a": "2", "b": "3"},
+            "2": {"a": "4", "b": "5", "d": "6", "l": "15"},
+            "3": {"a": "7", "b": "8", "d": "9"},
+            "4": {"z": "10", "x": "11"},
+            "6": {"z": "12"},
+            "9": {"z": "13", "x": "14"},
+            "15": {"z": "16"},
+        }
+        initial_state = "1"
+        final_states = {}
+        model = {
+            "alphabet": alphabet,
+            "states": states,
+            "transitions": transitions,
+            "initial_state": initial_state,
+            "final_states": final_states,
+        }
+        self.ktss_validator = KTSSValidator(model)
+        self.ktss_validator.parser = ParserFactoryKTSSValidatorAnnotateNested
+        return super().setUp()
+
+    def test_7(self):
+        sequence = "AA"
+        annotated1 = "aa"
+        annotated2 = "al"
+
+        results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
+
+        self.assertIn(annotated1, results)
+        self.assertIn(annotated2, results)
+
+
+class TestKTSSValidatorDistances(TestCase):
+    def setUp(self) -> None:
+        alphabet = {"a", "b", "d", "z", "x"}
+        states = {"1", "2", "3", "4", "5", "6", "7"}
+        transitions = {
+            "1": {"a": "2", "b": "3"},
+            "2": {"a": "4", "b": "5", "d": "6", "l": "15"},
+            "3": {"a": "7", "b": "8", "d": "9"},
+            "4": {"z": "10", "x": "11"},
+            "6": {"z": "12"},
+            "9": {"z": "13", "x": "14"},
+            "15": {"z": "16"},
+        }
+        initial_state = "1"
+        final_states = {}
+        model = {
+            "alphabet": alphabet,
+            "states": states,
+            "transitions": transitions,
+            "initial_state": initial_state,
+            "final_states": final_states,
+        }
+        self.ktss_validator = KTSSValidator(model)
+        self.ktss_validator.parser = ParserFactoryKTSSValidatorDistances
+        return super().setUp()
+
+    def test_generate_distances(self):
+        sequences = [("AAA", "aaz")]
+        annotated1 = {"AAA": 0, "error": 0}
+        annotated2 = {"AAA": 1, "error": 1 / 3}
+
+        results = [
+            self.ktss_validator.generate_distances(sequences) for _ in range(1000)
+        ]
+
+        self.assertIn(annotated1, results)
+        self.assertIn(annotated2, results)
+
+    def test_generate_distances_empty(self):
+        sequences = []
+        empty = {}
+
+        result = self.ktss_validator.generate_distances(sequences)
+
+        self.assertEqual(result, empty)

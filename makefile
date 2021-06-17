@@ -16,7 +16,7 @@ SEQUENCE_OPTIONS = -p_p $(LENGTH) -p_s $(LENGTH)
 # --------------------------------------------------------------------------------------
 PARSER_TYPE = m
 PARSER_ADD_ORIGINAL = -ao
-PARSER_OPTIONS = -p $(PARSER_TYPE) $(PARSER_ADD_ORIGINAL) -amto
+PARSER_OPTIONS = -p $(PARSER_TYPE) $(PARSER_ADD_ORIGINAL)
 
 # Model options
 # --------------------------------------------------------------------------------------
@@ -38,9 +38,9 @@ INIT = python3 init.py
 GENERAL_OPTIONS = $(INIT) -r $(RATIO) -steps $(STEPS) -o pm $(FILE_OPTIONS)
 
 build-docs:
-	pdoc --html --config show_source_code=False src --force
+	pdoc --html src --force
 build-docs-pdf:
-	pdoc --pdf --config show_source_code=False src --force
+	pdoc --pdf src --force
 test:
 	poetry run pytest
 black:
