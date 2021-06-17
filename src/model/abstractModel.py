@@ -95,7 +95,7 @@ class AbstractModel(ABC):
         if not self.restore_path:
             raise AttributeError("Loader path is not defined")
 
-    def get_samples(self, path: str, test_ratio: int, has_original: bool = True) -> zip:
+    def get_samples(self, path: str, test_ratio: int, is_paired: bool = True) -> zip:
         """Gets samples from a file that has a pair sample, one item per line.
 
         Parameters
@@ -104,8 +104,8 @@ class AbstractModel(ABC):
             Path of the file with the samples.
         test_ratio: int
             Ratio of training and test samples
-        has_original: bool
-            Specifies if the file has the original sequence.
+        is_paired: bool
+            Specifies if the file is paired and has two lines per sample.
 
         Returns
         -------
@@ -114,7 +114,7 @@ class AbstractModel(ABC):
         with open(path) as samples_file:
             lines = samples_file.readlines()
 
-        if not has_original:
+        if not is_paired:
             return lines
 
         original_lines = [lines[line] for line in range(len(lines)) if line % 2 == 0]
@@ -134,25 +134,25 @@ class AbstractModel(ABC):
         """
         shuffle(self.samples)
 
-    def get_training_samples(self, get_original: bool = True) -> list:
+    def get_training_samples(self, is_paired: bool = True, index: int = 1) -> list:
         """Generates the samples training data from the total of samples.
 
         Parameters
         ----------
-        has_original: bool
-            Specifies if the file has the original sequence.
-        get_original: bool
-            Specifies if the seqeunce that is wanted to be filtered is the original or
-            not.
+        is_paired: bool
+            Specifies if the file is paired and has two lines per sample.
+        index: int = 1
+            If the file is paired specifies what pair is obtained, the first (0) or
+            second (1)
 
         Returns
         -------
-        List of samples for training
+        List of samples for training.
         """
         samples = self.samples
-        if get_original:
+        if is_paired:
             samples = list(
-                map(lambda sample: sample[1], self.samples[: self.training_length])
+                map(lambda sample: sample[index], self.samples[: self.training_length])
             )
 
         return AbstractModel._get_samples(
@@ -162,14 +162,9 @@ class AbstractModel(ABC):
     def get_test_samples(self) -> list:
         """Generates the samples test data from the total of samples.
 
-        Parameters
-        ----------
-        has_original: bool
-            Specifies if the file has the original sequence.
-
         Returns
         -------
-        List of samples for test
+        List of samples for test.
         """
         return AbstractModel._get_samples(
             self.samples[self.training_length :], self._retrive_string_sample
@@ -190,21 +185,6 @@ class AbstractModel(ABC):
         The sequence in a string format.
         """
         return self.parser.retrive_string_sequence
-
-    @property
-    def _retrive_sample(self) -> Callable:
-        """Gets a sequence in a string format and returns it in a tuple format.
-
-        Parameters
-        ----------
-        sequence: str
-            Sequence in string format.
-
-        Returns
-        -------
-        Sequence in a list format.
-        """
-        return self.parser.retrive_sequence
 
     @classmethod
     def _get_samples(cls, samples: Union[list, tuple], method: Callable) -> list:

@@ -278,11 +278,9 @@ class KTSSValidator(AbstractValidationArguments):
             )
 
             if len(possible_symbols) < 1:
-                try:
-                    possible_symbols = list(self.dfa.transitions[current_state].keys())
-                except:
-                    if current_state in self.dfa.final_states:
-                        return separator.join(result)
+                if current_state in self.dfa.final_states:
+                    return separator.join(result)
+                possible_symbols = list(self.dfa.transitions[current_state].keys())
 
             """TODO: Cambiar cuando se añada el modelo estocástico y usar Viterbi"""
             symbol = possible_symbols[random.randint(0, len(possible_symbols) - 1)]
