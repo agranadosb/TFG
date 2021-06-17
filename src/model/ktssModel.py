@@ -205,7 +205,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
 
         return transitions
 
-    def training(
+    def _training(
         self,
         samples: Union[list, tuple],
         k: int,
@@ -309,20 +309,33 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
     def parser(self):
         return self.parser_class
 
-    def test(self, test_samples, parser_engine, **kwargs):
+    def _test(self, parser_engine, save_distances, filename, **kwargs):
         validator = self.tester_class(self.model, parser=parser_engine)
 
-        return validator.generate_distances(
-            test_samples,
+        distances = validator.generate_distances(
+            self.get_test_samples(),
             **validator.get_generate_distances_arguments(**kwargs),
         )
 
+        ratio_error = 0.0
+        for sequence in distances:
+            for error in distances[sequence]:
+                ratio_error += distances[sequence][error]
+
+        distances["error"] = ratio_error
+
+        if save_distances:
+            with open(filename, "w") as outfile:
+                json.dump(distances, outfile)
+        
+        return ratio_error
+
     @property
     def tester(self):
-        return self.test
+        return self._test
 
-    def _prepare_training(self, samples, **kwargs):
-        self.training(samples, **self.get_trainer_arguments(**kwargs))
+    def _prepare_training(self, **kwargs):
+        self._training(self.get_training_samples(), **self.get_trainer_arguments(**kwargs))
 
     @property
     def trainer(self):
@@ -365,66 +378,3 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
             }
 
             self._model = model
-
-    def get_training_samples(
-        self,
-        samples: Union[list, tuple],
-        has_original: bool = False,
-        get_original: bool = False,
-    ) -> list:
-        """Generates the samples training data from the total of samples
-
-        Parameters
-        ----------
-        samples: list, tuple
-            Samples
-
-        Returns
-        -------
-        List of samples for training
-        """
-        return AbstractModel.get_samples(
-            samples, self.retrive_string_sequence, has_original, get_original
-        )
-
-    def get_test_samples(
-        self,
-        samples: Union[list, tuple],
-        has_original: bool = False,
-        get_original: bool = True,
-    ) -> list:
-        """Generates the samples test data from the total of samples
-
-        Parameters
-        ----------
-        samples: list, tuple
-            Samples
-
-        Returns
-        -------
-        List of samples for test
-        """
-        return AbstractModel.get_samples(
-            samples, self.retrive_sequence, has_original, get_original
-        )
-
-    def get_model_samples(self, path: str) -> zip:
-        """Gets samples from a file that has a pair sample, one item per line.
-
-        Parameters
-        ----------
-        path: str
-            Path of the file with the samples.
-
-        Returns
-        -------
-        Samples in a list of pairs.
-        """
-        with open(path) as samples_file:
-            lines = samples_file.readlines()
-            original_lines = [
-                lines[line] for line in range(len(lines)) if line % 2 == 0
-            ]
-            parsed_lines = [lines[line] for line in range(len(lines)) if line % 2 == 1]
-
-        return list(zip(original_lines, parsed_lines))

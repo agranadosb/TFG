@@ -164,7 +164,7 @@ class TestKTSSModel(TestCase):
         final_states = {"a"}
         not_allowed_segments = {"a", "b"}
 
-        result = self.model.training(samples, k, get_not_allowed_segements=True)
+        result = self.model._training(samples, k, get_not_allowed_segements=True)
         same_transitions = all(map(lambda x: x in transitions, result["transitions"]))
 
         self.assertEqual(result["alphabet"], alphabet)
@@ -192,7 +192,7 @@ class TestKTSSModel(TestCase):
         final_states = {"ba", "bba", "aa"}
         not_allowed_segments = {"ab", "a", "b", "aa", "bbb", "bb", "ba", "aba", "bab"}
 
-        result = self.model.training(samples, k, get_not_allowed_segements=True)
+        result = self.model._training(samples, k, get_not_allowed_segements=True)
         same_transitions = all(map(lambda x: x in transitions, result["transitions"]))
 
         self.assertEqual(result["alphabet"], alphabet)
@@ -222,43 +222,43 @@ class TestKTSSModel(TestCase):
 
         self.assertEqual(transitions, {"a": {"b": "c", "d": "e"}})
 
-    def test_filter_samples_has_original_False(self):
+    def test__filter_samples_has_original_False(self):
         sequences = ["a", "b", "a", "b", "a", "b"]
         sequences_obtained = ["a", "b", "a", "b", "a", "b"]
 
-        result = KTSSModel.filter_samples(sequences)
+        result = KTSSModel._filter_samples(sequences)
 
         self.assertEqual(result, sequences_obtained)
 
-    def test_filter_samples_has_original_get_original_False(self):
+    def test__filter_samples_has_original_get_original_False(self):
         sequences = ["a", "b", "a", "b", "a", "b"]
         sequences_obtained = ["a", "b", "a", "b", "a", "b"]
 
-        result = KTSSModel.filter_samples(sequences)
+        result = KTSSModel._filter_samples(sequences)
 
         self.assertEqual(result, sequences_obtained)
 
-    def test_filter_samples_has_original_True_get_original_False(self):
+    def test__filter_samples_has_original_True_get_original_False(self):
         sequences = ["a", "b", "a", "b", "a", "b"]
         sequences_obtained = ["b", "b", "b"]
 
-        result = KTSSModel.filter_samples(sequences, has_original=True)
+        result = KTSSModel._filter_samples(sequences, has_original=True)
 
         self.assertEqual(result, sequences_obtained)
 
-    def test_filter_samples_has_original_False_get_original_True(self):
+    def test__filter_samples_has_original_False_get_original_True(self):
         sequences = ["a", "b", "a", "b", "a", "b"]
         sequences_obtained = ["a", "b", "a", "b", "a", "b"]
 
-        result = KTSSModel.filter_samples(sequences)
+        result = KTSSModel._filter_samples(sequences)
 
         self.assertEqual(result, sequences_obtained)
 
-    def test_filter_samples_has_original_True_get_original_True(self):
+    def test__filter_samples_has_original_True_get_original_True(self):
         sequences = ["a", "b", "a", "b", "a", "b"]
         sequences_obtained = ["a", "a", "a"]
 
-        result = KTSSModel.filter_samples(
+        result = KTSSModel._filter_samples(
             sequences, has_original=True, get_original=True
         )
 

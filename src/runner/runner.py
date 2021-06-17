@@ -74,16 +74,30 @@ class Runner(object):
     def train_and_test_model(self):
         total_error = 0.0
         step_ratio = 1 / self._steps
-        self._generate_samples()
+        self._model.get_samples(
+            f"{self._result_folder}{self._parser_engine._default_filename}",
+            self._test_ratio,
+        )
 
         for step in range(self._steps):
             logging.info("###########################################")
             logging.info(f"Validating step {step}")
             logging.info("###########################################")
 
-            self._shuffle_samples()
-            self._train_model()
-            error_model = self._test_model(step)
+            self._model.shuffle_samples()
+            self._model.trainer(**self._options)
+            self._model.saver()
+
+            filename = (
+                f"{self._result_folder}{self._model.trainer_name}-distances-{step}.json"
+            )
+
+            error_model = self._model.tester(
+                self._parser_engine,
+                self._save_distances,
+                filename,
+                **self._options,
+            )
 
             total_error += error_model * step_ratio
 
@@ -128,55 +142,10 @@ class Runner(object):
 
         return instance
 
-    def _test_model(self, step):
-        test_samples = self._model.get_test_samples(
-            self.lines[self.training_length :], has_original=True, get_original=True
-        )
-
-        distances = self._model.test(test_samples, self._parser_engine, **self._options)
-
-        ratio_error = 0.0
-        for sequence in distances:
-            for error in distances[sequence]:
-                ratio_error += distances[sequence][error]
-
-        distances["error"] = ratio_error
-
-        if self._save_distances:
-            filename = (
-                f"{self._result_folder}{self._model.trainer_name}-distances-{step}.json"
-            )
-            with open(filename, "w") as outfile:
-                json.dump(distances, outfile)
-
-        return ratio_error
-
-    def _generate_samples(self):
-        self.samples = self._model.get_model_samples(
-            f"{self._result_folder}{self._parser_engine._default_filename}"
-        )
-        self.training_length = int(len(self.samples) / 2 * self._test_ratio) * 2
-
-    def _shuffle_samples(self):
-        shuffle(self.samples)
-
-        self.lines = []
-        for line in self.samples:
-            self.lines += [line[0], line[1]]
-
-    def _train_model(self):
-        training_samples = self._model.get_training_samples(
-            self.lines[: self.training_length], has_original=True, get_original=False
-        )
-
-        self._model.trainer(training_samples, **self._options)
-        self._model.saver()
-
     def _start(self):
         if PARSER_MODEL_OPERATION == self._operation:
             self.parse_sequences()
-            accuracy = self.train_and_test_model()
-            return accuracy
+            return self.train_and_test_model()
 
         if PARSER_OPERATION in self._operation:
             self.parse_sequences()

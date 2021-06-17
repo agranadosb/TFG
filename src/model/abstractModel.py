@@ -2,6 +2,7 @@
 
 
 from abc import ABC, abstractmethod
+from random import shuffle
 from typing import Callable, Union
 
 from src.utils.folders import parse_route
@@ -9,7 +10,7 @@ from src.utils.folders import parse_route
 
 class AbstractModel(ABC):
     """This class contains default functionality to generate a model that will have
-    functions to train and functions to get the generated model.
+    functions to train a model and functions to get the generated model.
 
     This class will need data to train the model. This data will be typically a list of
     pairs (sample, result) or a list of samples that will be used to train a specified
@@ -29,10 +30,20 @@ class AbstractModel(ABC):
     attributes:
 
      - **parser**: Attribute which is the class of the parser used by the model.
-     - **trainer**: Attribute which returns the function to train the model.
+     - **trainer**: Function to train the model.
      - **model**: Attribute which returns the model after training.
+     - **tester**: Function that test the model.
      - **saver**: Method that saves the model in a file.
      - **loader**: Method that loads the model from a file.
+
+    This class also has methods to manage the samples for test and training methods:
+
+     - **get_samples**: Gets samples from a file that has a pair sample, one item per
+     line.
+     - **shuffle_samples**: Shuffle the samples.
+     - **get_training_samples**: Generates the samples training data from the total of
+     samples.
+     - **get_test_samples**: Generates the samples test data from the total of samples.
 
     Parameters
     ----------
@@ -53,10 +64,9 @@ class AbstractModel(ABC):
         """Attriubte which is the class of the parser used by the model."""
         pass
 
-    @property
     @abstractmethod
     def trainer(self):
-        """Attriubte which returns the function to train the model."""
+        """Function to train the model."""
         pass
 
     @property
@@ -65,10 +75,9 @@ class AbstractModel(ABC):
         """Attribute which returns the model after training."""
         pass
 
-    @property
     @abstractmethod
     def tester(self):
-        """Attribute which is the class of the tester of the model."""
+        """Function that test the model."""
         pass
 
     @abstractmethod
@@ -86,8 +95,117 @@ class AbstractModel(ABC):
         if not self.restore_path:
             raise AttributeError("Loader path is not defined")
 
+    def get_samples(self, path: str, test_ratio: int, has_original: bool = True) -> zip:
+        """Gets samples from a file that has a pair sample, one item per line.
+
+        Parameters
+        ----------
+        path: str
+            Path of the file with the samples.
+        test_ratio: int
+            Ratio of training and test samples
+        has_original: bool
+            Specifies if the file has the original sequence.
+
+        Returns
+        -------
+        Samples in a list of pairs.
+        """
+        with open(path) as samples_file:
+            lines = samples_file.readlines()
+
+        if not has_original:
+            return lines
+
+        original_lines = [lines[line] for line in range(len(lines)) if line % 2 == 0]
+        parsed_lines = [lines[line] for line in range(len(lines)) if line % 2 == 1]
+
+        self.raw_samples = list(zip(original_lines, parsed_lines))
+        self.shuffle_samples()
+
+        self.training_length = int(len(self.samples) / 2 * test_ratio) * 2
+
+        return self.samples
+
+    def shuffle_samples(
+        self,
+        has_original: bool = True,
+    ):
+        """Shuffle the samples.
+
+        Parameters
+        ----------
+        has_original: bool
+            Specifies if the file has the original sequence.
+
+        Returns
+        -------
+        Samples that have been shuffled.
+        """
+        shuffle(self.raw_samples)
+        self.samples = []
+        for line in self.raw_samples:
+            if has_original:
+                self.samples += [line[0], line[1]]
+            else:
+                self.samples += line
+
+        return self.samples
+
+    def get_training_samples(
+        self,
+        has_original: bool = True,
+        get_original: bool = False,
+    ) -> list:
+        """Generates the samples training data from the total of samples.
+
+        Parameters
+        ----------
+        has_original: bool
+            Specifies if the file has the original sequence.
+        get_original: bool
+            Specifies if the seqeunce that is wanted to be filtered is the original or
+            not.
+
+        Returns
+        -------
+        List of samples for training
+        """
+        return AbstractModel._get_samples(
+            self.samples[: self.training_length],
+            self._retrive_string_sample,
+            has_original,
+            get_original,
+        )
+
+    def get_test_samples(
+        self,
+        has_original: bool = True,
+        get_original: bool = True,
+    ) -> list:
+        """Generates the samples test data from the total of samples.
+
+        Parameters
+        ----------
+        has_original: bool
+            Specifies if the file has the original sequence.
+        get_original: bool
+            Specifies if the seqeunce that is wanted to be filtered is the original or
+            not.
+
+        Returns
+        -------
+        List of samples for test
+        """
+        return AbstractModel._get_samples(
+            self.samples[self.training_length :],
+            self._retrive_sample,
+            has_original,
+            get_original,
+        )
+
     @property
-    def retrive_string_sequence(self) -> Callable:
+    def _retrive_string_sample(self) -> Callable:
         """Gets a sequence in a string format and returns it in a different string
         format.
 
@@ -103,7 +221,7 @@ class AbstractModel(ABC):
         return self.parser.retrive_string_sequence
 
     @property
-    def retrive_sequence(self) -> Callable:
+    def _retrive_sample(self) -> Callable:
         """Gets a sequence in a string format and returns it in a tuple format.
 
         Parameters
@@ -118,7 +236,7 @@ class AbstractModel(ABC):
         return self.parser.retrive_sequence
 
     @staticmethod
-    def filter_samples(
+    def _filter_samples(
         samples: Union[list, tuple],
         has_original: bool = False,
         get_original: bool = False,
@@ -174,7 +292,7 @@ class AbstractModel(ABC):
         return samples
 
     @classmethod
-    def get_samples(
+    def _get_samples(
         cls,
         samples: Union[list, tuple],
         method: Callable,
@@ -189,12 +307,17 @@ class AbstractModel(ABC):
             List of samples.
         methods: function
             Function to apply to the samples.
+        has_original: bool
+            Specifies if the file has the original sequence.
+        get_original: bool
+            Specifies if the seqeunce that is wanted to be filtered is the original or
+            not.
 
         Returns
         -------
         The list with the samples with the method applied on them.
         """
-        samples = cls.filter_samples(samples, has_original, get_original)
+        samples = cls._filter_samples(samples, has_original, get_original)
 
         if get_original:
             method = lambda sample: sample
