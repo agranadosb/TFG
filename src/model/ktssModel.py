@@ -309,13 +309,24 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
     def parser(self):
         return self.parser_class
 
+    def test(self, test_samples, parser_engine, **kwargs):
+        validator = self.tester_class(self.model, parser=parser_engine)
+
+        return validator.generate_distances(
+            test_samples,
+            **validator.get_generate_distances_arguments(**kwargs),
+        )
+
     @property
     def tester(self):
-        return self.tester_class
+        return self.test
+
+    def _prepare_training(self, samples, **kwargs):
+        self.training(samples, **self.get_trainer_arguments(**kwargs))
 
     @property
     def trainer(self):
-        return self.training
+        return self._prepare_training
 
     @property
     def model(self):
@@ -404,7 +415,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         ----------
         path: str
             Path of the file with the samples.
-        
+
         Returns
         -------
         Samples in a list of pairs.

@@ -85,6 +85,9 @@ class ParserVcf(AbstractParserArguments, ABC):
         "amto": "add_mutation_to_original",
         "pfilename": "filename",
         "wc": "write_chromosme",
+        "parser_prefix": "prefix_length",
+        "parser_suffix": "suffix_length",
+        "result_folder": "path",
     }
     """ Mapping between command line arguments and function arguments of the
     **generate_sequence** method """
@@ -225,7 +228,7 @@ class ParserVcf(AbstractParserArguments, ABC):
         """
         pass
 
-    def generate_sequences(
+    def _generate_sequences(
         self,
         path: str,
         filename: str = False,
@@ -258,7 +261,7 @@ class ParserVcf(AbstractParserArguments, ABC):
             Length of the suffix.
         add_mutation_to_original: bool = True
             If true Add mutation to original sequence.
-        
+
         Returns
         -------
         Parsed sequences from vcf.
@@ -291,7 +294,7 @@ class ParserVcf(AbstractParserArguments, ABC):
                     )
 
                 parsed_sequence = self.sequence_to_string(
-                    sequence, i.ALT[0].sequence, original_sequence, prefix, 
+                    sequence, i.ALT[0].sequence, original_sequence, prefix
                 )
 
                 sequences.append(parsed_sequence)
@@ -299,6 +302,39 @@ class ParserVcf(AbstractParserArguments, ABC):
 
         logging.info("Parsing finalized\n")
         return sequences
+
+    def generate_sequences(self, **kwargs):
+        """Generates a file with the mutated sequences using the method `method` for
+        parse the sequence and the mutation.
+
+        There is many options for add more information bout the sequences, as add the
+        source chromsome of the sequence, the length of the prefix and suffix, add the
+        original sequence or add the mutation in the original sequence.
+
+        Parameters
+        ----------
+        path: str
+            Path to store the data.
+        filename: str = default_filename
+            Filename of the result file.
+        write_chromosme: bool = False
+            If true add the chromosome where the sequences is from into the file.
+        add_original: bool = False
+            If true adds the original sequence into the file.
+        prefix_length: int = 5
+            Length of the prefix.
+        suffix_length: int = 5
+            Length of the suffix.
+        add_mutation_to_original: bool = True
+            If true Add mutation to original sequence.
+
+        Returns
+        -------
+        Parsed sequences from vcf.
+        """
+        self._generate_sequences(
+            **self.get_generate_sequences_arguments(**kwargs),
+        )
 
     @staticmethod
     @abstractmethod

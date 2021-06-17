@@ -62,6 +62,8 @@ class KTSSValidator(AbstractValidationArguments):
         "min": "minimum",
         "aoval": "add_original",
         "amval": "add_mutation",
+        "parser_prefix": "prefix_length",
+        "parser_suffix": "suffix_length",
     }
     """ Mapping between command line arguments and function arguments of the
     **generate_distances** method """
@@ -376,7 +378,7 @@ class KTSSValidator(AbstractValidationArguments):
                         [self._inverse_mutations_map[char] for char in infix_string]
                     )
                 result[sequence_key][infix_key] = distance
-            
+
             if len(result[sequence_key].keys()) == 0:
                 result[sequence_key][f"false-{infix}"] = len(infix)
 
@@ -394,7 +396,6 @@ class KTSSValidator(AbstractValidationArguments):
             return KTSSValidator._get_minimum_distances(result)
 
         return result
-
 
     def annotate_sequence(self):
         """

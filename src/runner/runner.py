@@ -19,19 +19,19 @@ from src.utils.folders import parse_route
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
-parsers = {
+_parsers = {
     EXTENDED_PARSER_CODE: ExtendedParserVcf,
     MUTATION_PARSER_CODE: MutationParser,
 }
 
-models = {KTSS_MODEL: KTSSModel}
+_models = {KTSS_MODEL: KTSSModel}
 
-validators = {KTSS_MODEL: KTSSValidator}
-parser = ArgumentParser("Executes a parser or executes a parser and a model")
+_validators = {KTSS_MODEL: KTSSValidator}
+_argument_parser = ArgumentParser("Executes a parser or executes a parser and a model")
 
 """ TODO: Hacer que se detecten automáticamente todos las clases de argumentos """
 for i in KTSSModel._arguments + ParserVcf._arguments + KTSSValidator._arguments:
-    parser.add_argument(i)
+    _argument_parser.add_argument(i)
 
 
 class Runner(object):
@@ -50,28 +50,54 @@ class Runner(object):
         steps=10,
         **kwargs,
     ):
-        self.result_folder = parse_route(result_folder)
-        self.model_type = model_type
-        self.operation = operation
-        parser = parsers[parser]
+        self._result_folder = parse_route(result_folder)
+        self._operation = operation
+        parser = _parsers[parser]
 
-        self.model = models[model_type](
-            save_path=result_folder, parser=parser, tester=validators[model_type]
+        self._model = _models[model_type](
+            save_path=result_folder, parser=parser, tester=_validators[model_type]
         )
 
-        self.parser_prefix = parser_prefix
-        self.parser_suffix = parser_suffix
+        self._parser_prefix = parser_prefix
+        self._parser_suffix = parser_suffix
 
-        self.save_distances = save_distances
-        self.test_ratio = test_ratio
-        self.options = kwargs
-        self.steps = steps
+        self._save_distances = save_distances
+        self._test_ratio = test_ratio
+        self._options = _argument_parser.get_function_arguments()
+        self._steps = steps
 
-        self.parser_engine = parser(vcf_path, fasta_path)
+        self._parser_engine = parser(vcf_path, fasta_path)
+
+    def parse_sequences(self):
+        self._parser_engine.generate_sequences(**self._options)
+
+    def train_and_test_model(self):
+        total_error = 0.0
+        step_ratio = 1 / self._steps
+        self._generate_samples()
+
+        for step in range(self._steps):
+            logging.info("###########################################")
+            logging.info(f"Validating step {step}")
+            logging.info("###########################################")
+
+            self._shuffle_samples()
+            self._train_model()
+            error_model = self._test_model(step)
+
+            total_error += error_model * step_ratio
+
+        accuracy = (1 - total_error) * 100
+
+        logging.info("###########################################")
+        logging.info(f"Model accuracy: {accuracy:.10f} %")
+        logging.info("###########################################")
+
+        return accuracy
 
     @staticmethod
     def test():
-        args = parser.get_function_arguments()
+        args = _argument_parser.get_function_arguments()
 
         with open("results.txt", "w") as fr:
             print(f"LENGTH\tK\tRATIO\tACCURACY", file=fr)
@@ -96,65 +122,40 @@ class Runner(object):
             datefmt="%Y-%m-%d %H:%M:%S",
         )
 
-        instance = Runner(**parser.get_function_arguments())
+        instance = Runner(**_argument_parser.get_function_arguments())
 
-        instance.start()
+        instance._start()
 
         return instance
 
-    def parse_sequences(self):
-        self.parser_engine.generate_sequences(
-            self.result_folder,
-            prefix_length=self.parser_prefix,
-            suffix_length=self.parser_suffix,
-            **self.parser_engine.get_generate_sequences_arguments(**self.options),
-        )
-
     def _test_model(self, step):
-        test_samples = self.model.get_test_samples(
+        test_samples = self._model.get_test_samples(
             self.lines[self.training_length :], has_original=True, get_original=True
         )
 
-        validator = self.model.tester(self.model.model, parser=self.parser_engine)
-
-        distances = validator.generate_distances(
-            test_samples,
-            prefix_length=self.parser_prefix,
-            suffix_length=self.parser_suffix,
-            **validator.get_generate_distances_arguments(**self.options),
-        )
+        distances = self._model.test(test_samples, self._parser_engine, **self._options)
 
         ratio_error = 0.0
         for sequence in distances:
-            for infix in distances[sequence]:
-                ratio_error += distances[sequence][infix]
+            for error in distances[sequence]:
+                ratio_error += distances[sequence][error]
 
         distances["error"] = ratio_error
 
-        if self.save_distances:
-            with open(
-                f"{self.result_folder}{self.model.trainer_name}-distances-{step}.json",
-                "w",
-            ) as outfile:
+        if self._save_distances:
+            filename = (
+                f"{self._result_folder}{self._model.trainer_name}-distances-{step}.json"
+            )
+            with open(filename, "w") as outfile:
                 json.dump(distances, outfile)
 
         return ratio_error
 
-    def _train_model(self):
-        training_samples = self.model.get_training_samples(
-            self.lines[: self.training_length], has_original=True, get_original=False
-        )
-
-        self.model.trainer(
-            training_samples, **self.model.get_trainer_arguments(**self.options)
-        )
-        self.model.saver()
-
     def _generate_samples(self):
-        self.samples = self.model.get_model_samples(
-            f"{self.result_folder}{self.parser_engine._default_filename}"
+        self.samples = self._model.get_model_samples(
+            f"{self._result_folder}{self._parser_engine._default_filename}"
         )
-        self.training_length = int(len(self.samples) / 2 * self.test_ratio) * 2
+        self.training_length = int(len(self.samples) / 2 * self._test_ratio) * 2
 
     def _shuffle_samples(self):
         shuffle(self.samples)
@@ -163,35 +164,19 @@ class Runner(object):
         for line in self.samples:
             self.lines += [line[0], line[1]]
 
-    def train_and_test_model(self):
-        total_error = 0.0
-        step_ratio = 1 / self.steps
-        self._generate_samples()
+    def _train_model(self):
+        training_samples = self._model.get_training_samples(
+            self.lines[: self.training_length], has_original=True, get_original=False
+        )
 
-        for step in range(self.steps):
-            logging.info("###########################################")
-            logging.info(f"Validating step {step}")
-            logging.info("###########################################")
+        self._model.trainer(training_samples, **self._options)
+        self._model.saver()
 
-            self._shuffle_samples()
-            self._train_model()
-            error_model = self._test_model(step)
-
-            total_error += error_model * step_ratio
-
-        accuracy = (1 - total_error) * 100
-
-        logging.info("###########################################")
-        logging.info(f"Model accuracy: {accuracy:.10f} %")
-        logging.info("###########################################")
-
-        return accuracy
-
-    def start(self):
-        if PARSER_MODEL_OPERATION == self.operation:
+    def _start(self):
+        if PARSER_MODEL_OPERATION == self._operation:
             self.parse_sequences()
             accuracy = self.train_and_test_model()
             return accuracy
 
-        if PARSER_OPERATION in self.operation:
+        if PARSER_OPERATION in self._operation:
             self.parse_sequences()
