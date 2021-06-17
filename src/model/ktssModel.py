@@ -312,30 +312,22 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
     def _test(self, parser_engine, save_distances, filename, **kwargs):
         validator = self.tester_class(self.model, parser=parser_engine)
 
-        distances = validator.generate_distances(
-            self.get_test_samples(),
-            **validator.get_generate_distances_arguments(**kwargs),
-        )
-
-        ratio_error = 0.0
-        for sequence in distances:
-            for error in distances[sequence]:
-                ratio_error += distances[sequence][error]
-
-        distances["error"] = ratio_error
+        distances = validator.generate_distances(self.get_test_samples())
 
         if save_distances:
             with open(filename, "w") as outfile:
                 json.dump(distances, outfile)
-        
-        return ratio_error
+
+        return distances["error"]
 
     @property
     def tester(self):
         return self._test
 
     def _prepare_training(self, **kwargs):
-        self._training(self.get_training_samples(), **self.get_trainer_arguments(**kwargs))
+        self._training(
+            self.get_training_samples(), **self.get_trainer_arguments(**kwargs)
+        )
 
     @property
     def trainer(self):

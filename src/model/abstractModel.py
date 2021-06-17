@@ -120,43 +120,21 @@ class AbstractModel(ABC):
         original_lines = [lines[line] for line in range(len(lines)) if line % 2 == 0]
         parsed_lines = [lines[line] for line in range(len(lines)) if line % 2 == 1]
 
-        self.raw_samples = list(zip(original_lines, parsed_lines))
-        self.shuffle_samples()
-
-        self.training_length = int(len(self.samples) / 2 * test_ratio) * 2
+        self.samples = list(zip(original_lines, parsed_lines))
+        self.training_length = int(len(self.samples) * test_ratio)
 
         return self.samples
 
-    def shuffle_samples(
-        self,
-        has_original: bool = True,
-    ):
+    def shuffle_samples(self):
         """Shuffle the samples.
-
-        Parameters
-        ----------
-        has_original: bool
-            Specifies if the file has the original sequence.
 
         Returns
         -------
         Samples that have been shuffled.
         """
-        shuffle(self.raw_samples)
-        self.samples = []
-        for line in self.raw_samples:
-            if has_original:
-                self.samples += [line[0], line[1]]
-            else:
-                self.samples += line
+        shuffle(self.samples)
 
-        return self.samples
-
-    def get_training_samples(
-        self,
-        has_original: bool = True,
-        get_original: bool = False,
-    ) -> list:
+    def get_training_samples(self, get_original: bool = True) -> list:
         """Generates the samples training data from the total of samples.
 
         Parameters
@@ -171,37 +149,30 @@ class AbstractModel(ABC):
         -------
         List of samples for training
         """
+        samples = self.samples
+        if get_original:
+            samples = list(
+                map(lambda sample: sample[1], self.samples[: self.training_length])
+            )
+
         return AbstractModel._get_samples(
-            self.samples[: self.training_length],
-            self._retrive_string_sample,
-            has_original,
-            get_original,
+            samples[: self.training_length], self._retrive_string_sample
         )
 
-    def get_test_samples(
-        self,
-        has_original: bool = True,
-        get_original: bool = True,
-    ) -> list:
+    def get_test_samples(self) -> list:
         """Generates the samples test data from the total of samples.
 
         Parameters
         ----------
         has_original: bool
             Specifies if the file has the original sequence.
-        get_original: bool
-            Specifies if the seqeunce that is wanted to be filtered is the original or
-            not.
 
         Returns
         -------
         List of samples for test
         """
         return AbstractModel._get_samples(
-            self.samples[self.training_length :],
-            self._retrive_sample,
-            has_original,
-            get_original,
+            self.samples[self.training_length :], self._retrive_string_sample
         )
 
     @property
@@ -235,96 +206,27 @@ class AbstractModel(ABC):
         """
         return self.parser.retrive_sequence
 
-    @staticmethod
-    def _filter_samples(
-        samples: Union[list, tuple],
-        has_original: bool = False,
-        get_original: bool = False,
-    ) -> Union[list, tuple]:
-        """If the samples have been parsed with the flag `write_original` to True, this
-        method only takes the lines that are in position odd and even, depends if
-        `get_orignal` is set True or False.
-
-        This is because the parser creates a file (with the flag `write_original` to
-        True) which is an original sequence and parsed sequence per each pair of lines
-        in the file.
-
-        It means that the file with the sequences will look like this:
-
-            Original_1
-            Parsed_1
-            Original_2
-            Parsed_2
-            ...
-            Original_N
-            Parsed_N
-
-        So the list will be:
-
-        ```python
-            ["Original_1", "Parsed_1", ..., "Original_N", "Parsed_N"]
-        ```
-
-        That's the reason for filter depending on the parity of the index of the sample.
-
-        Parameters
-        ----------
-        samples: list, tuple
-            Samples to be filtered.
-        has_original: bool
-            Specifies if the file has the original sequence.
-        get_original: bool
-            Specifies if the seqeunce that is wanted to be filtered is the original or
-            not.
-
-        Returns
-        -------
-        List of the filtered samples.
-        """
-        if has_original:
-            index_allowed = 1
-            if get_original:
-                index_allowed = 0
-            samples = [
-                samples[i] for i in range(len(samples)) if i % 2 == index_allowed
-            ]
-
-        return samples
-
     @classmethod
-    def _get_samples(
-        cls,
-        samples: Union[list, tuple],
-        method: Callable,
-        has_original: bool = False,
-        get_original: bool = True,
-    ) -> list:
+    def _get_samples(cls, samples: Union[list, tuple], method: Callable) -> list:
         """Gets a list of samples and applies a method to that samples.
 
         Parameters
         ----------
         samples: list, tuple
             List of samples.
-        methods: function
+        method: function
             Function to apply to the samples.
-        has_original: bool
-            Specifies if the file has the original sequence.
-        get_original: bool
-            Specifies if the seqeunce that is wanted to be filtered is the original or
-            not.
 
         Returns
         -------
         The list with the samples with the method applied on them.
         """
-        samples = cls._filter_samples(samples, has_original, get_original)
+        result = []
+        for sample in samples:
+            if isinstance(sample, (list, tuple)):
+                sample = (sample[0].rstrip(), method(sample[1].rstrip()))
+            else:
+                sample = method(sample.rstrip())
+            result.append(sample)
 
-        if get_original:
-            method = lambda sample: sample
-
-        return list(
-            map(
-                lambda sample: method(sample.rstrip()),
-                samples,
-            )
-        )
+        return result

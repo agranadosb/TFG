@@ -124,7 +124,7 @@ class ExtendedParserVcf(ParserVcf):
 
         - The symbol used to split the prefix, the original sequence, and the
         transformed sequence is `"*"`.
-                
+
         - The symbol used to split the prefix, infix, and suffix of the transformed
         sequence are`" "`.
 
@@ -198,7 +198,7 @@ class ExtendedParserVcf(ParserVcf):
         ```python
             "ACGT*prefix*q-w-e-r f-d-s-a z-x-c-v"
         ```
-        
+
         the method will return:
 
         ```python
@@ -251,7 +251,7 @@ class ExtendedParserVcf(ParserVcf):
         ```python
             "ACGT*prefix*q-w-e-r f-d-s-a z-x-c-v"
         ```
-        
+
         the method will return:
 
         ```python

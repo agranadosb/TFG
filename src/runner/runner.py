@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import json
 import logging
 import os
-from random import shuffle
 
 from src.argumentParser.argumentParser import ArgumentParser
-from src.constants.constants import (EXTENDED_PARSER_CODE, KTSS_MODEL,
-                                     MUTATION_PARSER_CODE,
-                                     PARSER_MODEL_OPERATION, PARSER_OPERATION)
+from src.constants.constants import (
+    EXTENDED_PARSER_CODE,
+    KTSS_MODEL,
+    MUTATION_PARSER_CODE,
+    PARSER_MODEL_OPERATION,
+    PARSER_OPERATION,
+)
 from src.model.ktssModel import KTSSModel
 from src.model.ktssValidation import KTSSValidator
 from src.parser.extendedParser import ExtendedParserVcf

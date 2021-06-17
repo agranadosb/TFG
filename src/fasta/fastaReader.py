@@ -298,9 +298,7 @@ class FastaReader(object):
         self._set_fasta_line_length()
 
         """ TODO: Add compatibility with windows using "type file | findstr /R /C:">" """
-        command = (
-            f"cat {self.fasta_filename} | grep -n '>' > {fasta_index_filename}"
-        )
+        command = f"cat {self.fasta_filename} | grep -n '>' > {fasta_index_filename}"
         os.system(command)
         logging.info("Loading chromosomes")
         with open(fasta_index_filename, "r") as fasta_index_file:

@@ -13,7 +13,7 @@ class TestFastaReader(TestCase):
         result = parse_route(route)
 
         self.assertEqual(parsed_route, result)
-    
+
     def test_parse_route_false(self):
         route = ""
         parsed_route = ""
@@ -21,7 +21,7 @@ class TestFastaReader(TestCase):
         result = parse_route(route)
 
         self.assertEqual(parsed_route, result)
-    
+
     def test_parse_route_correct(self):
         route = "route/"
 

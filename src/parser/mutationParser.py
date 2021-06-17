@@ -125,7 +125,7 @@ class MutationParser(ExtendedParserVcf):
     def method(cls, sequence: Union[tuple, list], mutation: str) -> tuple:
         """Parse the sequence with a given mutation to a new sequence with different
         noation, in this case a **mutation** sequence.
-        
+
         For instance, if the sequence is
 
         ```python
