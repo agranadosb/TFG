@@ -178,6 +178,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
     def _add_transition(
         self,
         transitions: Union[OrderedDict, dict],
+        counter: Union[OrderedDict, dict],
         from_state: str,
         symbol: str,
         to_state: str,
@@ -188,6 +189,8 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         ----------
         transitions: OrderedDict, dict
             Ordered dict that contains transitions.
+        counter: OrderedDict, dict
+            Ordered dict that contains the number of times that a transition happens.
         from_state: str
             String that represent the source state.
         symbol: str
@@ -201,9 +204,68 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         """
         if not transitions.get(from_state):
             transitions[from_state] = SortedDict({})
+            counter[from_state] = SortedDict({})
+
+        symbol_counter = 1
+        if transitions[from_state].get(symbol, False):
+            symbol_counter = counter[from_state][symbol] + 1
         transitions[from_state][symbol] = to_state
+        counter[from_state][symbol] = symbol_counter
 
         return transitions
+
+    @staticmethod
+    def _generate_probabilities(
+        counter: Union[OrderedDict, dict]
+    ) -> Union[OrderedDict, dict]:
+        """Creates a dict of probabilities from a counter of transitions. This method
+        loops for every transition and generates the probability of each transition per
+        symbol dividing bby the posible transitions from a state.
+
+        For example, if our counter is:
+
+        ```python
+            {
+                "": {"a": 2, "b": 2},
+                "a": {"b": 1, "a": 1},
+                "b": {"b": 2},
+                "aa": {"b": 1, "a": 2},
+                "bb": {"a": 4},
+                "ba": {"a": 1},
+                "ab": {"b": 2},
+            }
+        ```
+
+        This method will return:
+
+        ```python
+            {
+                "": {"a": 1 / 2, "b": 1 / 2},
+                "a": {"b": 1 / 2, "a": 1 / 2},
+                "b": {"b": 1},
+                "aa": {"b": 1 / 3, "a": 2 / 3},
+                "bb": {"a": 1},
+                "ba": {"a": 1},
+                "ab": {"b": 1},
+            }
+        ```
+
+        Parameters
+        ----------
+        counter: OrderedDict, dict
+            Ordered dict that contains the number of times that a transition happens.
+
+        Returns
+        -------
+        The same dictionary but with probabilities as values.
+        """
+        result = OrderedDict({})
+        for state in counter:
+            result[state] = OrderedDict({})
+            total = sum(counter[state].values())
+            for symbol in counter[state]:
+                result[state][symbol] = counter[state][symbol] / total
+        return result
 
     def _training(
         self,
@@ -229,6 +291,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
                 "states": states,
                 "alphabet": alphabet,
                 "transitions": transitions,
+                "probabilities": probabilities,
                 "initial_state": initial_state,
                 "final_states": final_states,
                 "not_allowed_segments": not_allowed_segments,
@@ -264,39 +327,48 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
             logging.info(f"Generating sigma with alphabet {alphabet}")
             not_allowed_segments = self._generate_sigma(alphabet, k) - infixes
 
-        q = [""]
-        s = SortedDict({})
-        q0 = ""
+        states = [""]
+        transitions = SortedDict({})
+        counter = SortedDict({})
 
         logging.info("Generating states from prefixes")
         for prefix in tqdm(prefixes, file=tqdm_out):
-            self._add_transition(s, "", prefix[0], prefix[0])
+            self._add_transition(transitions, counter, "", prefix[0], prefix[0])
             for char_index in range(len(prefix)):
-                q.append([prefix[: char_index + 1]])
+                states.append([prefix[: char_index + 1]])
 
                 self._add_transition(
-                    s, prefix[:char_index], prefix[char_index], prefix[: char_index + 1]
+                    transitions,
+                    counter,
+                    prefix[:char_index],
+                    prefix[char_index],
+                    prefix[: char_index + 1],
                 )
 
         logging.info("Generating states from infixes")
         for infix in tqdm(infixes, file=tqdm_out):
-            q.append([infix[: k - 1], infix[2:k]])
-            self._add_transition(s, infix[: k - 1], infix[k - 1], infix[1:k])
+            states.append([infix[: k - 1], infix[2:k]])
+            self._add_transition(
+                transitions, counter, infix[: k - 1], infix[k - 1], infix[1:k]
+            )
 
         logging.info("Remove repeated and empty states")
-        q = SortedSet(
+        states = SortedSet(
             map(
                 lambda x: x if type(x) == str else x[0],
-                filter(lambda x: type(x) == str or all(x), q),
+                filter(lambda x: type(x) == str or all(x), states),
             )
         )
 
+        probabilities = KTSSModel._generate_probabilities(counter)
+
         self._model = {
-            "states": q,
+            "states": states,
             "alphabet": alphabet,
-            "transitions": s,
-            "initial_state": q0,
+            "transitions": transitions,
+            "initial_state": "",
             "final_states": suffixes,
+            "probabilities": probabilities,
         }
 
         if get_not_allowed_segements:
@@ -347,6 +419,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
                 "transitions": self.model["transitions"],
                 "initial_state": self.model["initial_state"],
                 "final_states": list(self.model["final_states"]),
+                "probabilities": self.model["probabilities"],
             }
 
             if self.model.get("not_allowed_segments", False):

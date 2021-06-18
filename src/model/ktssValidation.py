@@ -1,9 +1,8 @@
 import logging
 import random
-from queue import Queue
 from typing import Callable, Union
 
-from sortedcontainers import SortedDict, SortedSet
+from sortedcontainers import SortedDict
 from src.argumentParser.abstractArguments import AbstractValidationArguments
 from src.dataStructures.dfa import DFA
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
@@ -85,45 +84,6 @@ class KTSSValidator(AbstractValidationArguments):
             model["final_states"],
         )
 
-    def _set_mappings(self, parser: ParserVcf):
-        """Set the mappings for the prefix, infix, and suffix between an original symbol
-        and parsed symbol.
-
-        Parameters
-        ----------
-        parser: ParserVcf
-            Parser where the mappings will be obtained.
-
-        Raise
-        -----
-        NotImplementedError: When a mapping attribute _inverse_mutations_map is not
-        defined on the parser class.
-        """
-        try:
-            self._inverse_mutations_map = parser._inverse_mutations_map()
-        except AttributeError:
-            raise NotImplementedError(
-                "For this metohd is necessary to define prefix_map, mutations_map, suffix_map attributes into the parser class"
-            )
-
-    def _string_distances(
-        self, string1: str, string2: str, method: Callable = levenshtein
-    ) -> Union[int, float]:
-        """Mehod to comparing distance between two sequences.
-
-        Parameters
-        ----------
-        string1: str
-            Sequence 1.
-        string2: str
-            Sequence 2.
-
-        Returns
-        -------
-        The distance between the two sequences.
-        """
-        return method(string1, string2)
-
     def generate_distances(self, sequences: Union[list, tuple]) -> SortedDict:
         """Generates all the distances of an infix of a given list of sequences of all
         the possible infixes.
@@ -159,56 +119,6 @@ class KTSSValidator(AbstractValidationArguments):
             result["error"] = total_errors / total_chars
 
         return result
-
-    @staticmethod
-    def _add_symbol(symbol: str, mapping: dict, symbols: list) -> None:
-        """If a symbol is present on a mapping as key adds the value to a list. If the
-        symbol is not present into the mapping, not add nothing.
-
-        Parameters
-        ----------
-        symbol: str
-            Symbol that will be the key of the mapping.
-        mapping: dict
-            Map where the value will be obtained.
-        symbols: list
-            List of symbols to append the value.
-        """
-        if symbol in mapping:
-            symbols.append(mapping[symbol])
-
-    @staticmethod
-    def _is_nested(mapping: dict) -> bool:
-        """Checks if a map is nested.
-
-        Parameters
-        ----------
-        mapping: dict
-            Map that will be checked.
-
-        Returns
-        -------
-        True if the map is nested, otherwise false.
-        """
-        return any(isinstance(i, dict) for i in mapping.values())
-
-    def _filter_possibles(self, state: str, symbols: list) -> list:
-        """Filter the symbols that can do a transition in a DFA from a given state.
-
-        Parameters
-        ----------
-        state: str
-            Origin state.
-        symbols: list
-            List of symbols to filter.
-
-        Returns
-        -------
-        The filtered list.
-        """
-        return list(
-            filter(lambda symbol: self.dfa.has_transition(state, symbol), symbols)
-        )
 
     def annotate_sequence(self, sequence: str, separator: str = "") -> str:
         """Gets a string sequence, and annotates it.
@@ -289,3 +199,92 @@ class KTSSValidator(AbstractValidationArguments):
             current_state = self.dfa.next_state(symbol, current_state)
 
         return separator.join(result)
+
+    def _set_mappings(self, parser: ParserVcf):
+        """Set the mappings for the prefix, infix, and suffix between an original symbol
+        and parsed symbol.
+
+        Parameters
+        ----------
+        parser: ParserVcf
+            Parser where the mappings will be obtained.
+
+        Raise
+        -----
+        NotImplementedError: When a mapping attribute _inverse_mutations_map is not
+        defined on the parser class.
+        """
+        try:
+            self._inverse_mutations_map = parser._inverse_mutations_map()
+        except AttributeError:
+            raise NotImplementedError(
+                "For this metohd is necessary to define prefix_map, mutations_map, suffix_map attributes into the parser class"
+            )
+
+    def _string_distances(
+        self, string1: str, string2: str, method: Callable = levenshtein
+    ) -> Union[int, float]:
+        """Mehod to comparing distance between two sequences.
+
+        Parameters
+        ----------
+        string1: str
+            Sequence 1.
+        string2: str
+            Sequence 2.
+
+        Returns
+        -------
+        The distance between the two sequences.
+        """
+        return method(string1, string2)
+
+    @staticmethod
+    def _add_symbol(symbol: str, mapping: dict, symbols: list) -> None:
+        """If a symbol is present on a mapping as key adds the value to a list. If the
+        symbol is not present into the mapping, not add nothing.
+
+        Parameters
+        ----------
+        symbol: str
+            Symbol that will be the key of the mapping.
+        mapping: dict
+            Map where the value will be obtained.
+        symbols: list
+            List of symbols to append the value.
+        """
+        if symbol in mapping:
+            symbols.append(mapping[symbol])
+
+    @staticmethod
+    def _is_nested(mapping: dict) -> bool:
+        """Checks if a map is nested.
+
+        Parameters
+        ----------
+        mapping: dict
+            Map that will be checked.
+
+        Returns
+        -------
+        True if the map is nested, otherwise false.
+        """
+        return any(isinstance(i, dict) for i in mapping.values())
+
+    def _filter_possibles(self, state: str, symbols: list) -> list:
+        """Filter the symbols that can do a transition in a DFA from a given state.
+
+        Parameters
+        ----------
+        state: str
+            Origin state.
+        symbols: list
+            List of symbols to filter.
+
+        Returns
+        -------
+        The filtered list.
+        """
+        return list(
+            filter(lambda symbol: self.dfa.has_transition(state, symbol), symbols)
+        )

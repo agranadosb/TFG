@@ -204,20 +204,118 @@ class TestKTSSModel(TestCase):
 
     def test__add_transition_empty_transitions(self):
         transitions = {}
+        probabilities = {}
         from_state = "a"
         symbol = "b"
         to_state = "c"
 
-        self.model._add_transition(transitions, from_state, symbol, to_state)
+        self.model._add_transition(
+            transitions, probabilities, from_state, symbol, to_state
+        )
 
         self.assertEqual(transitions, {"a": {"b": "c"}})
 
     def test__add_transition_not_empty_transitions(self):
         transitions = {"a": {"d": "e"}}
+        probabilities = {"a": {"d": 1}}
         from_state = "a"
         symbol = "b"
         to_state = "c"
 
-        self.model._add_transition(transitions, from_state, symbol, to_state)
+        self.model._add_transition(
+            transitions, probabilities, from_state, symbol, to_state
+        )
 
         self.assertEqual(transitions, {"a": {"b": "c", "d": "e"}})
+
+
+class TestKTSSModelProbabilities(TestCase):
+    def setUp(self) -> None:
+        self.model = KTSSModel()
+        return super().setUp()
+
+    def test__add_transition_not_empty_probabilities(self):
+        transitions = {"a": {"d": "e"}}
+        probabilities = {"a": {"d": 1}}
+        from_state = "a"
+        symbol = "b"
+        to_state = "c"
+
+        self.model._add_transition(
+            transitions, probabilities, from_state, symbol, to_state
+        )
+
+        self.assertEqual(probabilities, {"a": {"b": 1, "d": 1}})
+
+    def test__add_transition_empty_probabilities(self):
+        transitions = {}
+        probabilities = {}
+        from_state = "a"
+        symbol = "b"
+        to_state = "c"
+
+        self.model._add_transition(
+            transitions, probabilities, from_state, symbol, to_state
+        )
+
+        self.assertEqual(probabilities, {"a": {"b": 1}})
+
+    def test_training_k_2(self):
+        samples = ["abba", "aaabba", "bbaaa", "bba"]
+        k = 2
+        probabilities = {
+            "": {"a": 1 / 2, "b": 1 / 2},
+            "a": {"a": 2 / 3, "b": 1 / 3},
+            "b": {"a": 1 / 2, "b": 1 / 2},
+        }
+
+        result = self.model._training(samples, k, get_not_allowed_segements=True)
+        same_probabilities = all(
+            map(lambda x: x in probabilities, result["probabilities"])
+        )
+
+        self.assertTrue(same_probabilities)
+
+    def test_training_k_3(self):
+        samples = ["abba", "aaabba", "bbaaa", "bba"]
+        k = 3
+        probabilities = {
+            "": {"a": 1 / 2, "b": 1 / 2},
+            "a": {"b": 1 / 2, "a": 1 / 2},
+            "b": {"b": 1},
+            "aa": {"b": 1 / 3, "a": 2 / 3},
+            "bb": {"a": 1},
+            "ba": {"a": 1},
+            "ab": {"b": 1},
+        }
+
+        result = self.model._training(samples, k, get_not_allowed_segements=True)
+        same_probabilities = all(
+            map(lambda x: x in probabilities, result["probabilities"])
+        )
+
+        self.assertTrue(same_probabilities)
+
+    def test__generate_probabilities(self):
+        counter = {
+            "": {"a": 2, "b": 2},
+            "a": {"b": 1, "a": 1},
+            "b": {"b": 2},
+            "aa": {"b": 1, "a": 2},
+            "bb": {"a": 4},
+            "ba": {"a": 1},
+            "ab": {"b": 2},
+        }
+        probabilities = {
+            "": {"a": 1 / 2, "b": 1 / 2},
+            "a": {"b": 1 / 2, "a": 1 / 2},
+            "b": {"b": 1},
+            "aa": {"b": 1 / 3, "a": 2 / 3},
+            "bb": {"a": 1},
+            "ba": {"a": 1},
+            "ab": {"b": 1},
+        }
+
+        result = KTSSModel._generate_probabilities(counter)
+
+        self.assertEqual(result, probabilities)
