@@ -4,7 +4,7 @@ from typing import Callable, Union
 
 from sortedcontainers import SortedDict
 from src.argumentParser.abstractArguments import AbstractValidationArguments
-from src.dataStructures.dfa import DFA
+from src.dataStructures.dfaStochastic import DFAStochastic
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.parser.extendedParser import ExtendedParserVcf
 from src.parser.parserVcf import ParserVcf
@@ -76,12 +76,13 @@ class KTSSValidator(AbstractValidationArguments):
 
         self._set_mappings(parser)
         self.parser = parser
-        self.dfa = DFA(
+        self.dfa = DFAStochastic(
             model["states"],
             model["alphabet"],
             model["transitions"],
             model["initial_state"],
             model["final_states"],
+            model["probabilities"],
         )
 
     def generate_distances(self, sequences: Union[list, tuple]) -> SortedDict:

@@ -1,14 +1,10 @@
 from unittest import TestCase
 
-from sortedcontainers import SortedDict, SortedSet
 from src.model.ktssValidation import KTSSValidator
 from src.model.tests.factories import (
-    InvalidParserFactory,
-    ParserFactory,
-    ParserFactoryKTSSValidatorAnnotate,
+    InvalidParserFactory, ParserFactory, ParserFactoryKTSSValidatorAnnotate,
     ParserFactoryKTSSValidatorAnnotateNested,
-    ParserFactoryKTSSValidatorDistances,
-)
+    ParserFactoryKTSSValidatorDistances)
 
 
 class TestKTSSValidator(TestCase):
@@ -24,6 +20,15 @@ class TestKTSSValidator(TestCase):
             "ba": {"a": "baa", "b": "bab"},
             "bb": {"a": "bba", "b": "bbb"},
         }
+        probabilities = {
+            "": {"a": 1 / 2, "b": 1 / 2},
+            "a": {"a": 1 / 2, "b": 1 / 2},
+            "b": {"a": 1 / 2, "b": 1 / 2},
+            "aa": {"a": 1 / 2, "b": 1 / 2},
+            "ab": {"a": 1 / 2, "b": 1 / 2},
+            "ba": {"a": 1 / 2, "b": 1 / 2},
+            "bb": {"a": 1 / 2, "b": 1 / 2},
+        }
         initial_state = ""
         final_states = {"bb", "aa"}
 
@@ -33,6 +38,7 @@ class TestKTSSValidator(TestCase):
             "transitions": transitions,
             "initial_state": initial_state,
             "final_states": final_states,
+            "probabilities": probabilities,
         }
 
         self.ktss_validator = KTSSValidator(model)
@@ -144,6 +150,15 @@ class TestKTSSValidatorAnnotate(TestCase):
             "9": {"z": "13", "x": "14"},
             "15": {"z": "16"},
         }
+        probabilities = {
+            "1": {"a": 1 / 2, "b": 1 / 2},
+            "2": {"a": 1 / 4, "b": 1 / 4, "d": 1 / 4, "l": 1 / 4},
+            "3": {"a": 1 / 3, "b": 1 / 3, "d": 1 / 3},
+            "4": {"z": 1 / 2, "x": 1 / 2},
+            "6": {"z": 1},
+            "9": {"z": 1 / 2, "x": 1 / 2},
+            "15": {"z": 1},
+        }
         initial_state = "1"
         final_states = {}
         model = {
@@ -152,6 +167,7 @@ class TestKTSSValidatorAnnotate(TestCase):
             "transitions": transitions,
             "initial_state": initial_state,
             "final_states": final_states,
+            "probabilities": probabilities,
         }
         self.ktss_validator = KTSSValidator(model)
         self.ktss_validator.parser = ParserFactoryKTSSValidatorAnnotate
@@ -235,6 +251,15 @@ class TestKTSSValidatorAnnotateNested(TestCase):
             "9": {"z": "13", "x": "14"},
             "15": {"z": "16"},
         }
+        probabilities = {
+            "1": {"a": 1 / 2, "b": 1 / 2},
+            "2": {"a": 1 / 4, "b": 1 / 4, "d": 1 / 4, "l": 1 / 4},
+            "3": {"a": 1 / 3, "b": 1 / 3, "d": 1 / 3},
+            "4": {"z": 1 / 2, "x": 1 / 2},
+            "6": {"z": 1},
+            "9": {"z": 1 / 2, "x": 1 / 2},
+            "15": {"z": 1},
+        }
         initial_state = "1"
         final_states = {}
         model = {
@@ -243,6 +268,7 @@ class TestKTSSValidatorAnnotateNested(TestCase):
             "transitions": transitions,
             "initial_state": initial_state,
             "final_states": final_states,
+            "probabilities": probabilities,
         }
         self.ktss_validator = KTSSValidator(model)
         self.ktss_validator.parser = ParserFactoryKTSSValidatorAnnotateNested
@@ -272,6 +298,15 @@ class TestKTSSValidatorDistances(TestCase):
             "9": {"z": "13", "x": "14"},
             "15": {"z": "16"},
         }
+        probabilities = {
+            "1": {"a": 1 / 2, "b": 1 / 2},
+            "2": {"a": 1 / 4, "b": 1 / 4, "d": 1 / 4, "l": 1 / 4},
+            "3": {"a": 1 / 3, "b": 1 / 3, "d": 1 / 3},
+            "4": {"z": 1 / 2, "x": 1 / 2},
+            "6": {"z": 1},
+            "9": {"z": 1 / 2, "x": 1 / 2},
+            "15": {"z": 1},
+        }
         initial_state = "1"
         final_states = {}
         model = {
@@ -280,6 +315,7 @@ class TestKTSSValidatorDistances(TestCase):
             "transitions": transitions,
             "initial_state": initial_state,
             "final_states": final_states,
+            "probabilities": probabilities
         }
         self.ktss_validator = KTSSValidator(model)
         self.ktss_validator.parser = ParserFactoryKTSSValidatorDistances

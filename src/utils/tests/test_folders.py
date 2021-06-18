@@ -5,7 +5,7 @@ from unittest import TestCase
 from src.utils.folders import parse_route
 
 
-class TestFastaReader(TestCase):
+class TestFastaFolders(TestCase):
     def test_parse_route_with_char(self):
         route = "route"
         parsed_route = "route/"
