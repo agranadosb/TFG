@@ -136,9 +136,9 @@ class ArgumentParser(object):
         self.add_argument(
             {
                 "key": "sd",
-                "name": "save-distances",
+                "name": "save_distances",
                 "help": "Save he distances into files per step",
-                "function_argumemnt": {"sd": "save_distances"},
+                "function_argumemnt": {"save_distances": "save_distances"},
                 "action": "store_true",
             },
         )

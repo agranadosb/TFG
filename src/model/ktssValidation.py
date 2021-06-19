@@ -109,11 +109,11 @@ class KTSSValidator(AbstractValidationArguments):
             reference_sequence = sequence_raw[0]
             annotated_sequence = sequence_raw[1]
 
-            result[reference_sequence] = self._string_distances(
-                self.annotate_sequence(reference_sequence), annotated_sequence
-            )
+            result_anotation = self.annotate_sequence(reference_sequence)
+            key = f"{annotated_sequence}-{result_anotation}"
+            result[key] = self._string_distances(result_anotation, annotated_sequence)
 
-            total_errors += result[reference_sequence]
+            total_errors += result[key]
             total_chars += len(annotated_sequence)
 
         if total_chars != 0:
@@ -189,12 +189,22 @@ class KTSSValidator(AbstractValidationArguments):
             )
 
             if len(possible_symbols) < 1:
-                if current_state in self.dfa.final_states:
+                if (
+                    current_state in self.dfa.final_states
+                    or not self.dfa.transitions.get(current_state, False)
+                ):
                     return separator.join(result)
                 possible_symbols = list(self.dfa.transitions[current_state].keys())
 
+            state_probabilities = self.dfa.probabilities[current_state]
+            probabilities = [
+                (possible_symbol, state_probabilities[possible_symbol])
+                for possible_symbol in possible_symbols
+            ]
+            max_probability_symbol = max(probabilities, key=lambda item: item[1])[0]
             """TODO: Cambiar cuando se añada el modelo estocástico y usar Viterbi"""
-            symbol = possible_symbols[random.randint(0, len(possible_symbols) - 1)]
+            symbol = max_probability_symbol
+            # possible_symbols[random.randint(0, len(possible_symbols) - 1)]
 
             result.append(symbol)
             current_state = self.dfa.next_state(symbol, current_state)

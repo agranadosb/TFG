@@ -66,6 +66,19 @@ class Runner(object):
         self._save_distances = save_distances
         self._test_ratio = test_ratio
         self._options = _argument_parser.get_function_arguments()
+
+        for i in kwargs:
+            self._options[i] = kwargs[i]
+
+        self._options["model_type"] = model_type
+        self._options["operation"] = operation
+        self._options["parser"] = parser
+        self._options["result_folder"] = result_folder
+        self._options["parser_prefix"] = parser_prefix
+        self._options["parser_suffix"] = parser_suffix
+        self._options["test_ratio"] = test_ratio
+        self._options["steps"] = steps
+
         self._steps = steps
 
         self._parser_engine = parser(vcf_path, fasta_path)
@@ -96,7 +109,6 @@ class Runner(object):
 
             error_model = self._model.tester(
                 self._parser_engine,
-                self._save_distances,
                 filename,
                 **self._options,
             )
@@ -116,19 +128,30 @@ class Runner(object):
         args = _argument_parser.get_function_arguments()
 
         with open("results.txt", "w") as fr:
-            print(f"LENGTH\tK\tRATIO\tACCURACY", file=fr)
-            for length in range(5, 51, 10):
-                for k in range(2, 10):
-                    for ratio in range(5, 10):
-                        args["test_ratio"] = ratio / 10
-                        args["parser_prefix"] = length
-                        args["parser_suffix"] = length
+            title = f"LENGTH-PREFIX\tLENGTH-SUFFIX\tK\tACCURACY"
+            print(title, file=fr)
+            print(title)
+            for length_suffix in range(5, 101, 10):
+                for length_prefix in range(5, 101, 10):
+                    for k in range(2, 15):
+                        args["test_ratio"] = 9 / 10
+                        args["parser_prefix"] = length_prefix
+                        args["parser_suffix"] = length_suffix
                         args["k_value"] = k
-
-                        print(
-                            f"{length}\t{k}\t{ratio}\t{Runner.run():.2f}",
-                            file=fr,
+                        args["steps"] = 10
+                        logging.basicConfig(
+                            format="%(asctime)s %(levelname)-8s %(message)s",
+                            level=logging.WARNING,
+                            datefmt="%Y-%m-%d %H:%M:%S",
                         )
+
+                        instance = Runner(**args)
+
+                        accuracy = instance._start()
+                        text = f"{length_prefix}\t{length_suffix}\t{k}\t{accuracy:.2f}"
+
+                        print(text, file=fr)
+                        print(text)
 
     @staticmethod
     def run(logger=True):
@@ -140,9 +163,7 @@ class Runner(object):
 
         instance = Runner(**_argument_parser.get_function_arguments())
 
-        instance._start()
-
-        return instance
+        return instance._start()
 
     def _start(self):
         if PARSER_MODEL_OPERATION == self._operation:

@@ -7,7 +7,7 @@ import logging
 import operator
 from typing import OrderedDict, Union
 
-from sortedcontainers import SortedDict, SortedSet
+from sortedcontainers import SortedDict, SortedList, SortedSet
 from src.argumentParser.abstractArguments import AbstractModelArguments
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.model.abstractModel import AbstractModel
@@ -69,29 +69,6 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         self.parser_class = parser
         self.tester_class = tester
         self.trainer_name = "ktt"
-
-    def _state_in_list(self, state: tuple, lst: list) -> bool:
-        """Checks if a state is in a list of states.
-
-        Parameters
-        ----------
-        state: tuple
-            State to be searched (s0, s1, s2).
-        lst: list
-            list where the state will be searched.
-
-        Returns
-        -------
-        True if the state is in the list, if not false.
-        """
-        for state_list in lst:
-            if (
-                state_list[0] == state[0]
-                and state_list[1] == state[1]
-                and state_list[2] == state[2]
-            ):
-                return True
-        return False
 
     def _generate_sigma(self, alphabet: Union[list, set], k: int) -> Union[list, set]:
         """Generates sigma for a k given, for example, if k = 2 and alphabet = [A, B]
@@ -305,7 +282,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         alphabet = SortedSet(functools.reduce(operator.add, samples))
 
         greater_or_equal_than_k = []
-        lower_than_k = SortedSet()
+        lower_than_k = SortedList()
 
         logging.info(f"Dviding strings into greater or lower than {k}")
         for sample in samples:
@@ -317,7 +294,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         logging.info("Generating prefixes and suffixes")
         prefixes = lower_than_k.copy()
         suffixes = lower_than_k.copy()
-        infixes = SortedSet()
+        infixes = SortedList()
         for sample in tqdm(greater_or_equal_than_k, file=tqdm_out):
             prefixes.add(self._get_prefix(sample, k))
             suffixes.add(self._get_suffix(sample, k))
@@ -381,7 +358,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
     def parser(self):
         return self.parser_class
 
-    def _test(self, parser_engine, save_distances, filename, **kwargs):
+    def _test(self, parser_engine, filename, save_distances, **kwargs):
         validator = self.tester_class(self.model, parser=parser_engine)
 
         distances = validator.generate_distances(self.get_test_samples())

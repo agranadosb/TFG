@@ -2,9 +2,12 @@ from unittest import TestCase
 
 from src.model.ktssValidation import KTSSValidator
 from src.model.tests.factories import (
-    InvalidParserFactory, ParserFactory, ParserFactoryKTSSValidatorAnnotate,
+    InvalidParserFactory,
+    ParserFactory,
+    ParserFactoryKTSSValidatorAnnotate,
     ParserFactoryKTSSValidatorAnnotateNested,
-    ParserFactoryKTSSValidatorDistances)
+    ParserFactoryKTSSValidatorDistances,
+)
 
 
 class TestKTSSValidator(TestCase):
@@ -315,7 +318,7 @@ class TestKTSSValidatorDistances(TestCase):
             "transitions": transitions,
             "initial_state": initial_state,
             "final_states": final_states,
-            "probabilities": probabilities
+            "probabilities": probabilities,
         }
         self.ktss_validator = KTSSValidator(model)
         self.ktss_validator.parser = ParserFactoryKTSSValidatorDistances

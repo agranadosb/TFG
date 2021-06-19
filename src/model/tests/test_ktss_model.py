@@ -8,22 +8,6 @@ class TestKTSSModel(TestCase):
         self.model = KTSSModel()
         return super().setUp()
 
-    def test__state_in_list(self):
-        state = (0, 0, 0)
-        lst = [(0, 0, 0), (1, 0, 0), (2, 0, 0), (3, 0, 0)]
-
-        result = self.model._state_in_list(state, lst)
-
-        self.assertTrue(result)
-
-    def test_state_not_in_list(self):
-        state = (0, 0, 0)
-        lst = [(1, 0, 0), (2, 0, 0), (3, 0, 0)]
-
-        result = self.model._state_in_list(state, lst)
-
-        self.assertFalse(result)
-
     def test__generate_sigma_k_1(self):
         alphabet = {"C", "G", "T", "A"}
         k = 1

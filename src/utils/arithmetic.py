@@ -11,12 +11,13 @@ def _lcm(number_1: int, number_2: int) -> int:
         Number 1
     number_2: int
         Number 2
-    
+
     Returns
     -------
     Lcm
     """
     return number_1 * number_2 // gcd(number_1, number_2)
+
 
 def lcm(numbers: Union[list, tuple]) -> int:
     """Computes the lcm of a list of numbers.
@@ -25,7 +26,7 @@ def lcm(numbers: Union[list, tuple]) -> int:
     ----------
     numbers: list, tuple
         List of numbers
-    
+
     Returns
     -------
     Lcm
