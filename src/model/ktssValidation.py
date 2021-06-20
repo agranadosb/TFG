@@ -166,50 +166,83 @@ class KTSSValidator(AbstractValidationArguments):
 
          - **aaz**
          - **alz**
+
+        Parameters
+        ----------
+        sequence: str
+            Sequence to be annotated.
+        separator: str = ""
+            Separator between the symbols of the annotated sequence.
+
+        Returns
+        -------
+        Annotated sequence
         """
         result = []
         current_state = self.dfa.initial_state
         for symbol in sequence:
-            possible_symbols = []
-            mutation_symbols = []
-            KTSSValidator._add_symbol(symbol, self.parser.prefix_map, possible_symbols)
-            KTSSValidator._add_symbol(symbol, self.parser.suffix_map, possible_symbols)
-            KTSSValidator._add_symbol(
-                symbol, self.parser.mutations_map, mutation_symbols
-            )
-
-            if KTSSValidator._is_nested(self.parser.mutations_map):
-                for key in self.parser.mutations_map:
-                    KTSSValidator._add_symbol(
-                        symbol, self.parser.mutations_map[key], mutation_symbols
-                    )
-
-            possible_symbols = self._filter_possibles(
-                current_state, possible_symbols + mutation_symbols
-            )
-
-            if len(possible_symbols) < 1:
-                if (
-                    current_state in self.dfa.final_states
-                    or not self.dfa.transitions.get(current_state, False)
-                ):
-                    return separator.join(result)
-                possible_symbols = list(self.dfa.transitions[current_state].keys())
+            possible_symbols = self._get_possible_symbols(current_state, symbol)
+            if not possible_symbols:
+                return separator.join(result)
 
             state_probabilities = self.dfa.probabilities[current_state]
+
             probabilities = [
                 (possible_symbol, state_probabilities[possible_symbol])
                 for possible_symbol in possible_symbols
             ]
             max_probability_symbol = max(probabilities, key=lambda item: item[1])[0]
-            """TODO: Cambiar cuando se añada el modelo estocástico y usar Viterbi"""
+
+            """TODO: usar Viterbi"""
             symbol = max_probability_symbol
-            # possible_symbols[random.randint(0, len(possible_symbols) - 1)]
 
             result.append(symbol)
             current_state = self.dfa.next_state(symbol, current_state)
 
         return separator.join(result)
+
+    def _get_possible_symbols(self, current_state: str, symbol: str) -> list:
+        """Returns all the symbols of a transition with origin on current state that
+        match with symbol using the prefix, suffix and infix mappings.
+
+        If the state is not present on the transitions return false or if no symbol is
+        mapped to the symbol returns all the symbols of the transition.
+
+        Prameters
+        ---------
+        current_state: str
+            Origin state of the transition.
+        symbol: str
+            Symbol to be mapped.
+
+        Returns
+        -------
+        List of possible symbols that match with the symbol.
+        """
+        possible_symbols = []
+        mutation_symbols = []
+        KTSSValidator._add_symbol(symbol, self.parser.prefix_map, possible_symbols)
+        KTSSValidator._add_symbol(symbol, self.parser.suffix_map, possible_symbols)
+        KTSSValidator._add_symbol(symbol, self.parser.mutations_map, mutation_symbols)
+
+        if KTSSValidator._is_nested(self.parser.mutations_map):
+            for key in self.parser.mutations_map:
+                KTSSValidator._add_symbol(
+                    symbol, self.parser.mutations_map[key], mutation_symbols
+                )
+
+        possible_symbols = self._filter_possibles(
+            current_state, possible_symbols + mutation_symbols
+        )
+
+        if len(possible_symbols) < 1:
+            if current_state in self.dfa.final_states or not self.dfa.transitions.get(
+                current_state, False
+            ):
+                return False
+            possible_symbols = list(self.dfa.transitions[current_state].keys())
+
+        return possible_symbols
 
     def _set_mappings(self, parser: ParserVcf):
         """Set the mappings for the prefix, infix, and suffix between an original symbol

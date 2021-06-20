@@ -200,7 +200,7 @@ class TestKTSSValidatorAnnotate(TestCase):
         results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
 
         self.assertIn(annotated1, results)
-        self.assertIn(annotated2, results)
+        self.assertNotIn(annotated2, results)
 
     def test_4(self):
         sequence = "AC"
@@ -217,7 +217,7 @@ class TestKTSSValidatorAnnotate(TestCase):
 
         results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
 
-        self.assertIn(annotated_mutation, results)
+        self.assertNotIn(annotated_mutation, results)
         self.assertIn(annotated_not_muutation, results)
 
     def test_6(self):
@@ -227,7 +227,7 @@ class TestKTSSValidatorAnnotate(TestCase):
 
         results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
 
-        self.assertIn(annotated_mutation, results)
+        self.assertNotIn(annotated_mutation, results)
         self.assertIn(annotated_not_muutation, results)
 
     def test_9(self):
@@ -238,7 +238,7 @@ class TestKTSSValidatorAnnotate(TestCase):
         results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
 
         self.assertIn(annotated1, results)
-        self.assertIn(annotated2, results)
+        self.assertNotIn(annotated2, results)
 
 
 class TestKTSSValidatorAnnotateNested(TestCase):
@@ -285,7 +285,7 @@ class TestKTSSValidatorAnnotateNested(TestCase):
         results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
 
         self.assertIn(annotated1, results)
-        self.assertIn(annotated2, results)
+        self.assertNotIn(annotated2, results)
 
 
 class TestKTSSValidatorDistances(TestCase):
@@ -326,15 +326,15 @@ class TestKTSSValidatorDistances(TestCase):
 
     def test_generate_distances(self):
         sequences = [("AAA", "aaz")]
-        annotated1 = {"AAA": 0, "error": 0}
-        annotated2 = {"AAA": 1, "error": 1 / 3}
+        annotated1 = {"aaz-aaz": 0, "error": 0}
+        annotated2 = {"aaz-alz": 1, "error": 1 / 3}
 
         results = [
             self.ktss_validator.generate_distances(sequences) for _ in range(1000)
         ]
 
         self.assertIn(annotated1, results)
-        self.assertIn(annotated2, results)
+        self.assertNotIn(annotated2, results)
 
     def test_generate_distances_empty(self):
         sequences = []
@@ -343,3 +343,28 @@ class TestKTSSValidatorDistances(TestCase):
         result = self.ktss_validator.generate_distances(sequences)
 
         self.assertEqual(result, empty)
+
+    def test__get_possible_symbols(self):
+        symbol = "A"
+        current_state = "2"
+        possible_symbols = ["a", "l"]
+
+        result = self.ktss_validator._get_possible_symbols(current_state, symbol)
+
+        self.assertEqual(result, possible_symbols)
+
+    def test__get_possible_symbols_not_present(self):
+        symbol = "K"
+        current_state = "2"
+        possible_symbols = ["a", "b", "d", "l"]
+
+        result = self.ktss_validator._get_possible_symbols(current_state, symbol)
+
+        self.assertEqual(result, possible_symbols)
+
+    def test__get_possible_symbols_bad_state(self):
+        symbol = "A"
+        current_state = "-1"
+        result = self.ktss_validator._get_possible_symbols(current_state, symbol)
+
+        self.assertFalse(result)

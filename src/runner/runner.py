@@ -13,6 +13,7 @@ from src.constants.constants import (
 )
 from src.model.ktssModel import KTSSModel
 from src.model.ktssValidation import KTSSValidator
+from src.model.ktssViterbi import KTSSViterbi
 from src.parser.extendedParser import ExtendedParserVcf
 from src.parser.mutationParser import MutationParser
 from src.parser.parserVcf import ParserVcf
@@ -28,11 +29,11 @@ _parsers = {
 
 _models = {KTSS_MODEL: KTSSModel}
 
-_validators = {KTSS_MODEL: KTSSValidator}
+_validators = {KTSS_MODEL: KTSSViterbi}
 _argument_parser = ArgumentParser("Executes a parser or executes a parser and a model")
 
 """ TODO: Hacer que se detecten automáticamente todos las clases de argumentos """
-for i in KTSSModel._arguments + ParserVcf._arguments + KTSSValidator._arguments:
+for i in KTSSModel._arguments + ParserVcf._arguments + KTSSViterbi._arguments:
     _argument_parser.add_argument(i)
 
 
