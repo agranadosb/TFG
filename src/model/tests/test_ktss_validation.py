@@ -1,6 +1,5 @@
 from unittest import TestCase
 
-from sortedcontainers import SortedDict, SortedSet
 from src.model.ktssValidation import KTSSValidator
 from src.model.tests.factories import (
     InvalidParserFactory,
@@ -24,6 +23,15 @@ class TestKTSSValidator(TestCase):
             "ba": {"a": "baa", "b": "bab"},
             "bb": {"a": "bba", "b": "bbb"},
         }
+        probabilities = {
+            "": {"a": 1 / 2, "b": 1 / 2},
+            "a": {"a": 1 / 2, "b": 1 / 2},
+            "b": {"a": 1 / 2, "b": 1 / 2},
+            "aa": {"a": 1 / 2, "b": 1 / 2},
+            "ab": {"a": 1 / 2, "b": 1 / 2},
+            "ba": {"a": 1 / 2, "b": 1 / 2},
+            "bb": {"a": 1 / 2, "b": 1 / 2},
+        }
         initial_state = ""
         final_states = {"bb", "aa"}
 
@@ -33,6 +41,7 @@ class TestKTSSValidator(TestCase):
             "transitions": transitions,
             "initial_state": initial_state,
             "final_states": final_states,
+            "probabilities": probabilities,
         }
 
         self.ktss_validator = KTSSValidator(model)
@@ -144,6 +153,15 @@ class TestKTSSValidatorAnnotate(TestCase):
             "9": {"z": "13", "x": "14"},
             "15": {"z": "16"},
         }
+        probabilities = {
+            "1": {"a": 1 / 2, "b": 1 / 2},
+            "2": {"a": 1 / 4, "b": 1 / 4, "d": 1 / 4, "l": 1 / 4},
+            "3": {"a": 1 / 3, "b": 1 / 3, "d": 1 / 3},
+            "4": {"z": 1 / 2, "x": 1 / 2},
+            "6": {"z": 1},
+            "9": {"z": 1 / 2, "x": 1 / 2},
+            "15": {"z": 1},
+        }
         initial_state = "1"
         final_states = {}
         model = {
@@ -152,6 +170,7 @@ class TestKTSSValidatorAnnotate(TestCase):
             "transitions": transitions,
             "initial_state": initial_state,
             "final_states": final_states,
+            "probabilities": probabilities,
         }
         self.ktss_validator = KTSSValidator(model)
         self.ktss_validator.parser = ParserFactoryKTSSValidatorAnnotate
@@ -181,7 +200,7 @@ class TestKTSSValidatorAnnotate(TestCase):
         results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
 
         self.assertIn(annotated1, results)
-        self.assertIn(annotated2, results)
+        self.assertNotIn(annotated2, results)
 
     def test_4(self):
         sequence = "AC"
@@ -198,7 +217,7 @@ class TestKTSSValidatorAnnotate(TestCase):
 
         results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
 
-        self.assertIn(annotated_mutation, results)
+        self.assertNotIn(annotated_mutation, results)
         self.assertIn(annotated_not_muutation, results)
 
     def test_6(self):
@@ -208,7 +227,7 @@ class TestKTSSValidatorAnnotate(TestCase):
 
         results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
 
-        self.assertIn(annotated_mutation, results)
+        self.assertNotIn(annotated_mutation, results)
         self.assertIn(annotated_not_muutation, results)
 
     def test_9(self):
@@ -219,7 +238,7 @@ class TestKTSSValidatorAnnotate(TestCase):
         results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
 
         self.assertIn(annotated1, results)
-        self.assertIn(annotated2, results)
+        self.assertNotIn(annotated2, results)
 
 
 class TestKTSSValidatorAnnotateNested(TestCase):
@@ -235,6 +254,15 @@ class TestKTSSValidatorAnnotateNested(TestCase):
             "9": {"z": "13", "x": "14"},
             "15": {"z": "16"},
         }
+        probabilities = {
+            "1": {"a": 1 / 2, "b": 1 / 2},
+            "2": {"a": 1 / 4, "b": 1 / 4, "d": 1 / 4, "l": 1 / 4},
+            "3": {"a": 1 / 3, "b": 1 / 3, "d": 1 / 3},
+            "4": {"z": 1 / 2, "x": 1 / 2},
+            "6": {"z": 1},
+            "9": {"z": 1 / 2, "x": 1 / 2},
+            "15": {"z": 1},
+        }
         initial_state = "1"
         final_states = {}
         model = {
@@ -243,6 +271,7 @@ class TestKTSSValidatorAnnotateNested(TestCase):
             "transitions": transitions,
             "initial_state": initial_state,
             "final_states": final_states,
+            "probabilities": probabilities,
         }
         self.ktss_validator = KTSSValidator(model)
         self.ktss_validator.parser = ParserFactoryKTSSValidatorAnnotateNested
@@ -256,7 +285,7 @@ class TestKTSSValidatorAnnotateNested(TestCase):
         results = [self.ktss_validator.annotate_sequence(sequence) for _ in range(1000)]
 
         self.assertIn(annotated1, results)
-        self.assertIn(annotated2, results)
+        self.assertNotIn(annotated2, results)
 
 
 class TestKTSSValidatorDistances(TestCase):
@@ -272,6 +301,15 @@ class TestKTSSValidatorDistances(TestCase):
             "9": {"z": "13", "x": "14"},
             "15": {"z": "16"},
         }
+        probabilities = {
+            "1": {"a": 1 / 2, "b": 1 / 2},
+            "2": {"a": 1 / 4, "b": 1 / 4, "d": 1 / 4, "l": 1 / 4},
+            "3": {"a": 1 / 3, "b": 1 / 3, "d": 1 / 3},
+            "4": {"z": 1 / 2, "x": 1 / 2},
+            "6": {"z": 1},
+            "9": {"z": 1 / 2, "x": 1 / 2},
+            "15": {"z": 1},
+        }
         initial_state = "1"
         final_states = {}
         model = {
@@ -280,6 +318,7 @@ class TestKTSSValidatorDistances(TestCase):
             "transitions": transitions,
             "initial_state": initial_state,
             "final_states": final_states,
+            "probabilities": probabilities,
         }
         self.ktss_validator = KTSSValidator(model)
         self.ktss_validator.parser = ParserFactoryKTSSValidatorDistances
@@ -287,15 +326,15 @@ class TestKTSSValidatorDistances(TestCase):
 
     def test_generate_distances(self):
         sequences = [("AAA", "aaz")]
-        annotated1 = {"AAA": 0, "error": 0}
-        annotated2 = {"AAA": 1, "error": 1 / 3}
+        annotated1 = {"aaz-aaz": 0, "error": 0}
+        annotated2 = {"aaz-alz": 1, "error": 1 / 3}
 
         results = [
             self.ktss_validator.generate_distances(sequences) for _ in range(1000)
         ]
 
         self.assertIn(annotated1, results)
-        self.assertIn(annotated2, results)
+        self.assertNotIn(annotated2, results)
 
     def test_generate_distances_empty(self):
         sequences = []
@@ -304,3 +343,28 @@ class TestKTSSValidatorDistances(TestCase):
         result = self.ktss_validator.generate_distances(sequences)
 
         self.assertEqual(result, empty)
+
+    def test__get_possible_symbols(self):
+        symbol = "A"
+        current_state = "2"
+        possible_symbols = ["a", "l"]
+
+        result = self.ktss_validator._get_possible_symbols(current_state, symbol)
+
+        self.assertEqual(result, possible_symbols)
+
+    def test__get_possible_symbols_not_present(self):
+        symbol = "K"
+        current_state = "2"
+        possible_symbols = ["a", "b", "d", "l"]
+
+        result = self.ktss_validator._get_possible_symbols(current_state, symbol)
+
+        self.assertEqual(result, possible_symbols)
+
+    def test__get_possible_symbols_bad_state(self):
+        symbol = "A"
+        current_state = "-1"
+        result = self.ktss_validator._get_possible_symbols(current_state, symbol)
+
+        self.assertFalse(result)

@@ -5,7 +5,7 @@ from unittest import TestCase
 from src.utils.genomics import generate_dict_values
 
 
-class TestFastaReader(TestCase):
+class TestGenomics(TestCase):
     def test_generate_dict_values(self):
         symbols = ["q", "w", "e", "r"]
         mapping = {"A": "q", "C": "w", "G": "e", "T": "r"}

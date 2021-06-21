@@ -7,11 +7,12 @@ import logging
 import operator
 from typing import OrderedDict, Union
 
-from sortedcontainers import SortedDict, SortedSet
+from sortedcontainers import SortedDict, SortedList, SortedSet
 from src.argumentParser.abstractArguments import AbstractModelArguments
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.model.abstractModel import AbstractModel
 from src.model.ktssValidation import KTSSValidator
+from src.model.ktssViterbi import KTSSViterbi
 from src.parser.extendedParser import ExtendedParserVcf
 from tqdm import tqdm
 
@@ -62,36 +63,13 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         save_path=False,
         restore_path=False,
         parser=ExtendedParserVcf,
-        tester=KTSSValidator,
+        tester=KTSSViterbi,
     ):
         super().__init__(save_path=save_path, restore_path=restore_path)
         self._model = False
         self.parser_class = parser
         self.tester_class = tester
         self.trainer_name = "ktt"
-
-    def _state_in_list(self, state: tuple, lst: list) -> bool:
-        """Checks if a state is in a list of states.
-
-        Parameters
-        ----------
-        state: tuple
-            State to be searched (s0, s1, s2).
-        lst: list
-            list where the state will be searched.
-
-        Returns
-        -------
-        True if the state is in the list, if not false.
-        """
-        for state_list in lst:
-            if (
-                state_list[0] == state[0]
-                and state_list[1] == state[1]
-                and state_list[2] == state[2]
-            ):
-                return True
-        return False
 
     def _generate_sigma(self, alphabet: Union[list, set], k: int) -> Union[list, set]:
         """Generates sigma for a k given, for example, if k = 2 and alphabet = [A, B]
@@ -178,6 +156,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
     def _add_transition(
         self,
         transitions: Union[OrderedDict, dict],
+        counter: Union[OrderedDict, dict],
         from_state: str,
         symbol: str,
         to_state: str,
@@ -188,6 +167,8 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         ----------
         transitions: OrderedDict, dict
             Ordered dict that contains transitions.
+        counter: OrderedDict, dict
+            Ordered dict that contains the number of times that a transition happens.
         from_state: str
             String that represent the source state.
         symbol: str
@@ -201,9 +182,212 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         """
         if not transitions.get(from_state):
             transitions[from_state] = SortedDict({})
+            counter[from_state] = SortedDict({})
+
+        symbol_counter = 1
+        if transitions[from_state].get(symbol, False):
+            symbol_counter = counter[from_state][symbol] + 1
         transitions[from_state][symbol] = to_state
+        counter[from_state][symbol] = symbol_counter
 
         return transitions
+
+    @staticmethod
+    def _generate_probabilities(
+        counter: Union[OrderedDict, dict]
+    ) -> Union[OrderedDict, dict]:
+        """Creates a dict of probabilities from a counter of transitions. This method
+        loops for every transition and generates the probability of each transition per
+        symbol dividing bby the posible transitions from a state.
+
+        For example, if our counter is:
+
+        ```python
+            {
+                "": {"a": 2, "b": 2},
+                "a": {"b": 1, "a": 1},
+                "b": {"b": 2},
+                "aa": {"b": 1, "a": 2},
+                "bb": {"a": 4},
+                "ba": {"a": 1},
+                "ab": {"b": 2},
+            }
+        ```
+
+        This method will return:
+
+        ```python
+            {
+                "": {"a": 1 / 2, "b": 1 / 2},
+                "a": {"b": 1 / 2, "a": 1 / 2},
+                "b": {"b": 1},
+                "aa": {"b": 1 / 3, "a": 2 / 3},
+                "bb": {"a": 1},
+                "ba": {"a": 1},
+                "ab": {"b": 1},
+            }
+        ```
+
+        Parameters
+        ----------
+        counter: OrderedDict, dict
+            Ordered dict that contains the number of times that a transition happens.
+
+        Returns
+        -------
+        The same dictionary but with probabilities as values.
+        """
+        result = OrderedDict({})
+        for state in counter:
+            result[state] = OrderedDict({})
+            total = sum(counter[state].values())
+            for symbol in counter[state]:
+                result[state][symbol] = counter[state][symbol] / total
+        return result
+
+    def _generate_sequences(
+        self, samples: list, k: int, tqdm_out: TqdmLoggingHandler = None
+    ) -> dict:
+        """Generates a dictionary with suffixes, ifixes and prefixes for a ktss model.
+
+        Parameters
+        ----------
+        samples: list
+            List of samples where the sequences will be extracted.
+        k: int
+            K parameters of the ktss model.
+        tqdm_out: TqdmLoggingHandler = null
+            Tqdm object for loop feedback handling.
+
+        Returns
+        -------
+        ```python
+            {
+                "prefixes": prefixes,
+                "suffixes": suffixes,
+                "infixes": infixes,
+            }
+        ```
+        """
+        greater_or_equal_than_k = []
+        lower_than_k = SortedList()
+
+        logging.info(f"Dviding strings into greater or lower than {k}")
+        for sample in samples:
+            if len(sample) >= k:
+                greater_or_equal_than_k.append(sample)
+            else:
+                lower_than_k.add(sample)
+
+        logging.info("Generating prefixes and suffixes")
+        prefixes = lower_than_k.copy()
+        suffixes = SortedSet(lower_than_k.copy())
+        infixes = SortedList()
+        for sample in tqdm(greater_or_equal_than_k, file=tqdm_out):
+            prefixes.add(self._get_prefix(sample, k))
+            suffixes.add(self._get_suffix(sample, k))
+            infixes.update(self._get_infixes(sample, k))
+
+        return {"prefixes": prefixes, "suffixes": suffixes, "infixes": infixes}
+
+    def _generate_not_allowed_segments(
+        self, infixes: list, alphabet: set, k: int
+    ) -> set:
+        """Generates not allowed segments for a k given, for example, if k = 2 and
+        alphabet = [A, B] and infixes = [AA, BB] it generates [A, B, AB, BA].
+
+        Parameters
+        ----------
+        infixes: list
+            List of allowed infixes.
+        alphabet: set
+            Alphabet to generate not allowed segments.
+        k: int
+            Length of the maximum strings of not allowed segments.
+
+        Returns
+        -------
+        Not allowed segments
+        """
+        logging.info(f"Generating sigma with alphabet {alphabet}")
+        return self._generate_sigma(alphabet, k) - set(infixes)
+
+    def _generate_transitions(
+        self,
+        initial_state: str,
+        prefixes: Union[SortedList, list],
+        infixes: Union[SortedList, list],
+        k: int,
+        tqdm_out: TqdmLoggingHandler = None,
+    ):
+        """Generates the transitions, the associated probabilities and the tates of a
+        ktss model.
+
+        Parameters
+        ----------
+        initial_state: str
+            Initial state
+        prefixes: SortedList, list
+            List of prefixes of the samples.
+        infixes: SortedList, list
+            List of infixes of the samples.
+        k: int
+            K parameters of the ktss model.
+        tqdm_out: TqdmLoggingHandler = None
+            Tqdm object for loop feedback handling.
+
+        Returns
+        -------
+        ```python
+            {
+                "transitions": transitions,
+                "states": states,
+                "probabilities": probabilities,
+            }
+        ```
+        """
+        states = [initial_state]
+        transitions = SortedDict({})
+        counter = SortedDict({})
+
+        logging.info("Generating states from prefixes")
+        for prefix in tqdm(prefixes, file=tqdm_out):
+            self._add_transition(
+                transitions, counter, initial_state, prefix[0], prefix[0]
+            )
+            for char_index in range(len(prefix)):
+                states.append([prefix[: char_index + 1]])
+
+                self._add_transition(
+                    transitions,
+                    counter,
+                    prefix[:char_index] or initial_state,
+                    prefix[char_index],
+                    prefix[: char_index + 1],
+                )
+
+        logging.info("Generating states from infixes")
+        for infix in tqdm(infixes, file=tqdm_out):
+            states.append([infix[: k - 1], infix[2:k]])
+            self._add_transition(
+                transitions, counter, infix[: k - 1], infix[k - 1], infix[1:k]
+            )
+
+        logging.info("Remove repeated and empty states")
+        states = SortedSet(
+            map(
+                lambda x: x if type(x) == str else x[0],
+                filter(lambda x: type(x) == str or all(x), states),
+            )
+        )
+
+        probabilities = KTSSModel._generate_probabilities(counter)
+
+        return {
+            "transitions": transitions,
+            "states": states,
+            "probabilities": probabilities,
+        }
 
     def _training(
         self,
@@ -229,6 +413,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
                 "states": states,
                 "alphabet": alphabet,
                 "transitions": transitions,
+                "probabilities": probabilities,
                 "initial_state": initial_state,
                 "final_states": final_states,
                 "not_allowed_segments": not_allowed_segments,
@@ -238,69 +423,33 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         logger = logging.getLogger()
         tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
         logging.info("Training model")
+
         logging.info("Generating alphabet")
         alphabet = SortedSet(functools.reduce(operator.add, samples))
 
-        greater_or_equal_than_k = []
-        lower_than_k = SortedSet()
+        sequences = self._generate_sequences(samples, k, tqdm_out)
+        infixes = sequences["infixes"]
+        prefixes = sequences["prefixes"]
+        suffixes = sequences["suffixes"]
+        initial_state = "1"
 
-        logging.info(f"Dviding strings into greater or lower than {k}")
-        for sample in samples:
-            if len(sample) >= k:
-                greater_or_equal_than_k.append(sample)
-            else:
-                lower_than_k.add(sample)
-
-        logging.info("Generating prefixes and suffixes")
-        prefixes = lower_than_k.copy()
-        suffixes = lower_than_k.copy()
-        infixes = SortedSet()
-        for sample in tqdm(greater_or_equal_than_k, file=tqdm_out):
-            prefixes.add(self._get_prefix(sample, k))
-            suffixes.add(self._get_suffix(sample, k))
-            infixes.update(self._get_infixes(sample, k))
-
-        if get_not_allowed_segements:
-            logging.info(f"Generating sigma with alphabet {alphabet}")
-            not_allowed_segments = self._generate_sigma(alphabet, k) - infixes
-
-        q = [""]
-        s = SortedDict({})
-        q0 = ""
-
-        logging.info("Generating states from prefixes")
-        for prefix in tqdm(prefixes, file=tqdm_out):
-            self._add_transition(s, "", prefix[0], prefix[0])
-            for char_index in range(len(prefix)):
-                q.append([prefix[: char_index + 1]])
-
-                self._add_transition(
-                    s, prefix[:char_index], prefix[char_index], prefix[: char_index + 1]
-                )
-
-        logging.info("Generating states from infixes")
-        for infix in tqdm(infixes, file=tqdm_out):
-            q.append([infix[: k - 1], infix[2:k]])
-            self._add_transition(s, infix[: k - 1], infix[k - 1], infix[1:k])
-
-        logging.info("Remove repeated and empty states")
-        q = SortedSet(
-            map(
-                lambda x: x if type(x) == str else x[0],
-                filter(lambda x: type(x) == str or all(x), q),
-            )
+        transitions = self._generate_transitions(
+            initial_state, prefixes, infixes, k, tqdm_out
         )
 
         self._model = {
-            "states": q,
+            "states": transitions["states"],
             "alphabet": alphabet,
-            "transitions": s,
-            "initial_state": q0,
+            "transitions": transitions["transitions"],
+            "initial_state": initial_state,
             "final_states": suffixes,
+            "probabilities": transitions["probabilities"],
         }
 
         if get_not_allowed_segements:
-            self._model["not_allowed_segments"] = not_allowed_segments
+            self._model["not_allowed_segments"] = self._generate_not_allowed_segments(
+                infixes, alphabet, k
+            )
 
         logging.info("Training finalized\n")
         return self._model
@@ -309,7 +458,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
     def parser(self):
         return self.parser_class
 
-    def _test(self, parser_engine, save_distances, filename, **kwargs):
+    def _test(self, parser_engine, filename, save_distances, **kwargs):
         validator = self.tester_class(self.model, parser=parser_engine)
 
         distances = validator.generate_distances(self.get_test_samples())
@@ -347,6 +496,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
                 "transitions": self.model["transitions"],
                 "initial_state": self.model["initial_state"],
                 "final_states": list(self.model["final_states"]),
+                "probabilities": self.model["probabilities"],
             }
 
             if self.model.get("not_allowed_segments", False):

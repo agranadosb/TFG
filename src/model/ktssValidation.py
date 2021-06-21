@@ -1,11 +1,10 @@
 import logging
 import random
-from queue import Queue
 from typing import Callable, Union
 
-from sortedcontainers import SortedDict, SortedSet
+from sortedcontainers import SortedDict
 from src.argumentParser.abstractArguments import AbstractValidationArguments
-from src.dataStructures.dfa import DFA
+from src.dataStructures.dfaStochastic import DFAStochastic
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.parser.extendedParser import ExtendedParserVcf
 from src.parser.parserVcf import ParserVcf
@@ -77,13 +76,173 @@ class KTSSValidator(AbstractValidationArguments):
 
         self._set_mappings(parser)
         self.parser = parser
-        self.dfa = DFA(
+        self.dfa = DFAStochastic(
             model["states"],
             model["alphabet"],
             model["transitions"],
             model["initial_state"],
             model["final_states"],
+            model["probabilities"],
         )
+
+    def generate_distances(self, sequences: Union[list, tuple]) -> SortedDict:
+        """Generates all the distances of an infix of a given list of sequences of all
+        the possible infixes.
+
+        Parameters
+        ---------
+        sequences: list
+            List of sequences.
+
+        Returns
+        -------
+        Dictionary that contains the sequence and its distances.
+        """
+        logger = logging.getLogger()
+        tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
+
+        result = SortedDict()
+        logger.info("Generating validation data")
+        total_errors = 0
+        total_chars = 0
+        for sequence_raw in tqdm(sequences, file=tqdm_out):
+            reference_sequence = sequence_raw[0]
+            annotated_sequence = sequence_raw[1]
+
+            result_anotation = self.annotate_sequence(reference_sequence)
+            key = f"{annotated_sequence}-{result_anotation}"
+            result[key] = self._string_distances(result_anotation, annotated_sequence)
+
+            total_errors += result[key]
+            total_chars += len(annotated_sequence)
+
+        if total_chars != 0:
+            result["error"] = total_errors / total_chars
+
+        return result
+
+    def annotate_sequence(self, sequence: str, separator: str = "") -> str:
+        """Gets a string sequence, and annotates it.
+
+        The process consists of getting all the associated symbols from the parser
+        mappings (prefix, mutation, and suffix) that can be associated with a symbol
+        from the sequence.
+
+        Then, the method filters them by the condition that a transition can be done
+        with that symbols from a state of the model DFA.
+
+        If more than one symbol can be associated to a sequence symbol, this methods get
+        in a aleatory way a symbol from all the possible symbols.
+
+        For instance, if our sequence is:
+
+        ```python
+            "AAA"
+        ```
+
+        Our transitions are:
+
+        ```python
+            {
+                "1": {"a": "2", "b": "3"},
+                "2": {"a": "4", "b": "5", "d": "6", "l": "15"},
+                "3": {"a": "7", "b": "8", "d": "9"},
+                "4": {"z": "10", "x": "11"},
+                "6": {"z": "12"},
+                "9": {"z": "13", "x": "14"},
+                "15": {"z": "16"},
+            }
+        ```
+
+        And our mappings are:
+
+        ```python
+            prefix_map = {"A": "a", "C": "c", "B": "b"}
+            mutations_map = {"A": "l", "C": "d"}
+            suffix_map = {"A": "z", "C": "x", "B": "c"}
+        ```
+
+        We can get two results (with 50% of chance per result):
+
+         - **aaz**
+         - **alz**
+
+        Parameters
+        ----------
+        sequence: str
+            Sequence to be annotated.
+        separator: str = ""
+            Separator between the symbols of the annotated sequence.
+
+        Returns
+        -------
+        Annotated sequence
+        """
+        result = []
+        current_state = self.dfa.initial_state
+        for symbol in sequence:
+            possible_symbols = self._get_possible_symbols(current_state, symbol)
+            if not possible_symbols:
+                return separator.join(result)
+
+            state_probabilities = self.dfa.probabilities[current_state]
+
+            probabilities = [
+                (possible_symbol, state_probabilities[possible_symbol])
+                for possible_symbol in possible_symbols
+            ]
+            max_probability_symbol = max(probabilities, key=lambda item: item[1])[0]
+
+            """TODO: usar Viterbi"""
+            symbol = max_probability_symbol
+
+            result.append(symbol)
+            current_state = self.dfa.next_state(symbol, current_state)
+
+        return separator.join(result)
+
+    def _get_possible_symbols(self, current_state: str, symbol: str) -> list:
+        """Returns all the symbols of a transition with origin on current state that
+        match with symbol using the prefix, suffix and infix mappings.
+
+        If the state is not present on the transitions return false or if no symbol is
+        mapped to the symbol returns all the symbols of the transition.
+
+        Prameters
+        ---------
+        current_state: str
+            Origin state of the transition.
+        symbol: str
+            Symbol to be mapped.
+
+        Returns
+        -------
+        List of possible symbols that match with the symbol.
+        """
+        possible_symbols = []
+        mutation_symbols = []
+        KTSSValidator._add_symbol(symbol, self.parser.prefix_map, possible_symbols)
+        KTSSValidator._add_symbol(symbol, self.parser.suffix_map, possible_symbols)
+        KTSSValidator._add_symbol(symbol, self.parser.mutations_map, mutation_symbols)
+
+        if KTSSValidator._is_nested(self.parser.mutations_map):
+            for key in self.parser.mutations_map:
+                KTSSValidator._add_symbol(
+                    symbol, self.parser.mutations_map[key], mutation_symbols
+                )
+
+        possible_symbols = self._filter_possibles(
+            current_state, possible_symbols + mutation_symbols
+        )
+
+        if len(possible_symbols) < 1:
+            if current_state in self.dfa.final_states or not self.dfa.transitions.get(
+                current_state, False
+            ):
+                return False
+            possible_symbols = list(self.dfa.transitions[current_state].keys())
+
+        return possible_symbols
 
     def _set_mappings(self, parser: ParserVcf):
         """Set the mappings for the prefix, infix, and suffix between an original symbol
@@ -123,42 +282,6 @@ class KTSSValidator(AbstractValidationArguments):
         The distance between the two sequences.
         """
         return method(string1, string2)
-
-    def generate_distances(self, sequences: Union[list, tuple]) -> SortedDict:
-        """Generates all the distances of an infix of a given list of sequences of all
-        the possible infixes.
-
-        Parameters
-        ---------
-        sequences: list
-            List of sequences.
-
-        Returns
-        -------
-        Dictionary that contains the sequence and its distances.
-        """
-        logger = logging.getLogger()
-        tqdm_out = TqdmLoggingHandler(logger, level=logging.INFO)
-
-        result = SortedDict()
-        logger.info("Generating validation data")
-        total_errors = 0
-        total_chars = 0
-        for sequence_raw in tqdm(sequences, file=tqdm_out):
-            reference_sequence = sequence_raw[0]
-            annotated_sequence = sequence_raw[1]
-
-            result[reference_sequence] = self._string_distances(
-                self.annotate_sequence(reference_sequence), annotated_sequence
-            )
-
-            total_errors += result[reference_sequence]
-            total_chars += len(annotated_sequence)
-
-        if total_chars != 0:
-            result["error"] = total_errors / total_chars
-
-        return result
 
     @staticmethod
     def _add_symbol(symbol: str, mapping: dict, symbols: list) -> None:
@@ -209,83 +332,3 @@ class KTSSValidator(AbstractValidationArguments):
         return list(
             filter(lambda symbol: self.dfa.has_transition(state, symbol), symbols)
         )
-
-    def annotate_sequence(self, sequence: str, separator: str = "") -> str:
-        """Gets a string sequence, and annotates it.
-
-        The process consists of getting all the associated symbols from the parser
-        mappings (prefix, mutation, and suffix) that can be associated with a symbol
-        from the sequence.
-
-        Then, the method filters them by the condition that a transition can be done
-        with that symbols from a state of the model DFA.
-
-        If more than one symbol can be associated to a sequence symbol, this methods get
-        in a aleatory way a symbol from all the possible symbols.
-
-        For instance, if our sequence is:
-
-        ```python
-            "AAA"
-        ```
-
-        Our transitions are:
-
-        ```python
-            {
-                "1": {"a": "2", "b": "3"},
-                "2": {"a": "4", "b": "5", "d": "6", "l": "15"},
-                "3": {"a": "7", "b": "8", "d": "9"},
-                "4": {"z": "10", "x": "11"},
-                "6": {"z": "12"},
-                "9": {"z": "13", "x": "14"},
-                "15": {"z": "16"},
-            }
-        ```
-
-        And our mappings are:
-
-        ```python
-            prefix_map = {"A": "a", "C": "c", "B": "b"}
-            mutations_map = {"A": "l", "C": "d"}
-            suffix_map = {"A": "z", "C": "x", "B": "c"}
-        ```
-
-        We can get two results (with 50% of chance per result):
-
-         - **aaz**
-         - **alz**
-        """
-        result = []
-        current_state = self.dfa.initial_state
-        for symbol in sequence:
-            possible_symbols = []
-            mutation_symbols = []
-            KTSSValidator._add_symbol(symbol, self.parser.prefix_map, possible_symbols)
-            KTSSValidator._add_symbol(symbol, self.parser.suffix_map, possible_symbols)
-            KTSSValidator._add_symbol(
-                symbol, self.parser.mutations_map, mutation_symbols
-            )
-
-            if KTSSValidator._is_nested(self.parser.mutations_map):
-                for key in self.parser.mutations_map:
-                    KTSSValidator._add_symbol(
-                        symbol, self.parser.mutations_map[key], mutation_symbols
-                    )
-
-            possible_symbols = self._filter_possibles(
-                current_state, possible_symbols + mutation_symbols
-            )
-
-            if len(possible_symbols) < 1:
-                if current_state in self.dfa.final_states:
-                    return separator.join(result)
-                possible_symbols = list(self.dfa.transitions[current_state].keys())
-
-            """TODO: Cambiar cuando se añada el modelo estocástico y usar Viterbi"""
-            symbol = possible_symbols[random.randint(0, len(possible_symbols) - 1)]
-
-            result.append(symbol)
-            current_state = self.dfa.next_state(symbol, current_state)
-
-        return separator.join(result)

@@ -9,8 +9,9 @@ FILE_OPTIONS = $(VCF) $(FASTA) -s $(SAVE)
 
 # Sequences options
 # --------------------------------------------------------------------------------------
-LENGTH = 20
-SEQUENCE_OPTIONS = -p_p $(LENGTH) -p_s $(LENGTH)
+LENGTH_PREFIX = 20
+LENGTH_SUFFIX = 20
+SEQUENCE_OPTIONS = -p_p $(LENGTH_PREFIX) -p_s $(LENGTH_SUFFIX)
 
 # PARSER options
 # --------------------------------------------------------------------------------------
@@ -28,7 +29,8 @@ KTSS_OPTIONS = -m $(MODEL) -k $(K)
 # --------------------------------------------------------------------------------------
 ADD_MUTATION_VALIDATOR = -amval
 ADD_ORIGNAL_VALIDATOR = -aoval
-VALIDATOR_OPTIONS = $(ADD_ORIGNAL_VALIDATOR) -min $(ADD_MUTATION_VALIDATOR)
+SAVE_DISTANCES = -sd
+VALIDATOR_OPTIONS = $(ADD_ORIGNAL_VALIDATOR) -min $(ADD_MUTATION_VALIDATOR) $(SAVE_DISTANCES)
 
 # General model options
 # --------------------------------------------------------------------------------------

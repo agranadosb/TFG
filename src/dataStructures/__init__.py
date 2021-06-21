@@ -1,4 +1,4 @@
-from . import dfa
+from . import dfa, dfaStochastic
 
 __pdoc__ = {}
 
