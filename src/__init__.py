@@ -15,5 +15,7 @@ from . import (
 __pdoc__ = {}
 
 __pdoc__["logging"] = False
+__pdoc__["constants"] = False
+__pdoc__["argumentParser"] = False
 
 __docformat__ = "google"

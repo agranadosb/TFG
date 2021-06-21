@@ -132,9 +132,9 @@ class Runner(object):
             title = f"LENGTH-PREFIX\tLENGTH-SUFFIX\tK\tACCURACY"
             print(title, file=fr)
             print(title)
-            for length_suffix in range(5, 101, 10):
-                for length_prefix in range(5, 101, 10):
-                    for k in range(2, 15):
+            for length_suffix in range(15, 101, 15):
+                for length_prefix in range(15, 101, 15):
+                    for k in range(2, 12):
                         args["test_ratio"] = 9 / 10
                         args["parser_prefix"] = length_prefix
                         args["parser_suffix"] = length_suffix
