@@ -65,9 +65,9 @@ class ParserVcf(AbstractParserArguments, ABC):
         },
         {
             "key": "wc",
-            "name": "write-chromosme",
+            "name": "write-chromosome",
             "help": "Writes the chromsome where the sequence are from on parser file",
-            "function_argumemnt": {"wc": "write_chromosme"},
+            "function_argumemnt": {"wc": "write_chromosome"},
             "action": "store_true",
         },
         {
@@ -84,7 +84,7 @@ class ParserVcf(AbstractParserArguments, ABC):
         "ao": "add_original",
         "amto": "add_mutation_to_original",
         "pfilename": "filename",
-        "wc": "write_chromosme",
+        "wc": "write_chromosome",
         "parser_prefix": "prefix_length",
         "parser_suffix": "suffix_length",
         "result_folder": "path",
@@ -92,14 +92,14 @@ class ParserVcf(AbstractParserArguments, ABC):
     """ Mapping between command line arguments and function arguments of the
     **generate_sequence** method """
 
-    _fasta_reader: FastaReader = None
+    fasta_reader: FastaReader = None
     """ Fasta reader """
 
     def __init__(self, vcf_path: str, fasta_path: str):
         logging.info("Loading vcf file")
         self._vcf_file = VcfReader(open(vcf_path, "r"))
 
-        self._fasta_reader = FastaReader(fasta_path)
+        self.fasta_reader = FastaReader(fasta_path)
         logging.info("Loading finalized\n")
 
     @property
@@ -121,15 +121,6 @@ class ParserVcf(AbstractParserArguments, ABC):
         Vcf file.
         """
         return self._vcf_file
-
-    def get_fasta_reader(self) -> FastaReader:
-        """Returns vcf reader.
-
-        Returns
-        -------
-        Vcf reader.
-        """
-        return self._fasta_reader
 
     def _original_sequence_to_string(
         self,
@@ -232,7 +223,7 @@ class ParserVcf(AbstractParserArguments, ABC):
         self,
         path: str,
         filename: str = False,
-        write_chromosme: bool = False,
+        write_chromosome: bool = False,
         add_original: bool = True,
         prefix_length: int = 5,
         suffix_length: int = 5,
@@ -251,7 +242,7 @@ class ParserVcf(AbstractParserArguments, ABC):
             Path to store the data.
         filename: str = default_filename
             Filename of the result file.
-        write_chromosme: bool = False
+        write_chromosome: bool = False
             If true add the chromosome where the sequences is from into the file.
         add_original: bool = False
             If true adds the original sequence into the file.
@@ -276,12 +267,14 @@ class ParserVcf(AbstractParserArguments, ABC):
         sequences = []
         with open(f"{path}/{filename}", "w") as parsed_data_file:
             for i in tqdm(self.get_vcf(), file=tqdm_out):
-                sequence = self.get_fasta_reader().get_sequence(
-                    i.CHROM, i.REF, i.POS - 1, prefix_length, suffix_length
+                sequence = self.fasta_reader[i.CHROM].sequence(
+                    i.REF, i.POS - 1, prefix_length, suffix_length
                 )
 
+                assert sequence[1].upper() == i.REF.upper()
+
                 prefix = ""
-                if write_chromosme:
+                if write_chromosome:
                     prefix = f"{i.CHROM}\t"
 
                 original_sequence = ""
@@ -317,7 +310,7 @@ class ParserVcf(AbstractParserArguments, ABC):
             Path to store the data.
         filename: str = default_filename
             Filename of the result file.
-        write_chromosme: bool = False
+        write_chromosome: bool = False
             If true add the chromosome where the sequences is from into the file.
         add_original: bool = False
             If true adds the original sequence into the file.

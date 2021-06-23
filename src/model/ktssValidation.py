@@ -193,7 +193,6 @@ class KTSSValidator(AbstractValidationArguments):
             ]
             max_probability_symbol = max(probabilities, key=lambda item: item[1])[0]
 
-            """TODO: usar Viterbi"""
             symbol = max_probability_symbol
 
             result.append(symbol)
@@ -219,6 +218,11 @@ class KTSSValidator(AbstractValidationArguments):
         -------
         List of possible symbols that match with the symbol.
         """
+        if current_state in self.dfa.final_states or not self.dfa.transitions.get(
+            current_state, False
+        ):
+            return False
+
         possible_symbols = []
         mutation_symbols = []
         KTSSValidator._add_symbol(symbol, self.parser.prefix_map, possible_symbols)
@@ -236,10 +240,6 @@ class KTSSValidator(AbstractValidationArguments):
         )
 
         if len(possible_symbols) < 1:
-            if current_state in self.dfa.final_states or not self.dfa.transitions.get(
-                current_state, False
-            ):
-                return False
             possible_symbols = list(self.dfa.transitions[current_state].keys())
 
         return possible_symbols

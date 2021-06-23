@@ -43,7 +43,7 @@ class KTSSViterbi(KTSSValidator):
             suffix_map = {"A": "z", "C": "x", "B": "c"}
         ```
 
-        We can get two results (with 50% of chance per result):
+        We can get two results:
 
          - **alz**
 
@@ -58,7 +58,7 @@ class KTSSViterbi(KTSSValidator):
         -------
         Annotated sequence
         """
-        result = {self.dfa.initial_state: 1}
+        forward_porb = {self.dfa.initial_state: 1}
         backward = {}
         leafs = set(self.dfa.initial_state)
         bad_leafs = set()
@@ -76,7 +76,7 @@ class KTSSViterbi(KTSSValidator):
                 for possible_symbol in possible_symbols:
                     next_state = self.dfa.transitions[current_state][possible_symbol]
                     probability = self.dfa.probabilities[current_state][possible_symbol]
-                    result[next_state] = result[current_state] * probability
+                    forward_porb[next_state] = forward_porb[current_state] * probability
                     level_backward[next_state] = current_state
 
                     auxiliar_leafs.add(next_state)
@@ -88,7 +88,7 @@ class KTSSViterbi(KTSSValidator):
         if len(leafs) < 1:
             leafs = bad_leafs
 
-        states_probabilities = {state: result[state] for state in leafs}
+        states_probabilities = {state: forward_porb[state] for state in leafs}
         state = max(states_probabilities, key=states_probabilities.get)
 
         return self._backtrack(
