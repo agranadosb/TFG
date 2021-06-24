@@ -32,6 +32,7 @@ class Chromosome(object):
     length: int
         Length of the chromosome.
     """
+
     def __init__(
         self,
         fasta_file: TextIO,
@@ -40,6 +41,7 @@ class Chromosome(object):
         label_length: int,
         index_start: int,
         length: int,
+        labels: list = False,
     ) -> None:
         self.name = name
         self.fasta_file = fasta_file
@@ -47,6 +49,7 @@ class Chromosome(object):
         self.label_length = label_length
         self.index_start = index_start
         self.length = length
+        self.labels = labels
 
     def sequence(
         self,
@@ -101,9 +104,7 @@ class Chromosome(object):
         length = self.length - 1
 
         if pos > length or pos < 0:
-            raise IndexError(
-                f"Invalid index, must be in the interval {0}-{length}"
-            )
+            raise IndexError(f"Invalid index, must be in the interval {0}-{length}")
 
         # It's necessary to taking into account that seek method counts new lines as a
         # character, that's why we add new line characters ('\n')

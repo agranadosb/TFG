@@ -160,7 +160,7 @@ class TestKTSSModel(TestCase):
 
         self.assertEqual(result["prefixes"], prefixes)
         self.assertEqual(result["suffixes"], suffixes)
-        self.assertEqual(result["infixes"], infixes)
+        self.assertCountEqual(result["infixes"], infixes)
 
     def test_generate_sequences_k_3(self):
         samples = ["abba", "aaabba", "bbaaa", "bba"]
@@ -171,9 +171,9 @@ class TestKTSSModel(TestCase):
 
         result = self.model._generate_sequences(samples, k)
 
-        self.assertEqual(result["prefixes"], prefixes)
+        self.assertCountEqual(result["prefixes"], prefixes)
         self.assertEqual(result["suffixes"], suffixes)
-        self.assertEqual(result["infixes"], infixes)
+        self.assertCountEqual(result["infixes"], infixes)
 
     def test__generate_not_allowed_segments_k_1(self):
         k = 2
@@ -302,7 +302,6 @@ class TestKTSSModel(TestCase):
         }
         initial_state = "1"
         final_states = {"a"}
-        not_allowed_segments = {"a", "b"}
 
         result = self.model._training(samples, k, get_not_allowed_segements=True)
         same_transitions = all(map(lambda x: x in transitions, result["transitions"]))
@@ -312,7 +311,6 @@ class TestKTSSModel(TestCase):
         self.assertTrue(same_transitions)
         self.assertEqual(result["initial_state"], initial_state)
         self.assertEqual(result["final_states"], final_states)
-        self.assertEqual(result["not_allowed_segments"], not_allowed_segments)
 
     def test_training_k_3(self):
         samples = ["abba", "aaabba", "bbaaa", "bba"]
@@ -330,7 +328,6 @@ class TestKTSSModel(TestCase):
         }
         initial_state = "1"
         final_states = {"ba", "bba", "aa"}
-        not_allowed_segments = {"ab", "a", "b", "aa", "bbb", "bb", "ba", "aba", "bab"}
 
         result = self.model._training(samples, k, get_not_allowed_segements=True)
         same_transitions = all(map(lambda x: x in transitions, result["transitions"]))
@@ -340,7 +337,6 @@ class TestKTSSModel(TestCase):
         self.assertTrue(same_transitions)
         self.assertEqual(result["initial_state"], initial_state)
         self.assertEqual(result["final_states"], final_states)
-        self.assertEqual(result["not_allowed_segments"], not_allowed_segments)
 
     def test__add_transition_empty_transitions(self):
         transitions = {}

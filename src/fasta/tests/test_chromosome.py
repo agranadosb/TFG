@@ -267,3 +267,74 @@ class TestChromosomeCHR3(TestCase):
         result = self.chromosome.sequence(nucleotide, pos, from_nuc, to_nuc)
 
         self.assertEqual(result, sequence)
+
+
+class TestChromosome1LineCHR2(TestCase):
+    def setUp(self) -> None:
+        self.static_dir = f"{str(pathlib.Path(__file__).parent.absolute())}/static/"
+        self.sequence = "TGACTGACTGACTGACTGACTGACTGACTGACTGAC"
+        self.chromosome = Chromosome(
+            open(f"{self.static_dir}test2.fa", "r"),
+            name="chr2",
+            line_length=36,
+            label_length=8,
+            index_start=38,
+            length=36,
+        )
+
+        return super().setUp()
+
+    def test___getitem__(self):
+        sequence = self.sequence[0]
+
+        data = self.chromosome[0]
+
+        self.assertEqual(data, sequence)
+
+    def test___getitem___no_start(self):
+        sequence = self.sequence[:24]
+
+        data = self.chromosome[:24]
+
+        self.assertEqual(data, sequence)
+
+    def test___getitem___no_end(self):
+        sequence = self.sequence[4:]
+
+        data = self.chromosome[4:]
+
+        self.assertEqual(data, sequence)
+
+    def test___getitem___all(self):
+        sequence = self.sequence[:]
+
+        data = self.chromosome[:]
+
+        self.assertEqual(data, sequence)
+
+    def test__get_prefix_at_start(self):
+        pos = 5
+        length = 7
+        prefix = self.sequence[0:5]
+
+        data = self.chromosome[pos:-length]
+
+        self.assertEqual(data, prefix)
+
+    def test__get_prefix(self):
+        pos = 13
+        length = 7
+        prefix = self.sequence[pos - length : pos]
+
+        data = self.chromosome[pos:-length]
+
+        self.assertEqual(data, prefix)
+
+    def test__get_prefix_at_end(self):
+        pos = 28
+        length = 7
+        prefix = self.sequence[pos - length : pos]
+
+        data = self.chromosome[pos:-length]
+
+        self.assertEqual(data, prefix)
