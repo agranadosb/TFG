@@ -14,9 +14,10 @@ class AbstractValidationArguments(ABC, ArgumentParser):
     - **function_argument**: mapping that maps the name argument with the function
     argument which it will be called
 
-    The other dict keys will be the arguments of argparse add_arguments function.
+    The other dict keys will be the arguments of argparse [add_argument](https://docs.python.org/3/library/argparse.html#the-add-argument-method)
+    function.
 
-    It implements functions to get data for methods of models.
+    It implements functions to get data for methods of validators.
 
     To get the arguments for the trainer method, it's necessary to use the method
     get_trainer_arguments. So, an example could be:
@@ -62,7 +63,8 @@ class AbstractParserArguments(ABC, ArgumentParser):
     - **function_argument**: mapping that maps the name argument with the function
     argument which it will be called
 
-    The other dict keys will be the arguments of argparse add_arguments function.
+    The other dict keys will be the arguments of argparse [add_argument](https://docs.python.org/3/library/argparse.html#the-add-argument-method)
+    function.
 
     It implements functions to get data for methods of models.
 
@@ -110,7 +112,8 @@ class AbstractModelArguments(ABC, ArgumentParser):
     - **function_argument**: mapping that maps the name argument with the function
     argument which it will be called
 
-    The other dict keys will be the arguments of argparse add_arguments function.
+    The other dict keys will be the arguments of argparse [add_argument](https://docs.python.org/3/library/argparse.html#the-add-argument-method)
+    function.
 
     It implements functions to get data for methods of models.
 

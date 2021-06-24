@@ -1,13 +1,9 @@
 from argparse import ArgumentParser as DefaultParser
 from typing import Any
 
-from src.constants.constants import (
-    EXTENDED_PARSER_CODE,
-    KTSS_MODEL,
-    MUTATION_PARSER_CODE,
-    PARSER_MODEL_OPERATION,
-    PARSER_OPERATION,
-)
+from src.constants.constants import (EXTENDED_PARSER_CODE, KTSS_MODEL,
+                                     MUTATION_PARSER_CODE,
+                                     PARSER_MODEL_OPERATION, PARSER_OPERATION)
 
 
 class ArgumentParser(object):
@@ -139,6 +135,15 @@ class ArgumentParser(object):
                 "name": "save_distances",
                 "help": "Save he distances into files per step",
                 "function_argumemnt": {"save_distances": "save_distances"},
+                "action": "store_true",
+            },
+        )
+        self.add_argument(
+            {
+                "key": "test",
+                "name": "test",
+                "help": "Test values",
+                "function_argumemnt": {"test": "test"},
                 "action": "store_true",
             },
         )

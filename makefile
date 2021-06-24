@@ -39,7 +39,8 @@ VALIDATOR_OPTIONS = $(ADD_ORIGNAL_VALIDATOR) -min $(ADD_MUTATION_VALIDATOR) $(SA
 RATIO = 0.90
 STEPS = 1
 INIT = python3 init.py
-GENERAL_OPTIONS = $(INIT) -r $(RATIO) -steps $(STEPS) -o pm $(FILE_OPTIONS)
+TEST =
+GENERAL_OPTIONS = $(INIT) -r $(RATIO) -steps $(STEPS) -o pm $(FILE_OPTIONS) $(TEST)
 
 build-docs:
 	pdoc --html src --force
