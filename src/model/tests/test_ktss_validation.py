@@ -203,7 +203,7 @@ class TestKTSSValidatorAnnotate(TestCase):
         self.assertNotIn(annotated2, results)
 
     def test_4(self):
-        sequence = "AC"
+        sequence = "AG"
         annotated = "ad"
 
         result = self.ktss_validator.annotate_sequence(sequence)
@@ -231,7 +231,7 @@ class TestKTSSValidatorAnnotate(TestCase):
         self.assertIn(annotated_not_muutation, results)
 
     def test_9(self):
-        sequence = "Z"
+        sequence = "A"
         annotated1 = "a"
         annotated2 = "b"
 
