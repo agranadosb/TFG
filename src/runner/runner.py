@@ -4,13 +4,9 @@ import logging
 import os
 
 from src.argumentParser.argumentParser import ArgumentParser
-from src.constants.constants import (
-    EXTENDED_PARSER_CODE,
-    KTSS_MODEL,
-    MUTATION_PARSER_CODE,
-    PARSER_MODEL_OPERATION,
-    PARSER_OPERATION,
-)
+from src.constants.constants import (EXTENDED_PARSER_CODE, KTSS_MODEL,
+                                     MUTATION_PARSER_CODE,
+                                     PARSER_MODEL_OPERATION, PARSER_OPERATION)
 from src.model.ktssModel import KTSSModel
 from src.model.ktssValidation import KTSSValidator
 from src.model.ktssViterbi import KTSSViterbi
@@ -156,6 +152,10 @@ class Runner(object):
 
     @staticmethod
     def run(logger=True):
+        args = _argument_parser.get_function_arguments()
+        if args.get("test", False):
+            return Runner.test()
+
         logging.basicConfig(
             format="%(asctime)s %(levelname)-8s %(message)s",
             level=logging.INFO if logger else logging.WARNING,

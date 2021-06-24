@@ -12,7 +12,6 @@ from src.argumentParser.abstractArguments import AbstractModelArguments
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.model.abstractModel import AbstractModel
 from src.model.ktssValidation import KTSSValidator
-from src.model.ktssViterbi import KTSSViterbi
 from src.parser.extendedParser import ExtendedParserVcf
 from tqdm import tqdm
 
@@ -63,7 +62,7 @@ class KTSSModel(AbstractModel, AbstractModelArguments):
         save_path=False,
         restore_path=False,
         parser=ExtendedParserVcf,
-        tester=KTSSViterbi,
+        tester=KTSSValidator,
     ):
         super().__init__(save_path=save_path, restore_path=restore_path)
         self._model = False

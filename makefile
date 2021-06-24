@@ -4,6 +4,8 @@
 # --------------------------------------------------------------------------------------
 SAVE = /opt/UPV/TFG/src/example/
 VCF = -vcf $(SAVE)datosR1.vcf
+VCF_2 = -vcf /home/alejandro/Descargas/datosvcf/RP924_9589186940.vcf
+FASTA_2 = -fasta /home/alejandro/GRCh37.p13.genome.fa.gz
 FASTA = -fasta $(SAVE)hg19.fa.gz
 FILE_OPTIONS = $(VCF) $(FASTA) -s $(SAVE)
 
@@ -37,7 +39,8 @@ VALIDATOR_OPTIONS = $(ADD_ORIGNAL_VALIDATOR) -min $(ADD_MUTATION_VALIDATOR) $(SA
 RATIO = 0.90
 STEPS = 1
 INIT = python3 init.py
-GENERAL_OPTIONS = $(INIT) -r $(RATIO) -steps $(STEPS) -o pm $(FILE_OPTIONS)
+TEST =
+GENERAL_OPTIONS = $(INIT) -r $(RATIO) -steps $(STEPS) -o pm $(FILE_OPTIONS) $(TEST)
 
 build-docs:
 	pdoc --html src --force

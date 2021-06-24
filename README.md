@@ -55,7 +55,7 @@ optional arguments:
                         Add mutation to original sequence on parser file
   -ao, --add-original   
                         Writes original sequence into parsed sequences file on parser file
-  -wc, --write-chromosme
+  -wc, --write-chromosome
                         Writes the chromsome where the sequence are from on parser file
   -pfilename PARSER_FILENAME, --parser-filename PARSER_FILENAME
                         Filename of the parser file

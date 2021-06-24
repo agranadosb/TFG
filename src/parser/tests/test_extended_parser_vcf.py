@@ -38,13 +38,6 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
 
         self.assertEqual(result, filename)
 
-    def test_get_fasta_reader(self):
-        filename = f"{self.static_dir}test.fa"
-
-        result = self.parser.get_fasta_reader().get_fasta().name
-
-        self.assertEqual(result, filename)
-
     def test__original_sequence_to_string(self):
         prefix = "prefix"
         sequence = ["ACGT", "ACGT", "ACGT"]
@@ -111,7 +104,7 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
 
         self.assertEqual(result, sequences)
 
-    def test_generate_sequences_write_chromosme_true(self):
+    def test_generate_sequences_write_chromosome_true(self):
         sequences = [
             "chr1\tACATGC|G\n*chr1\t* a x-z-v-c-x\n",
             "chr1\tGTTGCAT|CA\n*chr1\t*e f v-c-x-z-v\n",
@@ -125,7 +118,7 @@ class TestExtendedParserVcf_ParserVcf(TestCase):
             "chr2\tCTGACCGACTG|T\n*chr2\t*w-r-e-q-w s c-z-x-v-c\n",
         ]
         with patch("builtins.open", mock_open(read_data="data")):
-            result = self.parser._generate_sequences("", write_chromosme=True)
+            result = self.parser._generate_sequences("", write_chromosome=True)
 
         self.assertEqual(result, sequences)
 

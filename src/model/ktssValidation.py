@@ -1,10 +1,10 @@
 import logging
-import random
 from typing import Callable, Union
 
 from sortedcontainers import SortedDict
 from src.argumentParser.abstractArguments import AbstractValidationArguments
 from src.dataStructures.dfaStochastic import DFAStochastic
+from src.dataStructures.watsonCrickAutomata import WatsonCrickAutomata
 from src.logging.tqdmLoggingHandler import TqdmLoggingHandler
 from src.parser.extendedParser import ExtendedParserVcf
 from src.parser.parserVcf import ParserVcf
@@ -84,6 +84,10 @@ class KTSSValidator(AbstractValidationArguments):
             model["final_states"],
             model["probabilities"],
         )
+
+        self.wca = WatsonCrickAutomata(set(), [], {"1"}, "1", set(), {}, {})
+
+        self.wca.parse_dfa(self.dfa, self.inverse_symbols)
 
     def generate_distances(self, sequences: Union[list, tuple]) -> SortedDict:
         """Generates all the distances of an infix of a given list of sequences of all
@@ -178,28 +182,7 @@ class KTSSValidator(AbstractValidationArguments):
         -------
         Annotated sequence
         """
-        result = []
-        current_state = self.dfa.initial_state
-        for symbol in sequence:
-            possible_symbols = self._get_possible_symbols(current_state, symbol)
-            if not possible_symbols:
-                return separator.join(result)
-
-            state_probabilities = self.dfa.probabilities[current_state]
-
-            probabilities = [
-                (possible_symbol, state_probabilities[possible_symbol])
-                for possible_symbol in possible_symbols
-            ]
-            max_probability_symbol = max(probabilities, key=lambda item: item[1])[0]
-
-            """TODO: usar Viterbi"""
-            symbol = max_probability_symbol
-
-            result.append(symbol)
-            current_state = self.dfa.next_state(symbol, current_state)
-
-        return separator.join(result)
+        return self.wca.annotate_sequence(sequence)
 
     def _get_possible_symbols(self, current_state: str, symbol: str) -> list:
         """Returns all the symbols of a transition with origin on current state that
@@ -219,6 +202,11 @@ class KTSSValidator(AbstractValidationArguments):
         -------
         List of possible symbols that match with the symbol.
         """
+        if current_state in self.dfa.final_states or not self.dfa.transitions.get(
+            current_state, False
+        ):
+            return False
+
         possible_symbols = []
         mutation_symbols = []
         KTSSValidator._add_symbol(symbol, self.parser.prefix_map, possible_symbols)
@@ -236,10 +224,6 @@ class KTSSValidator(AbstractValidationArguments):
         )
 
         if len(possible_symbols) < 1:
-            if current_state in self.dfa.final_states or not self.dfa.transitions.get(
-                current_state, False
-            ):
-                return False
             possible_symbols = list(self.dfa.transitions[current_state].keys())
 
         return possible_symbols
@@ -260,6 +244,12 @@ class KTSSValidator(AbstractValidationArguments):
         """
         try:
             self._inverse_mutations_map = parser._inverse_mutations_map()
+            self.inverse_symbols = self._inverse_mutations_map.copy()
+            for i in parser.prefix_map:
+                self.inverse_symbols[parser.prefix_map[i]] = i
+            for i in parser.suffix_map:
+                self.inverse_symbols[parser.suffix_map[i]] = i
+
         except AttributeError:
             raise NotImplementedError(
                 "For this metohd is necessary to define prefix_map, mutations_map, suffix_map attributes into the parser class"
